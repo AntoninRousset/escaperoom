@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Escape room</title>
+	<link rel="stylesheet" type="text/css" href="{{game_name}}/monitor.css">
+    <link rel="stylesheet" type="text/css" href="{{game_name}}/page.css">
+    <link rel="stylesheet" type="text/css" href="{{game_name}}/scenario.css">
+    <link rel="stylesheet" type="text/css" href="{{game_name}}/timer-camera-clues.css">
+	<script src='{{game_name}}/devices.js' type='module'></script>
+	<script src='{{game_name}}/puzzles.js' type='module'></script>
+	<script src='{{game_name}}/cameras.js' type='module'></script>
+  </head>
+  <body class="debug">
+
+    <div id="timer" class="box page center huge">
+      <span>00:00:00</span>
+    </div>
+
+    <cameras-list class="box dark" src="/{{game_name}}/cameras">
+		<template class="item">
+			<video autoplay="true" height=240>No media</video>
+      </template>
+        <div class="empty">
+			no device	
+        </div>
+      <div class="loading">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+	   <div class="error">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+    </cameras-list>
+
+    <div id="camera" class="box dark scroll-y">
+      <img src="img/cctv.jpe"/>
+    </div>
+
+    <div id="scenario" class="box">
+		<puzzles-graph class="dark metro" src="/{{game_name}}/puzzles">
+        <div class="empty">
+			no scenario
+        </div>
+        <div class="loading">
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+        <div class="error">
+          <div></div>
+          <div></div>
+          <div></div>
+		</div>
+	  </puzzles-graph>
+      <div id="inspector" class="inspector scroll-y">
+        <div class="empty">
+          Please select a node
+        </div>
+		<div class="loading">
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+        <div class="error">
+          <div></div>
+          <div>ERROR</div>
+          <div></div>
+		</div>
+        <div class="selection hidden">
+          <div class="page padding">
+            <p class="state mini"></p>
+            <h1></h1>
+            <p class="description"></p>
+            <h2>Conditions</h2>
+            <div class="conditions rect list select">
+              <template id="condition-template">
+                <details>
+                  <summary></summary>
+                  <p></p>
+                </details>
+              </template>
+            </div>
+            <h2>Actions</h2>
+            <div class="actions">
+              <button id="reload-node">Actualiser le nœud</button>
+              <button class="dangerous" id="activation">Forcer l'activation</button>
+            </div>
+          </div>
+        </div>
+	  </div>
+    </div>
+
+    <div id="clues" class="box page padding">
+      <div class="rect clues list long select blue scroll-y">
+        <div class="loading">
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+      <div>
+        <textarea class="rect" placeholder="Indice à envoyer..."></textarea>
+        <button class="">Envoyer</button>
+      </div>
+    </div>
+
+	<devices-list class="box list select scroll-y" src="/{{game_name}}/devices">
+      <template class="item">
+		  <details>
+			<summary><slot name="name">name</slot></summary>
+			<device-info src="/{{game_name}}/device">
+				<template class="header">
+					<style>
+						p {
+							margin: 0;
+							margin-left: 0.5em;
+						}
+					</style>
+					<p>name: <slot name="name"></slot></p>
+					<p>msg: <slot name="msg"></slot></p>
+					<p>addr: <slot name="addr"></slot></p>
+				</template>
+				<template class="item">
+					<style>
+						p {
+							margin: 0;
+							margin-left: 0.5em;
+						}
+					</style>
+					<p>
+						Attribute
+						"<slot name="name"></slot>"
+						(<slot name="type"></slot>):
+						<slot name="value"></slot>
+					</p>
+				</template>
+			</device-info>
+        </details>
+      </template>
+        <div class="empty">
+			no device	
+        </div>
+      <div class="loading">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+	   <div class="error">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+    </devices-list>
+
+    <div id="server-log" class="box list long scroll-y">
+      <div class="loading">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+    </div>
+
+  </body>
+</html>
