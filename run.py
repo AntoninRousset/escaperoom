@@ -52,6 +52,13 @@ def read_puzzle(game, uid):
     info_changed = puzzle.puzzle_changed
     return info, info_changed 
 
+def read_cameras(game):
+    descs = dict()
+    for uid, camera in game.misc.cameras.items():
+        descs[uid] = {'name' : camera.name}
+    descs_changed = game.misc.cameras_changed
+    return descs, descs_changed
+
 games = dict()
 routes = web.RouteTableDef()
 
@@ -64,6 +71,18 @@ async def monitor(request):
     game_name = request.match_info['game_name']
     context = {'game_name' : game_name}
     return aiohttp_jinja2.render_template('./html/monitor.jinja2', request, context)
+
+@routes.get('/{game_name}/receiver')
+async def sender(request):
+    game_name = request.match_info['game_name']
+    context = {'game_name' : game_name}
+    return aiohttp_jinja2.render_template('./html/receiver.jinja2', request, context)
+
+@routes.get('/{game_name}/streamer')
+async def sender(request):
+    game_name = request.match_info['game_name']
+    context = {'game_name' : game_name}
+    return aiohttp_jinja2.render_template('./html/streamer.jinja2', request, context)
 
 @routes.get('/{game_name}/{script_name}.js')
 async def script(request):
@@ -101,7 +120,6 @@ async def device(request):
     game = games[game_name]
     uid = request.query['id']
     device = game.network.devices[uid]
-
     async with sse_response(request) as resp:
         while True:
             data = read_device(device) 
@@ -122,9 +140,34 @@ async def puzzles(request):
     return resp
 
 @routes.get('/{game_name}/puzzle')
-async def device(request):
+async def puzzle(request):
     game_name = request.match_info['game_name']
     game = games[game_name]
+
+@routes.get('/{game_name}/cameras')
+async def cameras(request):
+    game_name = request.match_info['game_name']
+    game = games[game_name]
+    async with sse_response(request) as resp:
+        while True:
+            cameras, cameras_changed = read_cameras(game)
+            async with cameras_changed:
+                await resp.send(json.dumps(cameras))
+                await cameras_changed.wait()
+    return resp
+
+from aiortc import RTCSessionDescription
+@routes.post('/{game_name}/camera')
+async def camera(request):
+    game_name = request.match_info['game_name']
+    game = games[game_name]
+    uid = request.query['id']
+    camera = game.misc.cameras[uid]
+
+    params = await request.json()
+    offer = RTCSessionDescription(sdp=params['sdp'], type=params['type'])
+    answer = await camera.handle_offer(offer)
+    return web.Response(content_type='application/json', text=json.dumps(answer))
 
 async def main():
     #from games import b3

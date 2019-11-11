@@ -41,8 +41,8 @@ def log_debug(msg):
     if settings.log_debug:
         print(msg)
 
+#Abstract class
 class Node():
-
     def __init__(self):
         self.__tasks = set()
         self.changed = asyncio.Event()
@@ -479,3 +479,64 @@ class Puzzle(Node):
     def predicate(self, val):
         self._predicate = val
         #self.create_task(self.check_conds())
+
+class Misc(Node):
+    def __init__(self):
+        super().__init__()
+        self.cameras = dict()
+        self.cameras_changed = self.Condition()
+
+    async def _camera_listening(self, camera):
+        while True: 
+            async with camera.desc_changed:
+                await camera.desc_changed.wait()
+                com_debug(f'Misc: Camera {camera} changed its desc')
+                async with self.cameras_changed:
+                    self.cameras_changed.notify_all()
+
+    def add_camera(self, camera):
+        uid = hex(id(camera))
+        self.cameras[uid] = camera 
+        self.create_task(self._camera_listening(camera))
+        com_debug('Misc: Camera added')
+        return uid
+
+# Every msg on ws should be given to the camera so it can handle it
+# Abstract class
+class Camera(Node):
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+        self.connected = False 
+        self.desc_changed = self.Condition()
+
+from aiortc import RTCPeerConnection, RTCSessionDescription
+from aiortc.contrib.media import MediaPlayer
+from aiortc.contrib.media import MediaPlayer
+
+class LocalCamera(Camera):
+    def __init__(self, name, path):
+        super().__init__(name)
+        self.path = path #do udev device instead
+        self.pcs = set()
+        self.player = MediaPlayer(path, format="v4l2")
+
+    async def handle_offer(self, offer):
+        pc = self.create_peer_connection()
+        self.pcs.add(pc)
+        await pc.setRemoteDescription(offer)
+        for t in pc.getTransceivers():
+            pc.addTrack(self.player.video)
+        answer = await pc.createAnswer()
+        await pc.setLocalDescription(answer)
+        return {'sdp' : pc.localDescription.sdp, 'type' : pc.localDescription.type} 
+
+    def create_peer_connection(self):
+        pc = RTCPeerConnection()
+        @pc.on('iceconnectionchanged')
+        async def on_ice_connection_state_change():
+            if pc.iceConnectionState == 'failed':
+                await pc.close()
+                pcs.discard(pc)
+        return pc
+

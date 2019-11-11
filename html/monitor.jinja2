@@ -18,28 +18,26 @@
       <span>00:00:00</span>
     </div>
 
-    <cameras-list class="box dark" src="/{{game_name}}/cameras">
+	<cameras-list class="box dark scroll-y" src="/{{game_name}}/cameras" width=200>
 		<template class="item">
-			<video autoplay="true" height=240>No media</video>
-      </template>
-        <div class="empty">
+			<camera-stream src='/{{game_name}}/camera'>
+				<video autoplay height=65>No media</video>
+			</camera-stream>
+		</template>
+		<div class="empty">
 			no device	
-        </div>
-      <div class="loading">
-        <div></div>
-        <div></div>
-        <div></div>
-      </div>
-	   <div class="error">
-        <div></div>
-        <div></div>
-        <div></div>
-      </div>
-    </cameras-list>
-
-    <div id="camera" class="box dark scroll-y">
-      <img src="img/cctv.jpe"/>
-    </div>
+		</div>
+		<div class="loading">
+			<div></div>
+			<div></div>
+			<div></div>
+		</div>
+		<div class="error">
+			<div></div>
+			<div></div>
+			<div></div>
+		</div>
+	</cameras-list>
 
     <div id="scenario" class="box">
 		<puzzles-graph class="dark metro" src="/{{game_name}}/puzzles">

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Receiver</title>
+  </head>
+  <body> 
+	  <script>
+		  pc = new RTCPeerConnection();
+		  pc.ontrack = handleTrackEvent;
+		  pc.onicecandidate = handleIceCandidateEvent; 
+		  pc.onnegotiationneeded = handleNegotiationNeededEvent; 
+
+		  ws = new WebSocket('ws://127.0.0.1:8080/time/camera');
+		  ws.onopen = () => {
+			  ws.send(JSON.stringify({
+				  type: 'login',
+				  name: 'receiver'
+			  }));
+			  pc.addTransceiver('video');
+		  };
+
+		  ws.onmessage = msg => {
+				const data = JSON.parse(msg.data);
+			  switch(data.type) {
+				case 'video-answer':
+					  console.log('answer received');
+					  handleVideoAnswerMsg(data)
+					  break;
+				case 'new-ice-candidate':
+					  console.log('candidate received');
+					  handleNewIceCandidate(data)
+					  break;
+			  }
+		  }
+
+		  function handleNegotiationNeededEvent(event) {
+			  pc.createOffer({offerToReceiveVideo: true})
+				  .then(function(offer) {
+					  console.log('offer created');
+					  return pc.setLocalDescription(offer);
+				  }).then(function() {
+					  console.log('local desc set');
+					  ws.send(JSON.stringify({
+						  type: 'video-offer',
+						  sdp: pc.localDescription
+					  }));
+					  console.log('video-offer sent');
+				  })
+		  }
+
+		  function handleVideoAnswerMsg(msg) {
+			  var desc = new RTCSessionDescription(msg.sdp);
+			  pc.setRemoteDescription(desc).then(function () {
+				  console.log('remote desc set');
+				});
+		  }
+
+		  function handleIceCandidateEvent(event) {
+			  if (event.candidate) {
+				  ws.send(JSON.stringify({
+					  type: 'new-ice-candidate',
+					  target: 'streamer',
+					  candidate: event.candidate
+				  }));
+				  console.log('ice candidate sent');
+			  };
+		  }
+
+		  function handleNewIceCandidate(msg) {
+			  var candidate = new RTCIceCandidate(msg.candidate);
+			  pc.addIceCandidate(candidate)
+				  .catch(console.error);
+			  console.log('new ICE candidate msg')
+		  }
+
+		  function handleTrackEvent(event) {
+			  document.getElementById('remote_video').srcObject = event.streams[0];
+			  console.log('got track');
+		  }
+
+	  </script>
+		<video autoplay id="remote_video" height="100"></video>
+  </body>
+</html>

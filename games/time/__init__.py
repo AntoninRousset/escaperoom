@@ -55,6 +55,15 @@ end.add_condition(b_hexa_state)
 end.predicate = lambda: not b_hexa_state.value
 logic.add_puzzle(end, pos=(0,1))
 
+misc = eg.Misc()
+
+main_camera = eg.LocalCamera('video0', '/dev/video0')
+misc.add_camera(main_camera)
+#main_camera = eg.LocalCamera('video1', '/dev/video1')
+other_camera = eg.LocalCamera('video2', '/dev/video2')
+misc.add_camera(other_camera)
+#main_camera = eg.LocalCamera('video3', '/dev/video3')
+
 '''
 # start 
 node = game.add(name='start', Node(reversible=False))
