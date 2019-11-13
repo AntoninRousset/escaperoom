@@ -49,10 +49,12 @@ async def puzzle(game, uid):
         yield info
         await puzzle.changed.wait()
 
-def cameras(game):
-    descs = dict()
-    for uid, camera in game.misc.cameras.items():
-        descs[uid] = {'name' : camera.name}
-    descs_changed = game.misc.cameras_changed
-    return descs, descs_changed
+async def cameras(game):
+    while True:
+        async with game.misc.cameras_changed: 
+            descs = dict()
+            for uid, camera in game.misc.cameras.items():
+                descs[uid] = {'name' : camera.name}
+            yield descs 
+            await game.misc.cameras_changed.wait()
 

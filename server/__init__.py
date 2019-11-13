@@ -75,11 +75,8 @@ async def cameras(request):
     game_name = request.match_info['game_name']
     game = games[game_name]
     async with sse_response(request) as resp:
-        while True:
-            cameras, cameras_changed = readers.cameras(game)
-            async with cameras_changed:
-                await resp.send(json.dumps(cameras))
-                await cameras_changed.wait()
+        async for cameras in readers.cameras(game):
+            await resp.send(json.dumps(cameras))
     return resp
 
 from aiortc import RTCSessionDescription

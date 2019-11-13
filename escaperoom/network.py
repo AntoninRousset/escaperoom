@@ -14,58 +14,19 @@
 
 import settings 
 import asyncio
-import functools
 import PJON_daemon_client as pac
 import re
+
+from .node import Node
 
 if settings.testing == 'bus':
     from tests import bus_testing as testing
 elif settings.testing == 'b3':
     from tests import b3_testing as testing
 
-def create_task(future):
-    # python3.6
-    loop = asyncio.get_event_loop()
-    return loop.create_task(future)
-    # python3.7
-    #return asyncio.create_task(future)
-
-async def askip():
-    return await asyncio.sleep(0)
-
 def com_debug(msg):
     if settings.com_debug:
         print(msg)
-
-def log_debug(msg):
-    if settings.log_debug:
-        print(msg)
-
-#Abstract class
-class Node():
-    def __init__(self):
-        self.__tasks = set()
-        self.changed = asyncio.Event()
-
-    def create_task(self, future):
-        task = create_task(future)
-        self.__tasks.add(task)
-        return task
-
-    def Condition(self):
-        cond = asyncio.Condition()
-        self.create_task(self.__condition_listener(cond))
-        return cond
-
-    async def __condition_listener(self, cond):
-        while True:
-            async with cond:
-                await cond.wait()
-                self.changed.set()
-                self.changed.clear()
-
-    def kill(self):
-        print('kill')
 
 class Bus(Node):
 
@@ -381,162 +342,4 @@ class Attribute(Node):
         if self.vtype == 'bool':
             return bool(float(self._value))
         return self._value
-
-class Logic(Node):
-    def __init__(self):
-        super().__init__()
-        self.positions = dict()
-        self.puzzles = dict()
-        self.puzzles_changed = asyncio.Condition()
-
-    async def _puzzle_listening(self, puzzle):
-        while True:
-            async with puzzle.desc_changed:
-                await puzzle.desc_changed.wait()
-                async with self.puzzles_changed:
-                    self.puzzles_changed.notify_all()
-
-    def add_puzzle(self, puzzle, pos):
-        uid = hex(id(puzzle))
-        self.puzzles[uid] = puzzle
-        self.positions[uid] = pos
-        self.create_task(self._puzzle_listening(puzzle))
-        log_debug('Logic: Puzzle added')
-        return uid
-
-class Puzzle(Node):
-
-    def __init__(self, name, *, state='inactive'):
-        super().__init__()
-        self.name = name
-        self.state = state
-        self.desc_changed = self.Condition()
-        self.parents = set()
-        self.conditions = set()
-
-        self.head = lambda: None
-        self.tail = lambda: None
-
-        self.predicate = lambda: False
-        self.create_task(self._game_flow())
-
-    async def _game_flow(self):
-        while True:
-            async with self.desc_changed:
-                while self.state == 'inactive':
-                    await self.desc_changed.wait()
-                self.head()
-                while self.state == 'active':
-                    await self.desc_changed.wait()
-                self.tail()
-                await self.desc_changed.wait()
-
-    async def _parent_listening(self, parent):
-        while True:
-            async with parent.desc_changed:
-                if self.state is 'inactive' and parent.state is 'completed':
-                    async with self.desc_changed:
-                        self.state = 'active'
-                        self.desc_changed.notify_all()
-                await parent.desc_changed.wait()
-
-    async def _cond_listening(self, cond):
-        while True:
-            if self.state is 'active':
-                await self.check_conds()
-                try:
-                    async with cond.desc_changed:
-                        await cond.desc_changed.wait()
-                except Exception as e:
-                    print(e)
-            else:
-                async with self.desc_changed:
-                    await self.desc_changed.wait()
-
-    def add_parent(self, parent):
-        self.parents.add(parent)
-        self.create_task(self._parent_listening(parent))
-
-    def add_condition(self, cond):
-        self.conditions.add(cond)
-        self.create_task(self._cond_listening(cond))
-
-    async def check_conds(self):
-        try:
-            if not self.predicate():
-                return
-        except Exception as e:
-            return log_debug(f'Puzzle: Predicate error: {e}')
-        async with self.desc_changed:
-            self.state = 'completed'
-            self.desc_changed.notify_all()
-
-    @property
-    def predicate(self):
-        return self._predicate
-
-    @predicate.setter
-    def predicate(self, val):
-        self._predicate = val
-        #self.create_task(self.check_conds())
-
-class Misc(Node):
-    def __init__(self):
-        super().__init__()
-        self.cameras = dict()
-        self.cameras_changed = self.Condition()
-
-    async def _camera_listening(self, camera):
-        while True: 
-            async with camera.desc_changed:
-                await camera.desc_changed.wait()
-                com_debug(f'Misc: Camera {camera} changed its desc')
-                async with self.cameras_changed:
-                    self.cameras_changed.notify_all()
-
-    def add_camera(self, camera):
-        uid = hex(id(camera))
-        self.cameras[uid] = camera 
-        self.create_task(self._camera_listening(camera))
-        com_debug('Misc: Camera added')
-        return uid
-
-# Every msg on ws should be given to the camera so it can handle it
-# Abstract class
-class Camera(Node):
-    def __init__(self, name):
-        super().__init__()
-        self.name = name
-        self.connected = False 
-        self.desc_changed = self.Condition()
-
-from aiortc import RTCPeerConnection, RTCSessionDescription
-from aiortc.contrib.media import MediaPlayer
-from aiortc.contrib.media import MediaPlayer
-
-class LocalCamera(Camera):
-    def __init__(self, name, path):
-        super().__init__(name)
-        self.path = path #do udev device instead
-        self.pcs = set()
-        self.player = MediaPlayer(path, format="v4l2")
-
-    async def handle_offer(self, offer):
-        pc = self.create_peer_connection()
-        self.pcs.add(pc)
-        await pc.setRemoteDescription(offer)
-        for t in pc.getTransceivers():
-            pc.addTrack(self.player.video)
-        answer = await pc.createAnswer()
-        await pc.setLocalDescription(answer)
-        return {'sdp' : pc.localDescription.sdp, 'type' : pc.localDescription.type} 
-
-    def create_peer_connection(self):
-        pc = RTCPeerConnection()
-        @pc.on('iceconnectionchanged')
-        async def on_ice_connection_state_change():
-            if pc.iceConnectionState == 'failed':
-                await pc.close()
-                pcs.discard(pc)
-        return pc
 

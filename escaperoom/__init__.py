@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 
 '''
@@ -13,8 +12,6 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-testing = None 
-
-com_debug = False 
-log_debug = False 
-misc_debug = False
+from .logic import Logic, Puzzle
+from .misc import Misc, LocalCamera
+from .network import Network, Bus, Device, Attribute

@@ -12,9 +12,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import asyncio
-
-import lib.escapegame as eg 
+from escaperoom import *
 
 # Features:
 # - Translate a physical events into a node
@@ -30,24 +28,24 @@ import lib.escapegame as eg
 
 name = 'time'
 
-network = eg.Network()
-network.add_bus(eg.Bus('socket path'))
+network = Network()
+network.add_bus(Bus('socket path'))
 
-base_hexa = eg.Device(name='base_hexagon')
-b_hexa_state = eg.Attribute(base_hexa, name='state')
+base_hexa = Device(name='base_hexagon')
+b_hexa_state = Attribute(base_hexa, name='state')
 base_hexa.add_attr(b_hexa_state)
 network.add_device(base_hexa)
 
-logic = eg.Logic()
+logic = Logic()
 
-start = eg.Puzzle('start', state='active')
+start = Puzzle('start', state='active')
 start.head = lambda: print('Place the pod to start')
 start.tail = lambda: print('Bravo')
 start.add_condition(b_hexa_state)
 start.predicate = lambda: b_hexa_state.value
 logic.add_puzzle(start, pos=(0,0))
 
-end = eg.Puzzle('end')
+end = Puzzle('end')
 end.head = lambda: print('Now remove it to end')
 end.tail = lambda: print('You win')
 end.add_parent(start)
@@ -55,11 +53,11 @@ end.add_condition(b_hexa_state)
 end.predicate = lambda: not b_hexa_state.value
 logic.add_puzzle(end, pos=(0,1))
 
-misc = eg.Misc()
+misc = Misc()
 
-main_camera = eg.LocalCamera('video0', '/dev/video0')
+main_camera = LocalCamera('video0', '/dev/video0')
 misc.add_camera(main_camera)
-#other_camera = eg.LocalCamera('video2', '/dev/video2')
+#other_camera = LocalCamera('video2', '/dev/video2')
 #misc.add_camera(other_camera)
 
 '''
