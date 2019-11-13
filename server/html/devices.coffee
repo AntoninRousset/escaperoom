@@ -16,7 +16,7 @@ class DevicesList extends Subscriber
 		@items_container.appendChild(item)
 		item.attachShadow({mode: 'open'}).appendChild(@template_item.content.cloneNode(true))
 		info = item.shadowRoot.querySelector('device-info')
-		info.setAttribute('src', info.getAttribute('src')+'?id='+id)
+		info.query_str = '?id='+id
 		details = item.shadowRoot.querySelector('details')
 		details.addEventListener('toggle', (event) =>
 			if (details.open)
@@ -32,7 +32,7 @@ class DevicesList extends Subscriber
 
 class DeviceInfo extends Subscriber
 	constructor: () ->
-		super(['name', 'msg', 'addr'])
+		super(slots=['name', 'msg', 'addr'])
 
 	add_item: (id, data) ->
 		item = document.createElement('div')
@@ -47,9 +47,7 @@ class DeviceInfo extends Subscriber
 		item.shadowRoot.appendChild(@template_item.content.cloneNode(true))
 
 	update: (datas) ->
-		for key in ['name', 'msg', 'addr']
-			span = @querySelector('span[slot='+key+']')
-			span.textContent = datas[key]
+		@read_slots(datas)
 		@read_items(datas['attrs'])
 
 	update_item: (id, data) ->

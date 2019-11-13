@@ -13,12 +13,11 @@
 	<script src='{{game_name}}/cameras.js' type='module'></script>
   </head>
   <body class="debug">
-
-    <div id="timer" class="box page center huge">
+	  <div id="timer" class="box page center huge">
       <span>00:00:00</span>
     </div>
 
-	<cameras-list class="box dark scroll-y" src="/{{game_name}}/cameras" width=200>
+	<cameras-list class="box dark scroll-y" src="/{{game_name}}/cameras">
 		<template class="item">
 			<camera-stream src='/{{game_name}}/camera'>
 				<video autoplay height=65>No media</video>
@@ -55,7 +54,7 @@
           <div></div>
 		</div>
 	  </puzzles-graph>
-      <div id="inspector" class="inspector scroll-y">
+	  <puzzle-info class="inspector scroll-y" src="/{{game_name}}/puzzle">
         <div class="empty">
           Please select a node
         </div>
@@ -90,7 +89,7 @@
             </div>
           </div>
         </div>
-	  </div>
+	  </puzzle-info>
     </div>
 
     <div id="clues" class="box page padding">

@@ -7,7 +7,6 @@ class CamerasList extends Subscriber
 		@subscribe()
 
 	add_item: (id, data) ->
-		console.log('add item: ', id)
 		item = document.createElement('div')
 		item.setAttribute('class', 'item')
 		item.setAttribute('item_id', id)

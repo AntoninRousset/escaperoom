@@ -11,6 +11,8 @@ class PuzzlesGraph extends Subscriber
 		@graph = document.createElementNS(svgns, 'g')
 		@graph.setAttributeNS(null, 'style', 'transform: translate(50%, 40px)')
 		@svg.appendChild(@graph)
+		@puzzle_info = document.querySelector('puzzle-info')
+		console.log(@puzzle_info)
 		@subscribe()
 
 	add_item: (id, data) ->
@@ -18,6 +20,9 @@ class PuzzlesGraph extends Subscriber
 		item.setAttributeNS(null, 'class', 'item')
 		item.setAttributeNS(null, 'item_id', id)
 		item.setAttributeNS(null, 'r', 20)
+		item.onclick = (event) =>
+			@puzzle_info.query_str = '?id='+id
+			@puzzle_info.subscribe()
 		@graph.appendChild(item)
 
 	update_item: (id, data) ->
@@ -29,7 +34,7 @@ class PuzzlesGraph extends Subscriber
 
 class PuzzleInfo extends Subscriber
 	constructor: () ->
-		super(['id', 'name', 'msg', 'addr'])
+		super(slots=['name'])
 
 	add_item: (id, data) ->
 		item = document.createElement('div')
@@ -43,11 +48,9 @@ class PuzzleInfo extends Subscriber
 		item.attachShadow( {mode:'open'} )
 		item.shadowRoot.appendChild(@template_item.content.cloneNode(true))
 
-	update: (datas) ->
-		for key in ['id', 'name', 'msg', 'addr']
-			span = @querySelector('span[slot='+key+']')
-			span.textContent = datas[key]
-		@read_items(datas['attrs'])
+	update: (data) ->
+		@read_slots(data)
+		@read_items(datas['parents'])
 
 	update_item: (id, data) ->
 		item = @get_item(id)

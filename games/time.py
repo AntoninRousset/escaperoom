@@ -59,10 +59,8 @@ misc = eg.Misc()
 
 main_camera = eg.LocalCamera('video0', '/dev/video0')
 misc.add_camera(main_camera)
-#main_camera = eg.LocalCamera('video1', '/dev/video1')
-other_camera = eg.LocalCamera('video2', '/dev/video2')
-misc.add_camera(other_camera)
-#main_camera = eg.LocalCamera('video3', '/dev/video3')
+#other_camera = eg.LocalCamera('video2', '/dev/video2')
+#misc.add_camera(other_camera)
 
 '''
 # start 

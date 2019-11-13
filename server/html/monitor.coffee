@@ -4,18 +4,19 @@ is_empty = (obj) ->
 	return true
 
 export default class Subscriber extends HTMLElement
-	constructor: (keys=null) ->
+	constructor: (@slots=[]) ->
 		super()
 		@subscription = null
+		@query_str = ''
 		@loading_screen = this.querySelector('.loading')
 		@empty_screen = this.querySelector('.empty')
 		@error_screen = this.querySelector('.error')
 		@template_header = @querySelector('template.header')
 		@template_item = @querySelector('template.item')
-		if keys? and @template_header?
-			for key in keys
+		if @template_header?
+			for slot in @slots
 				span = document.createElement('span')
-				span.setAttribute('slot', key)
+				span.setAttribute('slot', slot)
 				@appendChild(span)
 			@attachShadow({mode: 'open'})
 			@items_container = @shadowRoot
@@ -23,16 +24,19 @@ export default class Subscriber extends HTMLElement
 		else
 			@items_container = this
 
-	subscribe: (path = null) ->
+	subscribe: (path = null, query_str = null) ->
 		if not path?
 			path = @getAttribute('src')
+		if not query_str?
+			query_str = @query_str
+		loc = @getAttribute('src')+query_str
 		@unsubscribe()
-		@subscription = new EventSource(path)
+		@subscription = new EventSource(loc)
 		@subscription.onmessage = (event) =>
 			@set_state('good')
 			@update(JSON.parse(event.data))
 		@subscription.onerror = (error) =>
-			#console.log(error)
+			console.error(error)
 			@set_state('error')
 
 	unsubscribe: () ->
@@ -61,6 +65,11 @@ export default class Subscriber extends HTMLElement
 	
 	update: (datas) ->
 		@read_items(datas)
+
+	read_slots: (data) ->
+		for slot in @slots
+			span = @querySelector('span[slot='+slot+']')
+			span.textContent = data[slot]
 
 	read_items: (items) ->
 		if is_empty(items)
