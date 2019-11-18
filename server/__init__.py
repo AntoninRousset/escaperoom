@@ -97,10 +97,10 @@ aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./server/html/'))
 app.add_routes(routes)
 app.router.add_static('/time/', './server/html/', name='resources')
 
-async def start():
+async def start(host, port):
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, 'localhost', 8080)
+    site = web.TCPSite(runner, host, port)
     await site.start()
     print(f'Running on {site._host}:{site._port}')
 

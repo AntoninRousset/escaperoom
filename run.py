@@ -19,11 +19,23 @@ import settings
 
 import server
 
+import argparse
+
 async def main():
+    parser = argparse.ArgumentParser(description='EscapeRoom server')
+    parser.add_argument(
+        '--host', type=str, default='localhost',
+        help='Host for the HTTP server (default: localhost)'
+        )
+    parser.add_argument(
+        '--port', type=int, default=8080, help='Port for HTTP server (default: 8080)'
+    )
+    args = parser.parse_args()
+
     from games import time
     server.games['time'] = time
 
-    await server.start()
+    await server.start(host=args.host, port=args.port)
     while True:
         await asyncio.sleep(3600)
 
