@@ -15,9 +15,40 @@ body {
   bottom: 0px;
 }
 
-#scenario {
-  grid-area: 1 / 1 / 7 / 6;
+.screen {
+	display: block;
+	position: relative;	
+	width : 100%;
+	height: 100%;
 }
+
+puzzles-box {
+  grid-area: 1 / 1 / 4 / 6;
+}
+
+cameras-box {
+  grid-area: 1 / 6 / 4 / 11;
+}
+
+devices-box {
+  grid-area: 4 / 1 / 8 / 6;
+}
+
+controls-box {
+  grid-area: 4 / 6 / 8 / 11;
+}
+
+.selectable:hover {
+	background: #eee
+}
+
+.scroll-x {
+	overflow-x: scroll;
+	scrollbar-width: none; 
+}
+
+
+
 
 #clues {
   grid-area: 5 / 6 / 7 / 11;
@@ -43,13 +74,9 @@ body {
   grid-area: 1 / 1 / 4 / 6;
 }
 
-devices-list {
-  display: block;
-  grid-area: 4 / 1 / 7 / 3;
-}
 
 .debug #server-log {
-  display: block;
+  display: none;
   grid-area: 4 / 3 / 7 / 6;
 }
 
@@ -135,3 +162,16 @@ devices-list {
   30% { bottom: 0px;}
   100% { bottom: 0px;}
 }
+
+.loading {
+    display: inline
+}
+
+.empty {
+    display: none
+}
+
+.error {
+	display: none
+}
+

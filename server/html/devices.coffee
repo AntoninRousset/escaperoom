@@ -1,63 +1,56 @@
-import Subscriber from './monitor.js'
+import {Subscriber, Container} from './monitor.js'
+import {is_empty} from './monitor.js'
 
-class DevicesList extends Subscriber
+class DevicesBox extends Subscriber
 	constructor: () ->
 		super()
+		@apply_template()
+		@set_screen('loading')
+		@devices_list = @shadowRoot.querySelector('devices-list')
 		@subscribe()
+		
+	update: (datas) ->
+		@fill_slots(datas)
+		@devices_list.read_items(datas.devices)
+		if is_empty(datas.devices)
+			@set_screen('empty')
+		else
+			@set_screen('devices_list')
 
+customElements.define('devices-box', DevicesBox)
+
+class DevicesList extends Container
 	add_item: (id, data) ->
-		item = document.createElement('div')
-		item.setAttribute('class', 'item')
-		item.setAttribute('item_id', id)
-		for key of data
-			span = document.createElement('span')
-			span.setAttribute('slot', key)
-			item.appendChild(span)
-		@items_container.appendChild(item)
-		item.attachShadow({mode: 'open'}).appendChild(@template_item.content.cloneNode(true))
-		info = item.shadowRoot.querySelector('device-info')
-		info.query_str = '?id='+id
-		details = item.shadowRoot.querySelector('details')
-		details.addEventListener('toggle', (event) =>
-			if (details.open)
-				info.subscribe()
-			else
-				info.unsubscribe()
-		)
+		item = @create_item(id)
+		item.onclick = (event) ->
+			devices_box = document.querySelector('devices-box')
+			device_info = devices_box.shadowRoot.querySelector('device-info')
+			device_info.select(id)
+		@appendChild(item)
 
-	update_item: (id, data) ->
-		item = @get_item(id)
-		for key, value of data
-			item.querySelector('span[slot='+key+']').textContent = value
+customElements.define('devices-list', DevicesList)
 
 class DeviceInfo extends Subscriber
 	constructor: () ->
-		super(slots=['name', 'msg', 'addr'])
-
-	add_item: (id, data) ->
-		item = document.createElement('div')
-		item.setAttribute('class', 'item')
-		item.setAttribute('item_id', id)
-		for key of data
-			span = document.createElement('span')
-			span.setAttribute('slot', key)
-			item.appendChild(span)
-		@shadowRoot.appendChild(item)
-		item.attachShadow( {mode:'open'} )
-		item.shadowRoot.appendChild(@template_item.content.cloneNode(true))
+		super()
+		@apply_template()
+		@set_screen('empty')
+		@attrs_list = @shadowRoot.querySelector('attrs-list')
+	
+	select: (id) ->
+		@set_screen('loading')
+		@subscribe(null, '?id='+id)
 
 	update: (datas) ->
-		@read_slots(datas)
-		@read_items(datas['attrs'])
+		@fill_slots(datas)
+		@attrs_list.read_items(datas.attrs)
+		@set_screen('device_info')
 
-	update_item: (id, data) ->
-		item = @get_item(id)
-		for key, value of data
-			item.querySelector('span[slot='+key+']').textContent = value
-
-	remove_item: (id) ->
-		@item_node(uid).remove()
-		@infos[uid] = null
-
-customElements.define('devices-list', DevicesList)
 customElements.define('device-info', DeviceInfo)
+
+class AttrsList extends Container
+	add_item: (id, data) ->
+		item = @create_item(id)
+		@appendChild(item)
+
+customElements.define('attrs-list', AttrsList)

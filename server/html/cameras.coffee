@@ -1,53 +1,76 @@
-import Subscriber from './monitor.js'
+import {Subscriber, Container} from './monitor.js'
+import {is_empty} from './monitor.js'
 
-class CamerasList extends Subscriber
+class CamerasBox extends Subscriber
 	constructor: () ->
 		super()
-		@cameras = {}
+		@apply_template()
+		@set_screen('loading')
+		@cameras_list = @shadowRoot.querySelector('cameras-list')
 		@subscribe()
+		@onmouseover = (event) ->
+			@cameras_list.setAttribute('visible', 'true')
+		@onmouseout = (event) ->
+			@cameras_list.setAttribute('visible', 'false')
+
+	update: (datas) ->
+		@fill_slots(datas)
+		@cameras_list.read_items(datas.cameras)
+		if is_empty(datas.cameras)
+			@set_screen('empty')
+		else
+			@set_screen('cameras_list')
+
+
+customElements.define('cameras-box', CamerasBox)
+
+class CamerasList extends Container
+	constructor: () ->
+		super()
 
 	add_item: (id, data) ->
-		item = document.createElement('div')
-		item.setAttribute('class', 'item')
-		item.setAttribute('item_id', id)
-		for key of data
-			span = document.createElement('span')
-			span.setAttribute('slot', key)
-			item.appendChild(span)
-		@items_container.appendChild(item)
-		item.attachShadow({mode: 'open'})
-		item.shadowRoot.appendChild(@template_item.content.cloneNode(true))
-		camera = item.shadowRoot.querySelector('camera-stream')
-		camera.setAttribute('src', camera.getAttribute('src')+'?id='+id)
-		@cameras[id] = camera
-		camera.start()
-
-	update_item: (id, data) ->
-		item = @get_item(id)
-		for key, value of data
-			item.querySelector('span[slot='+key+']').textContent = value
-
-	remove_item: (id) ->
-		@cameras[id].stop()
-		@cameras[id] = null
-		@get_item(id).remove()
+		item = @create_item(id)
+		item.onclick = (event) =>
+			console.log(item)
+			stream = item.shadowRoot.querySelector('camera-video').srcObject
+			big_boy = document.querySelector('cameras-box').shadowRoot.getElementById('bigscreen')
+			console.log(big_boy, stream)
+			big_boy.srcObject = stream
+		@appendChild(item)
+		item.shadowRoot.querySelector('camera-video').start(null, '?id='+id)
 
 customElements.define('cameras-list', CamerasList)
 
-class CameraStream extends HTMLElement
+class CameraVideo extends HTMLElement
 	constructor: () ->
 		super()
-		@video = @querySelector('video')
-		@video.onclick = () =>
-			@video.mozRequestFullScreen()
 		@pc = new RTCPeerConnection()
 		@pc.onnegotiationneeded = (event) => @negotiate()
 		@pc.onicegatheringstatechange = (event) =>
 			if @pc.iceGatheringState is 'complete'
 				@send_offer()
 		@pc.ontrack = (event) => @got_tracks(event.streams)
+		@video = @create_video()
+	
+	create_video: () ->
+		video = document.createElement('video')
+		video.setAttribute('autoplay', 'true')
+		video.setAttribute('muted', 'true')
+		video.textContent = @textContent
+		@textContent = null
+		@appendChild(video)
+		video
 
-	start: () ->
+	start: (path=null, query_str=null) ->
+		if path?
+			path = @setAttribute('src', path)
+		else
+			path = @getAttribute('src')
+		if query_str?
+			@query_str = query_str
+		else
+			query_str = @query_str
+		@loc = @getAttribute('src')+query_str
 		@pc.addTransceiver('video', {direction: 'recvonly'})
 
 	negotiate: () ->
@@ -56,7 +79,7 @@ class CameraStream extends HTMLElement
 
 	send_offer: () ->
 		offer = @pc.localDescription
-		response = await fetch(@getAttribute('src'), {
+		response = await fetch(@loc, {
 			body: JSON.stringify({
 				sdp: offer.sdp,
 				type: offer.type,
@@ -69,6 +92,7 @@ class CameraStream extends HTMLElement
 		@pc.setRemoteDescription(await response.json())
 
 	got_tracks: (streams) ->
-		@video.srcObject = streams[0]
+		@srcObject = streams[0]
+		@video.srcObject = @srcObject
 
-customElements.define('camera-stream', CameraStream)
+customElements.define('camera-video', CameraVideo)

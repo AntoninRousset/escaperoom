@@ -1,94 +1,96 @@
-is_empty = (obj) ->
+export is_empty = (obj) ->
 	for key of obj
 		return false
 	return true
 
-export default class Subscriber extends HTMLElement
-	constructor: (@slots=[]) ->
+class Templated extends HTMLElement
+	constructor: () ->
+		super()
+		@template = @querySelector('template')
+		slots = @template.content.querySelectorAll('slot')
+		@slots = (slot.getAttribute('name') for slot in slots)
+
+	apply_template: (node=this) ->
+		for slot in @slots
+			span = document.createElement('span')
+			span.setAttribute('slot', slot)
+			node.appendChild(span)
+		node.attachShadow({mode: 'open'})
+		node.shadowRoot.appendChild(@template.content.cloneNode(true))
+		node
+
+	set_screen: (name, node=this) ->
+		for screen in node.shadowRoot.querySelectorAll('.screen')
+			if screen.getAttribute('name') is name
+				screen.style.display = 'block'
+			else
+				screen.style.display = 'none'
+
+	fill_slots: (data, node=this) ->
+		for slot in @slots
+			span = node.querySelector('span[slot='+slot+']')
+			span.textContent = data[slot]
+
+export class Subscriber extends Templated
+	constructor: () ->
 		super()
 		@subscription = null
 		@query_str = ''
-		@loading_screen = this.querySelector('.loading')
-		@empty_screen = this.querySelector('.empty')
-		@error_screen = this.querySelector('.error')
-		@template_header = @querySelector('template.header')
-		@template_item = @querySelector('template.item')
-		if @template_header?
-			for slot in @slots
-				span = document.createElement('span')
-				span.setAttribute('slot', slot)
-				@appendChild(span)
-			@attachShadow({mode: 'open'})
-			@items_container = @shadowRoot
-			@items_container.appendChild(@template_header.content.cloneNode(true))
-		else
-			@items_container = this
 
-	subscribe: (path = null, query_str = null) ->
-		if not path?
+	subscribe: (path=null, query_str=null) ->
+		if path?
+			path = @setAttribute('src', path)
+		else
 			path = @getAttribute('src')
-		if not query_str?
+		if query_str?
+			@query_str = query_str
+		else
 			query_str = @query_str
 		loc = @getAttribute('src')+query_str
 		@unsubscribe()
 		@subscription = new EventSource(loc)
 		@subscription.onmessage = (event) =>
-			@set_state('good')
 			@update(JSON.parse(event.data))
-		@subscription.onerror = (error) =>
-			console.error(error)
-			@set_state('error')
 
 	unsubscribe: () ->
 		if @subscription?
 			@subscription.close()
 
-	set_state: (state) ->
-		if state is 'good'
-			for node in @children
-				node.style.display = 'inline'
-			if @loading_screen?
-				@loading_screen.style.display = 'none'
-			if @empty_screen?
-				@empty_screen.style.display = 'none'
-			if @error_screen?
-				@error_screen.style.display = 'none'
-		else
-			for node in @children
-				node.style.display = 'none'
-			if state is 'loading' and @loading_screen?
-				@loading_screen.style.display = 'inline'
-			if state is 'empty' and @empty_screen?
-				@empty_screen.style.display = 'inline'
-			if state is 'error' and @error_screen?
-				@error_screen.style.display = 'inline'
-	
 	update: (datas) ->
-		@read_items(datas)
+		@fill_slots(datas)
 
-	read_slots: (data) ->
-		for slot in @slots
-			span = @querySelector('span[slot='+slot+']')
-			span.textContent = data[slot]
+export class Container extends Templated
+	constructor: () ->
+		super()
+		
+	create_item: (id, type='div') ->
+		item = document.createElement(type)
+		item.setAttribute('class', 'item')
+		item.setAttribute('item_id', id)
+		@apply_template(item)
 
-	read_items: (items) ->
-		if is_empty(items)
-			@set_state('empty')
+	update_item: (id, data) ->
+		item = @get_item(id)
+		@fill_slots(data, item)
+
+	read_items: (datas) ->
 		for id in @items_ids()
-			if id not of items
+			if id not of datas
 				@remove_item(id)
-		for id, item of items
+		for id, data of datas
 			if id not in @items_ids()
-				@add_item(id, item)
-			@update_item(id, item)
+				@add_item(id, data)
+			@update_item(id, data)
+		if is_empty(datas) and @onempty?
+			@onempty()
 
 	items_ids: () ->
-		items = @items_container.querySelectorAll('.item:not(template)')
+		items = @querySelectorAll('.item:not(template)')
 		(item.getAttribute('item_id') for item in items)
 
 	get_item: (id) ->
 		selector = '.item[item_id="'+id+'"]:not(template)'
-		@items_container.querySelector(selector)
+		@querySelector(selector)
 
 	remove_item: (id) ->
 		@get_item(id).remove()

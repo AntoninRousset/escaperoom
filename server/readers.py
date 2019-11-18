@@ -15,10 +15,12 @@
 async def devices(game):
     while True:
         async with game.network.devices_changed:
-            descs = dict()
+            datas = dict()
+            devices = dict()
             for uid, device in game.network.devices.items():
-                descs[uid] = {'name' : device.name, 'n_attr' : device.n_attr}
-            yield descs
+                devices[uid] = {'name' : device.name, 'n_attr' : device.n_attr}
+            datas['devices'] = devices 
+            yield datas 
             await game.network.devices_changed.wait()
 
 async def device(game, uid):
@@ -52,9 +54,11 @@ async def puzzle(game, uid):
 async def cameras(game):
     while True:
         async with game.misc.cameras_changed: 
-            descs = dict()
+            datas = dict()
+            cameras = dict()
             for uid, camera in game.misc.cameras.items():
-                descs[uid] = {'name' : camera.name}
-            yield descs 
+                cameras[uid] = {'name' : camera.name}
+            datas['cameras'] = cameras
+            yield datas 
             await game.misc.cameras_changed.wait()
 

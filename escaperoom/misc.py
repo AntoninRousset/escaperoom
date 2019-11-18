@@ -55,11 +55,11 @@ from aiortc.contrib.media import MediaPlayer
 from aiortc.contrib.media import MediaPlayer
 
 class LocalCamera(Camera):
-    def __init__(self, name, path):
+    def __init__(self, name, path, format='v4l2'):
         super().__init__(name)
         self.path = path #do udev device instead
         self.pcs = set()
-        self.player = MediaPlayer(path, format="v4l2")
+        self.player = MediaPlayer(path, format=format)
 
     async def handle_offer(self, offer):
         pc = self.create_peer_connection()
@@ -73,10 +73,18 @@ class LocalCamera(Camera):
 
     def create_peer_connection(self):
         pc = RTCPeerConnection()
+
         @pc.on('iceconnectionchanged')
         async def on_ice_connection_state_change():
+            print('ice connection state: ', pc.iceConnectionState)
             if pc.iceConnectionState == 'failed':
+                print('closing peer connection')
                 await pc.close()
                 pcs.discard(pc)
+
+        @pc.on('signalingstatechange')
+        async def asdf():
+            print('signaling state changed', pc.signalingState)
+
         return pc
 

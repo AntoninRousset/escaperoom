@@ -32,6 +32,7 @@ async def monitor(request):
     context = {'game_name' : game_name}
     return aiohttp_jinja2.render_template('monitor.jinja2', request, context)
 
+import asyncio
 @routes.get('/{game_name}/devices')
 async def devices(request):
     game_name = request.match_info['game_name']
@@ -99,8 +100,7 @@ app.router.add_static('/time/', './server/html/', name='resources')
 async def start():
     runner = web.AppRunner(app)
     await runner.setup()
-    #site = web.TCPSite(runner, 'localhost', 8080)
-    site = web.TCPSite(runner, '10.128.0.111', 8080)
+    site = web.TCPSite(runner, 'localhost', 8080)
     await site.start()
     print(f'Running on {site._host}:{site._port}')
 

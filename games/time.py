@@ -55,10 +55,15 @@ logic.add_puzzle(end, pos=(0,1))
 
 misc = Misc()
 
-main_camera = LocalCamera('video0', '/dev/video0')
-misc.add_camera(main_camera)
-#other_camera = LocalCamera('video2', '/dev/video2')
-#misc.add_camera(other_camera)
+'''
+camera = LocalCamera('video0', '/dev/video0')
+misc.add_camera(camera)
+camera = LocalCamera('video2', '/dev/video2')
+misc.add_camera(camera)
+'''
+for i in range(5):
+    camera = LocalCamera(f'film{i}', '/tmp/bill.mkv', format=None)
+    misc.add_camera(camera)
 
 '''
 # start 
