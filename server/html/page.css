@@ -106,32 +106,6 @@
   margin-bottom: 10px;
 }
 
-.page button {
-  border: 1px solid #00000040;
-  border-radius: 4px;
-  padding: 8px 14px;
-  text-shadow: 0px 1px 0px #ffffff40;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  margin-bottom: 8px;
-}
-
-.page button::-moz-focus-inner {
-  border: 0;
-}
-
-.page button:hover {
-  background: #a9d7d8; 
-}
-
-.page button.dangerous:hover {
-  background: #ed643f; 
-}
-
-.page button:active{
-  box-shadow: 0px 0px 20px #00000040 inset;
-}
-
 .inspector .actions button.dangerous.confirm {
   box-shadow: 0px 0px 20px #00000040 inset;
   background: #ed2c00; 

@@ -9,15 +9,55 @@ class PuzzlesBox extends Subscriber
 		@apply_template()
 		@set_screen('loading')
 		@puzzles_graph = @shadowRoot.querySelector('puzzles-graph')
+		@current_screen = 'graph'
+		menu = @shadowRoot.querySelector('.screen[name="menu"]')
+		menu.querySelector('#new-game').onclick = @new_game
+		menu.querySelector('#back-to-game').onclick = (event) =>
+			@set_screen('graph')
+		menu.querySelector('#stop-game').onclick = @stop_game
 		@subscribe()
 
 	update: (datas) ->
 		@fill_slots(datas)
+		@update_menu(datas)
 		@puzzles_graph.read_items(datas.puzzles)
-		if is_empty(datas.puzzles)
-			@set_screen('empty')
+		if @current_screen == 'graph'
+			if not datas.running
+				@current_screen = 'menu'
+			else if is_empty(datas.puzzles)
+				@current_screen = 'empty'
+		@set_screen(@current_screen)
+
+	update_menu: (datas) ->
+		menu = @shadowRoot.querySelector('.screen[name="menu"]')
+		new_game = menu.querySelector('#new-game')
+		back_to_game = menu.querySelector('#back-to-game')
+		stop_game = menu.querySelector('#stop-game')
+		if datas.running
+			new_game.setAttribute('hidden', '')
+			back_to_game.removeAttribute('hidden')
+			stop_game.disabled = false
 		else
-			@set_screen('graph')
+			new_game.removeAttribute('hidden')
+			back_to_game.setAttribute('hidden', '')
+			stop_game.disabled = true
+
+	new_game: (event) =>
+		reponse = await fetch(@getAttribute('src'), {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				action: 'new_game',
+				options: {
+					status: 'test'
+				}
+			}),
+			method: 'POST'
+		})
+
+	stop_game: (event) =>
+		console.log('stop game')
 
 customElements.define('puzzles-box', PuzzlesBox)
 

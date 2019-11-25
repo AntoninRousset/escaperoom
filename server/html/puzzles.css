@@ -1,14 +1,9 @@
 @import 'monitor.css';
 @import 'page.css';
 
-.screen {
+puzzles-graph {
 	display: flex;
 	flex: 50%;
-}
-
-puzzles-graph {
-	display: block;
-	height: 100%;
 }
 
 puzzle-info {

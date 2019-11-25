@@ -1,6 +1,9 @@
 @import 'monitor.css';
 @import 'page.css';
 
+.screen {
+	position: relative;
+}
 
 .panel {
 	position: absolute;

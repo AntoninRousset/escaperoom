@@ -12,7 +12,8 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import datetime
+import asyncio
+from datetime import datetime
 
 from .logic import Logic
 from .misc import Misc 
@@ -28,32 +29,36 @@ class Game(Node):
         self.logic = Logic()
         self.misc = Misc()
         self.game_id = None
+        self.status = None
         self.start_time = None
-        self.stop_time = None
+        self.end_time = datetime.today()
 
-    async def reset(self):
+    async def new_game(self, status):
+        print('status is ', status)
+        self.status = status
         self.start_time = None
-        self.stop_time = None
-        cs = (puzzle.reset() for puzzle in self.logic.puzzles.values())
-        await asyncio.gather(cs)
+        self.end_time = None
+        cs = {self.create_task(p.reset()) for p in self.logic.puzzles.values()}
+        await asyncio.wait(cs)
         self.game_id = database.write_game(self, new=True)
+        print('game started')
 
     def start_counter(self):
         self.start_time = datetime.today() 
         database.write_game(self)
 
     def stop_counter(self):
-        self.stop_time = datetime.today() 
+        self.end_time = datetime.today() 
         database.write_game(self)
 
     @property
     def counter(self):
         if self.start_time is None:
             return datetime.timedelta(0)
-        elif self.stop_time is None:
+        elif self.end_time is None:
             return datetime.today() - self.start_time
-        elif self.stop_time > self.start_time:
-            return self.stop_time - self.start_time
+        elif self.end_time > self.start_time:
+            return self.end_time - self.start_time
         else:
             raise RuntimeError()
 
@@ -61,6 +66,12 @@ class Game(Node):
     def ready(self):
         'ready to start game (minimum to go)'
         return True
+
+    @property
+    def running(self):
+        if self.end_time is None:
+            return True
+        return False
 
     @property
     def issues(self):

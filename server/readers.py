@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 '''
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -43,6 +41,8 @@ async def puzzles(game):
                 puzzles[uid] = {'name' : puzzle.name, 'state' : puzzle.state,
                               'row' : row, 'col' : col} 
             datas['puzzles'] = puzzles
+            datas['name'] = game.name
+            datas['running'] = game.running
             yield datas 
             await game.logic.puzzles_changed.wait()
 

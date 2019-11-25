@@ -17,48 +17,57 @@
 				<link rel='stylesheet' type='text/css'
 					  href='{{game_name}}/puzzles.css'>
 				<div class='screen' name='menu'>
-					MENU
+					<div class='section'>
+						<h1><slot name='name'></slot></h1>
+						<h3>start_time, counter and end_time</h3>
+						<p>liste des problèmes</p>
+					</div>
+					<div class='section'>
+						OPTIONS HERE
+						<button id='new-game'>Nouvelle partie</button>
+						<button id='back-to-game'>Retour à la partie</button>
+						<button id='stop-game' dangerous>Arrêter la partie</button>
+					</div>
 				</div>
 				<div class='screen' name='graph'>
 					<puzzles-graph class='dark metro scroll-y'>
 					</puzzles-graph>
+					<puzzle-info class='inspector scroll-y' src='/{{game_name}}/puzzle'>
+						<template>
+							<link rel='stylesheet' type='text/css'
+								  href='{{game_name}}/puzzles.css'>
+							<div class='screen' name='main'>
+								<div class="selection hidden">
+									<div class="page padding">
+										<p class="state mini"></p>
+										<h1></h1>
+										<p class="description"></p>
+										<h2>Conditions</h2>
+										<div class="conditions rect list select">
+											<template id="condition-template">
+												<details>
+													<summary></summary>
+													<p></p>
+												</details>
+											</template>
+										</div>
+										<h2>Actions</h2>
+										<div class="actions">
+											<button id="reload-node">Actualiser le nœud</button>
+											<button class="dangerous" id="activation">Forcer l'activation</button>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class='screen' name='loading'>Loading</div>
+							<div class='screen' name='empty'>Select a puzzle</div>
+							<div class='screen' name='error'>Error</div>
+						</template>
+					</puzzle-info>
 				</div>
 				<div class='screen' name='loading'>Loading</div>
 				<div class='screen' name='empty'>No puzzle</div>
 				<div class='screen' name='error'>Error</div>
-				<puzzle-info class='inspector scroll-y' src='/{{game_name}}/puzzle'>
-					<template>
-						<link rel='stylesheet' type='text/css'
-							  href='{{game_name}}/puzzles.css'>
-						<div class='screen' name='main'>
-							<div class="selection hidden">
-								<div class="page padding">
-									<p class="state mini"></p>
-									<h1></h1>
-									<p class="description"></p>
-									<h2>Conditions</h2>
-									<div class="conditions rect list select">
-										<template id="condition-template">
-											<details>
-												<summary></summary>
-												<p></p>
-											</details>
-										</template>
-									</div>
-									<h2>Actions</h2>
-									<div class="actions">
-										<button id="reload-node">Actualiser le nœud</button>
-										<button class="dangerous" id="activation">Forcer l'activation</button>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class='screen' name='loading'>Loading</div>
-						<div class='screen' name='empty'>Select a puzzle</div>
-						<div class='screen' name='error'>Error</div>
-					</template>
-				</puzzle-info>
-				</div>
 			</template>
 		</puzzles-box>
 		<cameras-box class='box dark' src='/{{game_name}}/cameras'>
@@ -71,7 +80,7 @@
 							<link rel='stylesheet' type='text/css'
 								  href='{{game_name}}/cameras.css'>
 							<camera-video autoplay src='/{{game_name}}/camera'>
-								x
+								no video
 							</camera-video>
 						</template>
 					</cameras-list>

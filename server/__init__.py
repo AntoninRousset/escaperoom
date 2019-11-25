@@ -15,6 +15,7 @@ from aiohttp_sse import sse_response
 import aiohttp_jinja2, jinja2
 import json
 
+from . import controls
 from . import readers 
 
 games = dict()
@@ -30,7 +31,6 @@ async def monitor(request):
     context = {'game_name' : game_name}
     return aiohttp_jinja2.render_template('monitor.jinja2', request, context)
 
-import asyncio
 @routes.get('/{game_name}/devices')
 async def devices(request):
     game_name = request.match_info['game_name']
@@ -58,6 +58,14 @@ async def puzzles(request):
         async for puzzles in readers.puzzles(game):
             await resp.send(json.dumps(puzzles))
     return resp
+
+@routes.post('/{game_name}/puzzles')
+async def chose(request):
+    game_name = request.match_info['game_name']
+    game = games[game_name]
+    params = await request.json()
+    answer = await controls.puzzles(game, params)
+    return web.Response(content_type='application/json', text=json.dumps(answer))
 
 @routes.get('/{game_name}/puzzle')
 async def puzzle(request):

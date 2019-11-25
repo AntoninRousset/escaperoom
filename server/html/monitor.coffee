@@ -25,7 +25,7 @@ class Templated extends HTMLElement
 			if screen.getAttribute('name') is name
 				screen.removeAttribute('hidden')
 			else
-				screen.setAttribute('hidden', 'true')
+				screen.setAttribute('hidden', '')
 
 	fill_slots: (data, node=this) ->
 		for slot in @slots

@@ -11,25 +11,27 @@
 '''
 
 import sqlite3
+from os import path
 
 import settings
 
-connection = sqlite3.connect(settings.records_dir+'games.db')
+connection = sqlite3.connect(path.join(settings.records_dir, 'games.db'))
 with connection:
     connection.execute('''
     CREATE TABLE IF NOT EXISTS games (
         id integer PRIMARY KEY,
-        room_name text NOT NULL,
+        name text NOT NULL,
         status text NOT NULL,
         start_time timestamp,
         end_time timestamp)'''
         )
 
 
+from datetime import datetime
 def write_game(game, new=False):
     with connection:
-        connection.execute('INSERT INTO games VALUES (?, ?, ?, ?)',
-                (1, game.name, 'testing', game.start_time, game.end_time))
+        connection.execute('INSERT INTO games(name, status) VALUES (?, ?)',
+                (game.name, game.status))
         #TODO how to increment ID?
     return 1 #TODO id
 
