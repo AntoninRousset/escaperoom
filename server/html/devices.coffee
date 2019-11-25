@@ -15,7 +15,7 @@ class DevicesBox extends Subscriber
 		if is_empty(datas.devices)
 			@set_screen('empty')
 		else
-			@set_screen('devices_list')
+			@set_screen('main')
 
 customElements.define('devices-box', DevicesBox)
 
@@ -44,7 +44,7 @@ class DeviceInfo extends Subscriber
 	update: (datas) ->
 		@fill_slots(datas)
 		@attrs_list.read_items(datas.attrs)
-		@set_screen('device_info')
+		@set_screen('main')
 
 customElements.define('device-info', DeviceInfo)
 

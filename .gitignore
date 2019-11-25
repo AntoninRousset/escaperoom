@@ -4,3 +4,4 @@ __pycache__/
 *.js
 todo.txt
 comments.txt
+games/records.db

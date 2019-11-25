@@ -12,48 +12,64 @@
 		<script src='{{game_name}}/cameras.js' type='module'></script>
 	</head>
 	<body>
-		<puzzles-box class='box'>
-			<puzzles-graph class='dark metro' src='/{{game_name}}/puzzles'>
-				<div class='empty'>no scenario</div>
-				<div class='loading'></div>
-				<div class='error'></div>
-			</puzzles-graph>
-			<puzzle-info class='inspector scroll-y' src='/{{game_name}}/puzzle'>
-				<div class='empty'>Please select a node</div>
-				<div class='loading'></div>
-				<div class='error'>ERROR</div>
-				<div class="selection hidden">
-					<div class="page padding">
-						<p class="state mini"></p>
-						<h1></h1>
-						<p class="description"></p>
-						<h2>Conditions</h2>
-						<div class="conditions rect list select">
-							<template id="condition-template">
-								<details>
-									<summary></summary>
-									<p></p>
-								</details>
-							</template>
-						</div>
-						<h2>Actions</h2>
-						<div class="actions">
-							<button id="reload-node">Actualiser le nœud</button>
-							<button class="dangerous" id="activation">Forcer l'activation</button>
-						</div>
-					</div>
+		<puzzles-box class='box' src='/{{game_name}}/puzzles'>
+			<template>
+				<link rel='stylesheet' type='text/css'
+					  href='{{game_name}}/puzzles.css'>
+				<div class='screen' name='menu'>
+					MENU
 				</div>
-			</puzzle-info>
+				<div class='screen' name='graph'>
+					<puzzles-graph class='dark metro scroll-y'>
+					</puzzles-graph>
+				</div>
+				<div class='screen' name='loading'>Loading</div>
+				<div class='screen' name='empty'>No puzzle</div>
+				<div class='screen' name='error'>Error</div>
+				<puzzle-info class='inspector scroll-y' src='/{{game_name}}/puzzle'>
+					<template>
+						<link rel='stylesheet' type='text/css'
+							  href='{{game_name}}/puzzles.css'>
+						<div class='screen' name='main'>
+							<div class="selection hidden">
+								<div class="page padding">
+									<p class="state mini"></p>
+									<h1></h1>
+									<p class="description"></p>
+									<h2>Conditions</h2>
+									<div class="conditions rect list select">
+										<template id="condition-template">
+											<details>
+												<summary></summary>
+												<p></p>
+											</details>
+										</template>
+									</div>
+									<h2>Actions</h2>
+									<div class="actions">
+										<button id="reload-node">Actualiser le nœud</button>
+										<button class="dangerous" id="activation">Forcer l'activation</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class='screen' name='loading'>Loading</div>
+						<div class='screen' name='empty'>Select a puzzle</div>
+						<div class='screen' name='error'>Error</div>
+					</template>
+				</puzzle-info>
+				</div>
+			</template>
 		</puzzles-box>
 		<cameras-box class='box dark' src='/{{game_name}}/cameras'>
 			<template>
 				<link rel='stylesheet' type='text/css'
 					  href='{{game_name}}/cameras.css'>
-				<div class='screen' name='cameras_list'>
+				<div class='screen' name='main'>
 					<cameras-list class='panel scroll-x'>
 						<template>
-						<link rel='stylesheet' type='text/css'
-							  href='{{game_name}}/cameras.css'>
+							<link rel='stylesheet' type='text/css'
+								  href='{{game_name}}/cameras.css'>
 							<camera-video autoplay src='/{{game_name}}/camera'>
 								x
 							</camera-video>
@@ -70,7 +86,7 @@
 			<template>
 				<link rel='stylesheet' type='text/css'
 					  href='{{game_name}}/devices.css'>
-				<div class='screen' name='devices_list'>
+				<div class='screen' name='main'>
 					<devices-list>
 						<template> 
 							<link rel='stylesheet' type='text/css'
@@ -86,7 +102,7 @@
 				<div class='screen' name='error'>Error</div>
 				<device-info class='scroll-y' src="/{{game_name}}/device">
 					<template>
-						<div class='screen' name='device_info'>
+						<div class='screen' name='main'>
 							<p>name: <slot name="name"></slot></p>
 							<p>msg: <slot name="msg"></slot></p>
 							<p>addr: <slot name="addr"></slot></p>
@@ -107,7 +123,7 @@
 				</device-info>
 			</template>
 		</devices-box>
-		<controls-box class='box' src='/{{game_name}}/cameras'>
-		</controls-box>
+		<clues-box class='box' src='/{{game_name}}/clues'>
+		</clues-box>
 	</body>
 </html>

@@ -36,12 +36,14 @@ async def device(game, uid):
 async def puzzles(game):
     while True:
         async with game.logic.puzzles_changed:
-            descs = dict()
+            datas = dict()
+            puzzles = dict()
             for uid, puzzle in game.logic.puzzles.items():
                 col, row = game.logic.positions[uid]
-                descs[uid] = {'name' : puzzle.name, 'state' : puzzle.state,
+                puzzles[uid] = {'name' : puzzle.name, 'state' : puzzle.state,
                               'row' : row, 'col' : col} 
-            yield descs
+            datas['puzzles'] = puzzles
+            yield datas 
             await game.logic.puzzles_changed.wait()
 
 async def puzzle(game, uid):

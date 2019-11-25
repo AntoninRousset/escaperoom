@@ -43,10 +43,11 @@ class Logic(Node):
 
 class Puzzle(Node):
 
-    def __init__(self, name, *, state='inactive'):
+    def __init__(self, name, *, initial_state='inactive'):
         super().__init__()
         self.name = name
-        self.state = state
+        self.initial_state = initial_state
+        self.state = self.initial_state
         self.desc_changed = self.Condition()
         self.parents = set()
         self.conditions = set()
@@ -106,6 +107,11 @@ class Puzzle(Node):
             return log_debug(f'Puzzle: Predicate error: {e}')
         async with self.desc_changed:
             self.state = 'completed'
+            self.desc_changed.notify_all()
+
+    async def reset(self):
+        async with self.desc_changed:
+            self.state = initial_state
             self.desc_changed.notify_all()
 
     @property

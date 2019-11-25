@@ -22,6 +22,11 @@ body {
 	height: 100%;
 }
 
+/* TODO For all, not only screen */
+.screen[hidden='true'] {
+	display: none;
+}
+
 puzzles-box {
   grid-area: 1 / 1 / 4 / 6;
 }

@@ -12,9 +12,14 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from aiortc import RTCPeerConnection, RTCSessionDescription
+
 import settings
 
 from .node import Node 
+
+from aiortc.contrib.media import MediaStreamTrack, MediaPlayer
+MediaStreamTrack.stop = lambda: None
 
 def misc_debug(msg):
     if settings.misc_debug:
@@ -50,18 +55,23 @@ class Camera(Node):
         self.connected = False 
         self.desc_changed = self.Condition()
 
-from aiortc import RTCPeerConnection, RTCSessionDescription
-from aiortc.contrib.media import MediaPlayer
-from aiortc.contrib.media import MediaPlayer
-
 class LocalCamera(Camera):
     def __init__(self, name, path, format='v4l2'):
         super().__init__(name)
         self.path = path #do udev device instead
+        self.format = format
         self.pcs = set()
-        self.player = MediaPlayer(path, format=format)
+        self.player = None
+        self.player_changed = self.Condition()
+
+    async def get_player(self):
+        async with self.player_changed:
+            if not self.player: 
+                self.player = MediaPlayer(self.path, format=self.format)
+                self.player_changed.notify_all()
 
     async def handle_offer(self, offer):
+        await self.get_player()
         pc = self.create_peer_connection()
         self.pcs.add(pc)
         await pc.setRemoteDescription(offer)

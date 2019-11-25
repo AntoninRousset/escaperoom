@@ -1,6 +1,3 @@
-
-#!/usr/bin/env python
-
 '''
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -13,12 +10,9 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from os.path import expanduser
+from aiortc.contrib.media import MediaPlayer as AiortcMediaPlayer
 
-testing = None 
-
-com_debug = False 
-log_debug = False 
-misc_debug = False
-
-records_dir = expanduser('~/Documents/EscapeRoom')
+class MediaPlayer(AiortcMediaPlayer):
+    def _stop(self, track):
+        print('track stop (blocked)')
+        #super()._stop(track)

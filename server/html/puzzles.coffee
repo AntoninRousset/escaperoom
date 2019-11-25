@@ -1,19 +1,35 @@
-import Subscriber from './monitor.js'
+import {Subscriber, Container} from './monitor.js'
+import {is_empty} from './monitor.js'
 
 svgns = 'http://www.w3.org/2000/svg'
 
-class PuzzlesGraph extends Subscriber
+class PuzzlesBox extends Subscriber
 	constructor: () ->
 		super()
-		@svg = document.createElementNS(svgns, 'svg')
-		@svg.setAttributeNS(null, 'style', 'width: 100%')
-		@items_container.appendChild(@svg)
+		@apply_template()
+		@set_screen('loading')
+		@puzzles_graph = @shadowRoot.querySelector('puzzles-graph')
+		@subscribe()
+
+	update: (datas) ->
+		@fill_slots(datas)
+		@puzzles_graph.read_items(datas.puzzles)
+		if is_empty(datas.puzzles)
+			@set_screen('empty')
+		else
+			@set_screen('graph')
+
+customElements.define('puzzles-box', PuzzlesBox)
+
+class PuzzlesGraph extends Container
+	constructor: () ->
+		super()
+		svg = document.createElementNS(svgns, 'svg')
+		svg.setAttributeNS(null, 'style', 'width: 100%')
+		@appendChild(svg)
 		@graph = document.createElementNS(svgns, 'g')
 		@graph.setAttributeNS(null, 'style', 'transform: translate(50%, 40px)')
-		@svg.appendChild(@graph)
-		@puzzle_info = document.querySelector('puzzle-info')
-		console.log(@puzzle_info)
-		@subscribe()
+		svg.appendChild(@graph)
 
 	add_item: (id, data) ->
 		item = document.createElementNS(svgns, 'circle')
@@ -21,8 +37,9 @@ class PuzzlesGraph extends Subscriber
 		item.setAttributeNS(null, 'item_id', id)
 		item.setAttributeNS(null, 'r', 20)
 		item.onclick = (event) =>
-			@puzzle_info.query_str = '?id='+id
-			@puzzle_info.subscribe()
+			puzzles_box = document.querySelector('puzzles-box')
+			puzzle_info = puzzles_box.shadowRoot.querySelector('puzzle-info')
+			puzzle_info.select(id)
 		@graph.appendChild(item)
 
 	update_item: (id, data) ->
@@ -34,28 +51,17 @@ class PuzzlesGraph extends Subscriber
 
 class PuzzleInfo extends Subscriber
 	constructor: () ->
-		super(slots=['name'])
+		super()
+		@apply_template()
+		@set_screen('empty')
 
-	add_item: (id, data) ->
-		item = document.createElement('div')
-		item.setAttribute('class', 'item')
-		item.setAttribute('item_id', id)
-		for key of data
-			span = document.createElement('span')
-			span.setAttribute('slot', key)
-			item.appendChild(span)
-		@shadowRoot.appendChild(item)
-		item.attachShadow( {mode:'open'} )
-		item.shadowRoot.appendChild(@template_item.content.cloneNode(true))
+	select: (id) ->
+		@set_screen('loading')
+		@subscribe(null, '?id='+id)
 
-	update: (data) ->
-		@read_slots(data)
-		@read_items(datas['parents'])
-
-	update_item: (id, data) ->
-		item = @get_item(id)
-		for key, value of data
-			item.querySelector('span[slot='+key+']').textContent = value
+	update: (datas) ->
+		@fill_slots(datas)
+		@set_screen('main')
 
 customElements.define('puzzles-graph', PuzzlesGraph)
 customElements.define('puzzle-info', PuzzleInfo)

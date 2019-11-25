@@ -7,8 +7,9 @@ class Templated extends HTMLElement
 	constructor: () ->
 		super()
 		@template = @querySelector('template')
-		slots = @template.content.querySelectorAll('slot')
-		@slots = (slot.getAttribute('name') for slot in slots)
+		if @template?
+			slots = @template.content.querySelectorAll('slot')
+			@slots = (slot.getAttribute('name') for slot in slots)
 
 	apply_template: (node=this) ->
 		for slot in @slots
@@ -22,9 +23,9 @@ class Templated extends HTMLElement
 	set_screen: (name, node=this) ->
 		for screen in node.shadowRoot.querySelectorAll('.screen')
 			if screen.getAttribute('name') is name
-				screen.style.display = 'block'
+				screen.removeAttribute('hidden')
 			else
-				screen.style.display = 'none'
+				screen.setAttribute('hidden', 'true')
 
 	fill_slots: (data, node=this) ->
 		for slot in @slots

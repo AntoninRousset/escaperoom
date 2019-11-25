@@ -19,7 +19,7 @@ class CamerasBox extends Subscriber
 		if is_empty(datas.cameras)
 			@set_screen('empty')
 		else
-			@set_screen('cameras_list')
+			@set_screen('main')
 
 
 customElements.define('cameras-box', CamerasBox)
@@ -31,10 +31,8 @@ class CamerasList extends Container
 	add_item: (id, data) ->
 		item = @create_item(id)
 		item.onclick = (event) =>
-			console.log(item)
 			stream = item.shadowRoot.querySelector('camera-video').srcObject
 			big_boy = document.querySelector('cameras-box').shadowRoot.getElementById('bigscreen')
-			console.log(big_boy, stream)
 			big_boy.srcObject = stream
 		@appendChild(item)
 		item.shadowRoot.querySelector('camera-video').start(null, '?id='+id)
@@ -44,12 +42,15 @@ customElements.define('cameras-list', CamerasList)
 class CameraVideo extends HTMLElement
 	constructor: () ->
 		super()
-		@pc = new RTCPeerConnection()
-		@pc.onnegotiationneeded = (event) => @negotiate()
-		@pc.onicegatheringstatechange = (event) =>
-			if @pc.iceGatheringState is 'complete'
-				@send_offer()
-		@pc.ontrack = (event) => @got_tracks(event.streams)
+		try
+			@pc = new RTCPeerConnection()
+			@pc.onnegotiationneeded = (event) => @negotiate()
+			@pc.onicegatheringstatechange = (event) =>
+				if @pc.iceGatheringState is 'complete'
+					@send_offer()
+			@pc.ontrack = (event) => @got_tracks(event.streams)
+		catch error
+			@set_screen(error)
 		@video = @create_video()
 	
 	create_video: () ->

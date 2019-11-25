@@ -25,78 +25,42 @@ from escaperoom import *
 # - Concise writing
 # - No restriction of order
 
+game = Game('time')
 
-name = 'time'
-
-network = Network()
-network.add_bus(Bus('socket path'))
+game.network.add_bus(Bus('socket path'))
 
 base_hexa = Device(name='base_hexagon')
 b_hexa_state = Attribute(base_hexa, name='state')
 base_hexa.add_attr(b_hexa_state)
-network.add_device(base_hexa)
+game.network.add_device(base_hexa)
 
-logic = Logic()
-
-start = Puzzle('start', state='active')
-start.head = lambda: print('Place the pod to start')
+start = Puzzle('start', initial_state='active')
+start.head = lambda: game.start_counter()
 start.tail = lambda: print('Bravo')
 start.add_condition(b_hexa_state)
 start.predicate = lambda: b_hexa_state.value
-logic.add_puzzle(start, pos=(0,0))
+game.logic.add_puzzle(start, pos=(0,0))
 
 end = Puzzle('end')
 end.head = lambda: print('Now remove it to end')
-end.tail = lambda: print('You win')
+end.tail = lambda: game.stop_counter()
 end.add_parent(start)
 end.add_condition(b_hexa_state)
 end.predicate = lambda: not b_hexa_state.value
-logic.add_puzzle(end, pos=(0,1))
+game.logic.add_puzzle(end, pos=(0,1))
 
-misc = Misc()
-
-'''
 camera = LocalCamera('video0', '/dev/video0')
-misc.add_camera(camera)
-camera = LocalCamera('video2', '/dev/video2')
-misc.add_camera(camera)
-'''
-for i in range(5):
-    camera = LocalCamera(f'film{i}', '/tmp/bill.mkv', format=None)
-    misc.add_camera(camera)
+game.misc.add_camera(camera)
+#camera = LocalCamera('video2', '/dev/video2')
+#game.misc.add_camera(camera)
+
+
 
 '''
-# start 
-node = game.add(name='start', Node(reversible=False))
-node.head = lambda self: print('mouahaha')
-node.add_conditions(Event(device=3, component='door', to='off')
-
-# launch
-# give a lambda as a condition for Events
-game.add(Event(name='switch 1', device=1, component='switch1', to='on'))
-game.add(Event(name='switch 2', device=1, component='switch2', to='on'))
-game.add(Event(name='switch 2', device=1, component='switch3', to='on'))
-## Shared node telling there is enough power 
-node = game.add(Node(name='enough power'))
-node.add_parents(*game.gets('start'))
-node.add_conditions(*game.gets('switch 1', 'switch 2', 'switch 3'))
-## Shared story element for the launching
-node = game.add(Node(name='launch', reversible=False))
-node.add_parents('start')
-node.add_conditions(Event(device=2, component='pushbutton', to='on'))
-## Anonymous node - contained in the story element - corresponding to the monitor
-node = node.add(Node(reversible=False))
-node.add_parents(*game.gets('enough power'))
-node.add_conditions('launch button')
-node.head = lambda self: print('ready for launch (wip: turn on a light)')
-node.tail = lambda self: print('launching!!')
-
-# end
-game.add(Event(name='door opened', device=3, component='door', to='on', fr='off'))
-
-node = game.add(Node(name='end', reversible=False))
-node.add_parents('launch')
-node.add_conditions(*game.gets('door opened'))
-
-game.add_conditions(node)
+We could write:
+network.add_device(
+    Device(name='device')
+        .add_attr('state')
+        .add_attr('volume')
+    )
 '''
