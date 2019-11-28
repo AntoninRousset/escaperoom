@@ -54,7 +54,8 @@ game.misc.add_camera(camera)
 #camera = LocalCamera('video2', '/dev/video2')
 #game.misc.add_camera(camera)
 
-
+display = Display('http://localhost:8081/')
+game.misc.add_display(display)
 
 '''
 We could write:

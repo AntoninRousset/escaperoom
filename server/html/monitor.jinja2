@@ -7,9 +7,10 @@
 		<link rel="stylesheet" type="text/css" href="{{game_name}}/monitor.css">
 		<link rel="stylesheet" type="text/css" href="{{game_name}}/page.css">
 		<link rel="stylesheet" type="text/css" href="{{game_name}}/scenario.css">
-		<script src='{{game_name}}/devices.js' type='module'></script>
 		<script src='{{game_name}}/puzzles.js' type='module'></script>
 		<script src='{{game_name}}/cameras.js' type='module'></script>
+		<script src='{{game_name}}/devices.js' type='module'></script>
+		<script src='{{game_name}}/clues.js' type='module'></script>
 	</head>
 	<body>
 		<puzzles-box class='box' src='/{{game_name}}/puzzles'>
@@ -17,22 +18,59 @@
 				<link rel='stylesheet' type='text/css'
 					  href='{{game_name}}/puzzles.css'>
 				<div class='screen' name='menu'>
-					<div class='section'>
-						<h1><slot name='name'></slot></h1>
-						<h3>start_time, counter and end_time</h3>
-						<p>liste des problèmes</p>
+					<div class='section scroll-y'>
+						<p id='game-name'><slot name='name'></slot></p>
+						<p class='time-dial' id='game-chronometer'><slot name='chronometer'></p>
+						<div id='game-start-end'>
+							<div id='game-start'>
+								<p id='game-not-started'></p>
+								<p id='game-start-time'>start: <slot class='time-dial' name='start_time'></p>
+							</div>
+							<div id='game-end'>
+								<p id='game-not-ended'></p>
+								<p id='game-end-time'>end: <slot class='time-dial' name='end_time'></p>
+							</div>
+						</div>
+						<puzzles-issues>
+						<p id='game-issues'>liste des problèmes</p>
+						</puzzles-issues>
 					</div>
-					<div class='section'>
-						OPTIONS HERE
-						<button id='new-game'>Nouvelle partie</button>
-						<button id='back-to-game'>Retour à la partie</button>
-						<button id='stop-game' dangerous>Arrêter la partie</button>
-					</div>
+					<form class='section scroll-y' id='game-form'>
+						<fieldset id='game-options'>
+							<legend>Options de la partie</legend>
+							<div class='game-option'>
+								<label for='game-option-status'>Type de partie:</label>
+								<select id='game-option-status' form='game-controls' required>
+									<option value='regular'>regular</option>
+									<option value='test'>test</option>
+									<option value='debug'>debug</option>
+								</select>
+							</div>
+							<div class='game-option'>
+								<label for='game-option-timeout-enabled'>Duration:</label>
+								<div id='game-option-timeout'>
+									<input type='checkbox' id='game-option-timeout-enabled'>
+									<input type='number' id='game-option-timeout-h' name='timeout-h' value='01' min='0'>
+									<label for='game-option-timeout-h'>h</label>
+									<input type='number' id='game-option-timeout-m' name='timeout-m' value='00' min='0' max='59'>
+									<label for='game-option-timeout-m'>m</label>
+								</div>
+							</div>
+							<div class='game-option'>
+								<input type='reset' id='game-option-reset' value='Options par défaut'>
+							</div>
+						</fieldset>
+						<div id='game-controls'>
+							<button class='game-control' id='stop-game' dangerous>Arrêter la partie</button>
+							<input class='game-control' type='submit' id='new-game' value='Nouvelle partie'>
+							<button class='game-control' id='back-to-game'>Retour à la partie</button>
+						</div>
+					</form>
 				</div>
 				<div class='screen' name='graph'>
-					<puzzles-graph class='dark metro scroll-y'>
+					<puzzles-graph class='dark metro section scroll-y'>
 					</puzzles-graph>
-					<puzzle-info class='inspector scroll-y' src='/{{game_name}}/puzzle'>
+					<puzzle-info class='inspector section scroll-y' src='/{{game_name}}/puzzle'>
 						<template>
 							<link rel='stylesheet' type='text/css'
 								  href='{{game_name}}/puzzles.css'>
@@ -133,6 +171,8 @@
 			</template>
 		</devices-box>
 		<clues-box class='box' src='/{{game_name}}/clues'>
+			<input type='text' value='clue'></input>
+			<button>send</button>
 		</clues-box>
 	</body>
 </html>

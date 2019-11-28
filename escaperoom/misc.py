@@ -12,6 +12,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import aiohttp, json
 from aiortc import RTCPeerConnection, RTCSessionDescription
 
 import settings
@@ -30,6 +31,7 @@ class Misc(Node):
         super().__init__()
         self.cameras = dict()
         self.cameras_changed = self.Condition()
+        self.display = None
 
     async def _camera_listening(self, camera):
         while True: 
@@ -45,6 +47,10 @@ class Misc(Node):
         self.create_task(self._camera_listening(camera))
         misc_debug('Misc: Camera added')
         return uid
+
+    #TODO multiple displays
+    def add_display(self, display):
+        self.display = display
 
 # Every msg on ws should be given to the camera so it can handle it
 # Abstract class
@@ -98,3 +104,12 @@ class LocalCamera(Camera):
 
         return pc
 
+class Display(Node):
+    def __init__(self, address):
+        super().__init__()
+        self.address = address
+
+    async def handle(self, data):
+        async with aiohttp.ClientSession() as session:
+            async with session.post(self.address, data=json.dumps(data)) as resp:
+                return 'done'

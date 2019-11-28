@@ -14,5 +14,5 @@
 
 from .game import Game
 from .logic import Logic, Puzzle
-from .misc import Misc, LocalCamera
+from .misc import Misc, LocalCamera, Display
 from .network import Network, Bus, Device, Attribute

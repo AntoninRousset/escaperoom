@@ -31,6 +31,17 @@ async def device(game, uid):
         yield info
         await device.changed.wait()
 
+def datetimeToString(datetime):
+    if datetime is not None:
+        return datetime.strftime('%H:%M')
+
+def timedeltaToString(timedelta):
+    if timedelta is not None:
+        days = timedelta.days
+        hours, remaining = divmod(timedelta.seconds, 3600)
+        minutes, seconds = divmod(remaining, 60)
+        return f'{hours:02d}:{minutes:02d}:{seconds:02d}'
+
 async def puzzles(game):
     while True:
         async with game.logic.puzzles_changed:
@@ -41,8 +52,11 @@ async def puzzles(game):
                 puzzles[uid] = {'name' : puzzle.name, 'state' : puzzle.state,
                               'row' : row, 'col' : col} 
             datas['puzzles'] = puzzles
-            datas['name'] = game.name
             datas['running'] = game.running
+            datas['name'] = game.name
+            datas['start_time'] = datetimeToString(game.start_time)
+            datas['end_time'] = datetimeToString(game.end_time)
+            datas['chronometer'] = timedeltaToString(game.chronometer)
             yield datas 
             await game.logic.puzzles_changed.wait()
 

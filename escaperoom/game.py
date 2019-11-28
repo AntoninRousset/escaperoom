@@ -13,7 +13,7 @@
 '''
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from .logic import Logic
 from .misc import Misc 
@@ -29,32 +29,33 @@ class Game(Node):
         self.logic = Logic()
         self.misc = Misc()
         self.game_id = None
-        self.status = None
+        self.default_settings = dict()
         self.start_time = None
         self.end_time = datetime.today()
 
-    async def new_game(self, status):
-        print('status is ', status)
-        self.status = status
+    async def new_game(self, settings=dict()):
         self.start_time = None
         self.end_time = None
+        self.parse_settings(settings)
         cs = {self.create_task(p.reset()) for p in self.logic.puzzles.values()}
         await asyncio.wait(cs)
         self.game_id = database.write_game(self, new=True)
-        print('game started')
 
-    def start_counter(self):
+    def parse_settings(settings):
+        pass
+
+    def start_chronometer(self):
         self.start_time = datetime.today() 
         database.write_game(self)
 
-    def stop_counter(self):
+    def stop_chronometer(self):
         self.end_time = datetime.today() 
         database.write_game(self)
 
     @property
-    def counter(self):
+    def chronometer(self):
         if self.start_time is None:
-            return datetime.timedelta(0)
+            return timedelta(0)
         elif self.end_time is None:
             return datetime.today() - self.start_time
         elif self.end_time > self.start_time:

@@ -7,7 +7,6 @@ body {
 	grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr;
 	grid-gap: 8px;
 	padding: 8px;
-	place-items: stretch;
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -15,30 +14,51 @@ body {
 	bottom: 0px;
 }
 
-.screen {
+.box {
 	display: flex;
-	flex-flow: row;
-	width: 100%;
-	height: 100%;
+	margin: 8px;
+	background: white;
+	box-shadow: 0px 0px 10px #00000060;
+	border-radius: 8px;
+	overflow: hidden;
 }
 
-/* TODO For all, not only screen */
-.screen[hidden] {
+.screen {
+	display: flex;
+	flex: 1;
+}
+
+:disabled {
+	color: #666666;
+	cursor: default;
+}
+
+[hidden] {
 	display: none;
 }
 
-.section {
-	width: 100%;
+[disabled] {
+	color: gray;
+	cursor: default;
 }
 
-button {
+.section {
+	display: flex;
+	flex-flow: column;
+	flex: 1;
+}
+
+button, input, select {
 	border: 1px solid #00000040;
 	border-radius: 4px;
-	padding: 8px 14px;
+	padding: 2px 7px;
 	text-shadow: 0px 1px 0px #ffffff40;
 	cursor: pointer;
 	transition: background 0.2s ease;
-	margin-bottom: 8px;
+}
+
+button, input[type='reset'], input[type='submit'] {
+	padding: 8px 14px;
 }
 
 button::-moz-focus-inner {
@@ -60,9 +80,16 @@ button:active{
 button:disabled {
 	border: 1px solid #999999;
 	background-color: #cccccc;
-	color: #666666;
-	cursor: default;
 	box-shadow: 0px 0px 0px #00000000 inset;
+}
+
+@font-face{
+	font-family: 'time-dial-font';
+	src: url('/time/digital_counter_7.ttf');
+}
+
+.time-dial {
+	font-family: 'time-dial-font'
 }
 
 puzzles-box {
@@ -77,7 +104,7 @@ devices-box {
 	grid-area: 4 / 1 / 8 / 6;
 }
 
-controls-box {
+clues-box {
 	grid-area: 4 / 6 / 8 / 11;
 }
 
@@ -135,15 +162,6 @@ controls-box {
 		overflow-y: visible;
 	}
 
-}
-
-.box {
-	display: flex;
-	margin: 8px;
-	background: white;
-	box-shadow: 0px 0px 10px #00000060;
-	border-radius: 8px;
-	overflow: hidden;
 }
 
 .dark {

@@ -1,13 +1,77 @@
 @import 'monitor.css';
 @import 'page.css';
 
-puzzles-graph {
-	display: flex;
-	flex: 50%;
+#menu {
+	position: absolute;
+	transition: transform 0.3s 0s;
+	transform: translateX(0);
 }
 
-puzzle-info {
-	display: flex;
-	flex: 50%;
+#menu[hidden] {
+	transition: transform 0.3 0s
+	transform: translateX(-100%);
 }
 
+#game-name {
+	font-size: 38pt;
+    font-weight: bold;
+    text-align: center;
+    font-variant: small-caps;
+	margin: 10px;
+}
+
+#game-chronometer {
+	font-size: 32pt;
+	text-align: center;
+	margin: 10px;
+}
+
+#game-start-end {
+	display: flex;
+	flex-flow: row;
+	justify-content: space-around;
+	margin: 10px 10px;
+	text-align: center;
+}
+
+
+#game-options {
+	height: 100%;	
+	margin: 5px;
+	margin-right: 14px;
+}
+
+.game-option {
+	display: flex;
+	flex-flow: row;
+	justify-content: space-between;
+	align-items: center;
+	margin: 12px 0px;
+}
+
+#game-option-timeout-enabled {
+	vertical-align: middle;
+}
+
+#game-option-timeout-h, #game-option-timeout-m {
+	width: 2.5em;
+}
+
+#game-option-reset {
+	width: 100%;
+	margin-top: 20px;
+}
+
+#game-controls {
+	display: flex;
+	flex-flow: row;
+	justify-content: space-between;
+	margin: 5px;
+	margin-right: 14px;
+	margin-bottom: 10px;
+}
+
+.game-control {
+	width: 100%;
+	max-width: 135px;
+}

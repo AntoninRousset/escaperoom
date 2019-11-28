@@ -11,10 +11,12 @@ class PuzzlesBox extends Subscriber
 		@puzzles_graph = @shadowRoot.querySelector('puzzles-graph')
 		@current_screen = 'graph'
 		menu = @shadowRoot.querySelector('.screen[name="menu"]')
+		menu.querySelector('#game-option-timeout-enabled').onchange = @timeout_enabled
+		menu.querySelector('#game-option-reset').onclick = @default_options
 		menu.querySelector('#new-game').onclick = @new_game
-		menu.querySelector('#back-to-game').onclick = (event) =>
-			@set_screen('graph')
+		menu.querySelector('#back-to-game').onclick = (event) => @set_screen('graph')
 		menu.querySelector('#stop-game').onclick = @stop_game
+		@default_options = null
 		@subscribe()
 
 	update: (datas) ->
@@ -29,18 +31,39 @@ class PuzzlesBox extends Subscriber
 		@set_screen(@current_screen)
 
 	update_menu: (datas) ->
+		if not default_options?
+			@read_options(datas.default_options)
+		@default_options = datas.default_options
 		menu = @shadowRoot.querySelector('.screen[name="menu"]')
 		new_game = menu.querySelector('#new-game')
 		back_to_game = menu.querySelector('#back-to-game')
 		stop_game = menu.querySelector('#stop-game')
+		game_options = menu.querySelector('#game-options')
 		if datas.running
 			new_game.setAttribute('hidden', '')
 			back_to_game.removeAttribute('hidden')
 			stop_game.disabled = false
+			game_options.disabled = true
 		else
 			new_game.removeAttribute('hidden')
 			back_to_game.setAttribute('hidden', '')
 			stop_game.disabled = true
+			game_options.disabled = false
+
+	timeout_enabled: (event) ->
+		parent = @parentNode
+		if @checked
+			parent.removeAttribute('disabled')
+			for node in parent.children
+				node.removeAttribute('disabled')
+		else
+			parent.setAttribute('disabled', true)
+			for node in parent.children
+				node.setAttribute('disabled', true)
+		@disabled = false
+
+	default_options: () =>
+		console.log('default_options')
 
 	new_game: (event) =>
 		reponse = await fetch(@getAttribute('src'), {
@@ -55,11 +78,18 @@ class PuzzlesBox extends Subscriber
 			}),
 			method: 'POST'
 		})
+		@set_screen('graph')
 
 	stop_game: (event) =>
 		console.log('stop game')
 
 customElements.define('puzzles-box', PuzzlesBox)
+
+class PuzzlesIssues extends Container
+	constructor: () ->
+		super()
+
+customElements.define('puzzles-issues', PuzzlesIssues)
 
 class PuzzlesGraph extends Container
 	constructor: () ->

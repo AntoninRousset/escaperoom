@@ -98,6 +98,15 @@ async def camera(request):
     answer = await camera.handle_offer(offer)
     return web.Response(content_type='application/json', text=json.dumps(answer))
 
+@routes.post('/{game_name}/display')
+async def display(request):
+    game_name = request.match_info['game_name']
+    game = games[game_name]
+    display = game.misc.display
+    params = await request.json()
+    answer = await display.handle(params) 
+    return web.Response(content_type='application/json', text=answer)
+
 app = web.Application()
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./server/html/'))
 app.add_routes(routes)

@@ -1,11 +1,6 @@
 @import 'monitor.css';
 @import 'page.css';
 
-.screen {
-	display: flex;
-	flex: 50%;
-}
-
 devices-list {
 	display: block;
 	margin: 10px;
