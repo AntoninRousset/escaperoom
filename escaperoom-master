@@ -16,7 +16,7 @@ import asyncio, sys
 import argparse
 from importlib import import_module
 
-import settings
+import escaroom.settings
 #settings.testing = 'b3'
 
 async def main():
