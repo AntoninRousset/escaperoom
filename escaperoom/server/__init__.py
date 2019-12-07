@@ -116,12 +116,12 @@ async def display(request):
     answer = await display.handle(params) 
     return web.Response(content_type='application/json', text=answer)
 
+ROOT = os.path.dirname(__file__)
+
 app = web.Application()
-aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./server/html/'))
-aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./html/'))
-aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('.escaperoom/server/html/'))
+aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(f'{ROOT}/server/html/'))
 app.add_routes(routes)
-app.router.add_static('/time/', './server/html/', name='resources')
+app.router.add_static('/time/', '${ROOT}/server/html/', name='resources')
 
 async def start(host, port):
     runner = web.AppRunner(app)
