@@ -8,7 +8,7 @@ setuptools.setup(
     version='0.1a1',
     license='GPL-3',
     author='Antonin Rousset',
-    description='Run and monitor an escape room'
+    description='Run and monitor an escape room',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/AntoninRousset/escaperoom',
