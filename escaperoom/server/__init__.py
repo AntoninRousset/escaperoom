@@ -117,9 +117,9 @@ async def display(request):
     return web.Response(content_type='application/json', text=answer)
 
 app = web.Application()
-aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./server/html/'))
+aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('escaperoom/server/html/'))
 app.add_routes(routes)
-app.router.add_static('/time/', './server/html/', name='resources')
+app.router.add_static('/time/', 'escaperoom/server/html/', name='resources')
 
 async def start(host, port):
     runner = web.AppRunner(app)
