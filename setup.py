@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     url='https://github.com/AntoninRousset/escaperoom',
     packages=['escaperoom', 'escaperoom.server', 'escaperoom.games'],
-    package_data={'escaperoom.server' : 'html'}
+    package_data={'escaperoom.server' : 'html'},
     scripts=['escaperoom-master'],
     classifiers=[
         'Development Status :: 3 - Alpha',

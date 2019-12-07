@@ -82,6 +82,9 @@ class LocalCamera(Camera):
         self.pcs.add(pc)
         await pc.setRemoteDescription(offer)
         for t in pc.getTransceivers():
+            if t.kind == 'audio' and self.player.audio:
+            pc.addTrack(self.player.audio)
+            elif t.kind == 'video' and self.player.video:
             pc.addTrack(self.player.video)
         answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
@@ -92,15 +95,9 @@ class LocalCamera(Camera):
 
         @pc.on('iceconnectionchanged')
         async def on_ice_connection_state_change():
-            print('ice connection state: ', pc.iceConnectionState)
             if pc.iceConnectionState == 'failed':
-                print('closing peer connection')
                 await pc.close()
                 pcs.discard(pc)
-
-        @pc.on('signalingstatechange')
-        async def asdf():
-            print('signaling state changed', pc.signalingState)
 
         return pc
 
