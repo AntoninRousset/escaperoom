@@ -15,7 +15,7 @@
 import aiohttp, json
 from aiortc import RTCPeerConnection, RTCSessionDescription
 
-import escaperoom.settings
+import escaperoom.settings as settings
 
 from .node import Node 
 

@@ -12,7 +12,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import escaperoom.settings 
+import escaperoom.settings as settings
 import asyncio
 import PJON_daemon_client as pac
 import re

@@ -14,7 +14,7 @@ import sqlite3
 from datetime import datetime
 from os import path
 
-import escaperoom.settings
+import escaperoom.settings as settings
 
 connection = sqlite3.connect(path.join(settings.records_dir, 'games.db'))
 with connection:
