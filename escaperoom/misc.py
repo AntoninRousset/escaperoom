@@ -83,9 +83,9 @@ class LocalCamera(Camera):
         await pc.setRemoteDescription(offer)
         for t in pc.getTransceivers():
             if t.kind == 'audio' and self.player.audio:
-            pc.addTrack(self.player.audio)
+                pc.addTrack(self.player.audio)
             elif t.kind == 'video' and self.player.video:
-            pc.addTrack(self.player.video)
+                pc.addTrack(self.player.video)
         answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
         return {'sdp' : pc.localDescription.sdp, 'type' : pc.localDescription.type} 
