@@ -12,8 +12,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/AntoninRousset/escaperoom',
-    scripts=['escaperoom.py'],
-    packages=['escaperoom', 'escaperoom.server'],
+    scripts=['escaperoom'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
