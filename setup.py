@@ -4,7 +4,7 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='escaperoom'
+    name='escaperoom',
     version='0.1a1',
     license='GPL-3',
     author='Antonin Rousset',
