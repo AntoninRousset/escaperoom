@@ -116,6 +116,7 @@ async def display(request):
     answer = await display.handle(params) 
     return web.Response(content_type='application/json', text=answer)
 
+import os
 ROOT = os.path.dirname(__file__)
 
 app = web.Application()
