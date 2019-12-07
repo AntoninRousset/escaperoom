@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Escape room</title>
-		<link rel="stylesheet" type="text/css" href="{{game_name}}/monitor.css">
-		<link rel="stylesheet" type="text/css" href="{{game_name}}/page.css">
-		<link rel="stylesheet" type="text/css" href="{{game_name}}/scenario.css">
+		<meta charset='utf-8'>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+		<title>Escape room - {{game_name}}</title>
+		<link rel='stylesheet' type='text/css' href='{{game_name}}/monitor.css'>
+		<link rel='stylesheet' type='text/css' href='{{game_name}}/page.css'>
+		<script src='{{game_name}}/game.js' type='module'></script>
 		<script src='{{game_name}}/puzzles.js' type='module'></script>
 		<script src='{{game_name}}/cameras.js' type='module'></script>
 		<script src='{{game_name}}/devices.js' type='module'></script>
 		<script src='{{game_name}}/clues.js' type='module'></script>
 	</head>
 	<body>
-		<puzzles-box class='box' src='/{{game_name}}/puzzles'>
+		<game-box class='box' src='/{{game_name}}/game'>
 			<template>
 				<link rel='stylesheet' type='text/css'
-					  href='{{game_name}}/puzzles.css'>
-				<div class='screen' name='menu'>
+					  href='{{game_name}}/game.css'>
+				<div class='screen' name='game'>
 					<div class='section scroll-y'>
 						<p id='game-name'><slot name='name'></slot></p>
 						<p class='time-dial' id='game-chronometer'><slot name='chronometer'></p>
@@ -31,25 +31,33 @@
 								<p id='game-end-time'>end: <slot class='time-dial' name='end_time'></p>
 							</div>
 						</div>
-						<puzzles-issues>
-						<p id='game-issues'>liste des problèmes</p>
-						</puzzles-issues>
+						<game-issues>
+							liste des problèmes
+						</game-issues>
 					</div>
-					<form class='section scroll-y' id='game-form'>
+					<game-menu class='section scroll-y' src='{{game_name}}/game'>
 						<fieldset id='game-options'>
 							<legend>Options de la partie</legend>
 							<div class='game-option'>
 								<label for='game-option-status'>Type de partie:</label>
-								<select id='game-option-status' form='game-controls' required>
-									<option value='regular'>regular</option>
+								<select id='game-option-status'>
+									<option value='official'>official</option>
 									<option value='test'>test</option>
 									<option value='debug'>debug</option>
 								</select>
 							</div>
 							<div class='game-option'>
+								<label for='game-option-number-player'>Nombre de joueur:</label>
+								<input type='number' id='game-option-number-player' value='01' min='0'>
+							</div>
+							<div class='game-option'>
+								<label for='game-option-children'>Mode enfant:</label>
+								<input type='checkbox' id='game-option-children'>
+							</div>
+							<div class='game-option'>
 								<label for='game-option-timeout-enabled'>Duration:</label>
 								<div id='game-option-timeout'>
-									<input type='checkbox' id='game-option-timeout-enabled'>
+									<input type='checkbox' id='game-option-timeout-enabled' name='timeout-enabled'>
 									<input type='number' id='game-option-timeout-h' name='timeout-h' value='01' min='0'>
 									<label for='game-option-timeout-h'>h</label>
 									<input type='number' id='game-option-timeout-m' name='timeout-m' value='00' min='0' max='59'>
@@ -63,51 +71,62 @@
 						<div id='game-controls'>
 							<button class='game-control' id='stop-game' dangerous>Arrêter la partie</button>
 							<input class='game-control' type='submit' id='new-game' value='Nouvelle partie'>
-							<button class='game-control' id='back-to-game'>Retour à la partie</button>
+							<button class='game-control' id='back-to-game'>Continuer</button>
 						</div>
-					</form>
+					</game-menu>
 				</div>
-				<div class='screen' name='graph'>
-					<puzzles-graph class='dark metro section scroll-y'>
-					</puzzles-graph>
-					<puzzle-info class='inspector section scroll-y' src='/{{game_name}}/puzzle'>
-						<template>
-							<link rel='stylesheet' type='text/css'
-								  href='{{game_name}}/puzzles.css'>
-							<div class='screen' name='main'>
-								<div class="selection hidden">
-									<div class="page padding">
-										<p class="state mini"></p>
-										<h1></h1>
-										<p class="description"></p>
+				<puzzles-box class='screen' name='puzzles' src='/{{game_name}}/puzzles'>
+					<template>
+						<link rel='stylesheet' type='text/css'
+							  href='{{game_name}}/puzzles.css'>
+						<div class='screen' name='graph'>
+							<button id='menu-button'>X</button>
+							<puzzles-graph class='dark metro section scroll-y'>
+							</puzzles-graph>
+							<puzzle-info class='section scroll-y' src='/{{game_name}}/puzzle'>
+								<template>
+									<link rel='stylesheet' type='text/css'
+										  href='{{game_name}}/puzzles.css'>
+									<div class='screen' name='info'>
+										<h1 id='puzzle-name'><slot name='name'></slot></h1>
+										<div id='puzzle-state'><slot name='state'></slot></div>
+										<p id='puzzle-description'><slot name='description'></slot></p>
 										<h2>Conditions</h2>
-										<div class="conditions rect list select">
-											<template id="condition-template">
+										<puzzle-conditions>
+											<template>
+												<link rel='stylesheet' type='text/css'
+													  href='{{game_name}}/puzzles.css'>
+												<div class='screen' name='conditions'>
 												<details>
 													<summary></summary>
-													<p></p>
 												</details>
+												</div>
+												<div class='screen' name='empty'>No conditions</div>
 											</template>
-										</div>
+										</puzzle-conditions>
 										<h2>Actions</h2>
-										<div class="actions">
-											<button id="reload-node">Actualiser le nœud</button>
-											<button class="dangerous" id="activation">Forcer l'activation</button>
+										<p>Un puzzle s'active lorsqu'un de ces parents est complété.</p>
+										<p>Un puzzle est complété lorsque, actif, toute ces conditions sont satisfaites.</p>
+										<div id='puzzle-controls'>
+												<button class='puzzle-control' id='puzzle-activate' dangerous>Activer</button>
+												<button class='puzzle-control' id='puzzle-complete' dangerous>Completer</button>
+											<button class='puzzle-control' id='puzzle-restore' dangerous>Restaurer</button>
 										</div>
 									</div>
-								</div>
-							</div>
-							<div class='screen' name='loading'>Loading</div>
-							<div class='screen' name='empty'>Select a puzzle</div>
-							<div class='screen' name='error'>Error</div>
-						</template>
-					</puzzle-info>
-				</div>
+									<div class='screen' name='loading'>Loading</div>
+									<div class='screen' name='empty'>Select a puzzle</div>
+									<div class='screen' name='error'>Error</div>
+								</template>
+							</puzzle-info>
+						</div>
+						<div class='screen' name='loading'>Loading</div>
+						<div class='screen' name='empty'>No puzzle</div>
+					</template>
+				</puzzles-box>
 				<div class='screen' name='loading'>Loading</div>
-				<div class='screen' name='empty'>No puzzle</div>
 				<div class='screen' name='error'>Error</div>
 			</template>
-		</puzzles-box>
+		</game-box>
 		<cameras-box class='box dark' src='/{{game_name}}/cameras'>
 			<template>
 				<link rel='stylesheet' type='text/css'

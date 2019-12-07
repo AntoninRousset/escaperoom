@@ -1,0 +1,48 @@
+@import 'monitor.css';
+@import 'page.css';
+
+#menu-button {
+	position: absolute;
+	width: 23px;
+	height: 20px;
+	margin: 10px;
+	padding: 0;
+}
+
+puzzle-info {
+	display: flex;
+	flex-flow: row;
+}
+
+.screen[name='info']:not([hidden]) {
+	display: block;
+	padding: 16px;
+}
+
+#puzzle-name {
+	float: left;
+}
+
+#puzzle-state {
+	font-size: 12px;
+	float: right;
+	color: #a0a0a0;
+}
+
+#puzzle-description {
+	clear: both;
+}
+
+#puzzle-controls {
+	display: flex;
+	flex-flow: row;
+	flex-wrap: wrap;
+	justify-content: space-around;
+}
+
+.puzzle-control {
+	flex: 1;
+	margin: 5px;
+	min-width: 100px;
+}
+

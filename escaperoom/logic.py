@@ -48,6 +48,7 @@ class Puzzle(Node):
         self.name = name
         self.initial_state = initial_state
         self.state = self.initial_state
+        self.description = None
         self.desc_changed = self.Condition()
         self.parents = set()
         self.conditions = set()

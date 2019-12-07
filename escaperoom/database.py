@@ -11,28 +11,38 @@
 '''
 
 import sqlite3
+from datetime import datetime
 from os import path
 
 import settings
 
 connection = sqlite3.connect(path.join(settings.records_dir, 'games.db'))
 with connection:
-    connection.execute('''
-    CREATE TABLE IF NOT EXISTS games (
+    connection.execute(
+    '''CREATE TABLE IF NOT EXISTS games (
         id integer PRIMARY KEY,
         name text NOT NULL,
         status text NOT NULL,
+        n_player integer NOT NULL,
+        timeout_enabled boolean NOT NULL,
+        timeout timestamp,
         start_time timestamp,
-        end_time timestamp)'''
-        )
+        end_time timestamp)''')
 
-
-from datetime import datetime
-def write_game(game, new=False):
+def new_game(name, options):
     with connection:
-        connection.execute('INSERT INTO games(name, status) VALUES (?, ?)',
-                (game.name, game.status))
-        #TODO how to increment ID?
-    return 1 #TODO id
+        cursor = connection.cursor()
+        cursor.execute(
+        '''INSERT INTO games (name, status, n_player, timeout_enabled, timeout)
+        VALUES (?, ?, ?, ?, ?)''', (name, options['status'], options['n_player'], options['timeout_enabled'], options['timeout']))
+        return cursor.lastrowid
 
+def game_start(game_id, start_time):
+    with connection:
+        connection.execute(
+        '''UPDATE games SET start_time=? WHERE id=?''', (start_time, game_id))
 
+def game_end(game_id, end_time):
+    with connection:
+        connection.execute(
+        '''UPDATE games SET end_time=? WHERE id=?''', (end_time, game_id))

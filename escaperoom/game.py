@@ -25,32 +25,49 @@ class Game(Node):
     def __init__(self, name):
         super().__init__()
         self.name = name
+        self.game_id = None
+        self.default_options = {
+                'status' : 'official',
+                'n_player' : 4,
+                'timeout_enabled' : True,
+                'timeout' : '01:00:00'
+            }
+        self.start_time = None
+        self.end_time = None
+        self.desc_changed = self.Condition()
         self.network = Network() 
         self.logic = Logic()
         self.misc = Misc()
-        self.game_id = None
-        self.default_settings = dict()
-        self.start_time = None
-        self.end_time = datetime.today()
 
-    async def new_game(self, settings=dict()):
-        self.start_time = None
-        self.end_time = None
-        self.parse_settings(settings)
-        cs = {self.create_task(p.reset()) for p in self.logic.puzzles.values()}
-        await asyncio.wait(cs)
-        self.game_id = database.write_game(self, new=True)
+    def resume_game(self):
+        pass #TODO read database to resume a game
 
-    def parse_settings(settings):
-        pass
+    async def new_game(self, options):
+        async with self.desc_changed:
+            self.game_id = None
+            self.options = None
+            self.start_time = None
+            self.end_time = None
+            cs = {self.create_task(p.reset()) for p in self.logic.puzzles.values()}
+            await asyncio.wait(cs)
+            self.options = options
+            self.game_id = database.new_game(self.name, self.options)
+            self.desc_changed.notify_all()
+
+
+    async def stop_game(self):
+        async with self.desc_changed:
+            self.game_id = None
+            self.options = None
+            self.start_time = None
+            self.end_time = None
+            self.desc_changed.notify_all()
 
     def start_chronometer(self):
-        self.start_time = datetime.today() 
-        database.write_game(self)
+        database.game_start(self.game_id, datetime.today())
 
     def stop_chronometer(self):
-        self.end_time = datetime.today() 
-        database.write_game(self)
+        database.game_end(self.game_id, datetime.today())
 
     @property
     def chronometer(self):
@@ -64,16 +81,8 @@ class Game(Node):
             raise RuntimeError()
 
     @property
-    def ready(self):
-        'ready to start game (minimum to go)'
+    def running(self):
+        if self.game_id is None:
+            return False 
         return True
 
-    @property
-    def running(self):
-        if self.end_time is None:
-            return True
-        return False
-
-    @property
-    def issues(self):
-        return 'list of issues'

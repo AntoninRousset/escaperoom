@@ -65,11 +65,14 @@ class Bus(Node):
                 com_debug(f'Bus: Sent packet: (0x{dest:02x}, {msg})')
         else:
             async with self.sending:
-                result = await pac.send(dest, (msg).encode('ascii') + b'\0')
-            if result is pac.proto.OutgoingResult.SUCCESS:
-                com_debug(f'successful send to 0x{dest:02x}: {msg}')
-            else:
-                com_debug('********* PROBLEM')
+                try:
+                    result = await pac.send(dest, (msg).encode('ascii') + b'\0')
+                    if result is pac.proto.OutgoingResult.SUCCESS:
+                        com_debug(f'successful send to 0x{dest:02x}: {msg}')
+                    else:
+                        com_debug('********* PROBLEM')
+                except ConnectionRefusedError:
+                    print('ERROR: room disconnected')
 
     async def broadcast(self, msg):
         return await self.send(0x0, msg)

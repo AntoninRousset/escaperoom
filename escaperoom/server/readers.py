@@ -42,6 +42,19 @@ def timedeltaToString(timedelta):
         minutes, seconds = divmod(remaining, 60)
         return f'{hours:02d}:{minutes:02d}:{seconds:02d}'
 
+async def game(game):
+    while True:
+        async with game.desc_changed:
+            datas = dict()
+            datas['running'] = game.running
+            datas['name'] = game.name
+            datas['start_time'] = datetimeToString(game.start_time)
+            datas['end_time'] = datetimeToString(game.end_time)
+            datas['chronometer'] = timedeltaToString(game.chronometer)
+            datas['default_options'] = game.default_options
+            yield datas 
+            await game.desc_changed.wait()
+
 async def puzzles(game):
     while True:
         async with game.logic.puzzles_changed:
@@ -52,18 +65,14 @@ async def puzzles(game):
                 puzzles[uid] = {'name' : puzzle.name, 'state' : puzzle.state,
                               'row' : row, 'col' : col} 
             datas['puzzles'] = puzzles
-            datas['running'] = game.running
-            datas['name'] = game.name
-            datas['start_time'] = datetimeToString(game.start_time)
-            datas['end_time'] = datetimeToString(game.end_time)
-            datas['chronometer'] = timedeltaToString(game.chronometer)
             yield datas 
             await game.logic.puzzles_changed.wait()
 
 async def puzzle(game, uid):
     puzzle = game.logic.puzzles[uid]
     while True:
-        info = {'uid' : uid, 'name' : puzzle.name}
+        info = {'uid' : uid, 'name' : puzzle.name, 'state' : puzzle.state,
+                'description' : puzzle.description}
         yield info
         await puzzle.changed.wait()
 

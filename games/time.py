@@ -35,6 +35,7 @@ base_hexa.add_attr(b_hexa_state)
 game.network.add_device(base_hexa)
 
 start = Puzzle('start', initial_state='active')
+start.description = '''First puzzle of the game, complete it to start the timer.'''
 start.head = lambda: game.start_counter()
 start.tail = lambda: print('Bravo')
 start.add_condition(b_hexa_state)
@@ -42,6 +43,7 @@ start.predicate = lambda: b_hexa_state.value
 game.logic.add_puzzle(start, pos=(0,0))
 
 end = Puzzle('end')
+end.description = '''Last puzzle of the game, complete it and the game will end.'''
 end.head = lambda: print('Now remove it to end')
 end.tail = lambda: game.stop_counter()
 end.add_parent(start)
@@ -54,7 +56,8 @@ game.misc.add_camera(camera)
 #camera = LocalCamera('video2', '/dev/video2')
 #game.misc.add_camera(camera)
 
-display = Display('http://localhost:8081/')
+#display = Display('http://escaperoom-rpi4-gentoo:8081/')
+display = Display('http://fe80::dea6:32ff:fe02:f985:8081')
 game.misc.add_display(display)
 
 '''

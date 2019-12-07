@@ -27,6 +27,10 @@ class Templated extends HTMLElement
 			else
 				screen.setAttribute('hidden', '')
 
+	get_screen: () ->
+		@shadowRoot.querySelector('.screen:not([hidden])')
+
+
 	fill_slots: (data, node=this) ->
 		for slot in @slots
 			span = node.querySelector('span[slot='+slot+']')

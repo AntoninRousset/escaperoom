@@ -13,6 +13,7 @@
 from aiohttp import web
 from aiohttp_sse import sse_response
 import aiohttp_jinja2, jinja2
+from aiortc import RTCSessionDescription
 import json
 
 from . import controls
@@ -50,6 +51,23 @@ async def device(request):
             await resp.send(json.dumps(device))
     return resp
 
+@routes.get('/{game_name}/game')
+async def game(request):
+    game_name = request.match_info['game_name']
+    game = games[game_name]
+    async with sse_response(request) as resp:
+        async for game in readers.game(game):
+            await resp.send(json.dumps(game))
+    return resp
+
+@routes.post('/{game_name}/game')
+async def puzzles(request):
+    game_name = request.match_info['game_name']
+    game = games[game_name]
+    params = await request.json()
+    answer = await controls.game(game, params)
+    return web.Response(content_type='application/json', text=json.dumps(answer))
+
 @routes.get('/{game_name}/puzzles')
 async def puzzles(request):
     game_name = request.match_info['game_name']
@@ -58,14 +76,6 @@ async def puzzles(request):
         async for puzzles in readers.puzzles(game):
             await resp.send(json.dumps(puzzles))
     return resp
-
-@routes.post('/{game_name}/puzzles')
-async def chose(request):
-    game_name = request.match_info['game_name']
-    game = games[game_name]
-    params = await request.json()
-    answer = await controls.puzzles(game, params)
-    return web.Response(content_type='application/json', text=json.dumps(answer))
 
 @routes.get('/{game_name}/puzzle')
 async def puzzle(request):
@@ -86,7 +96,6 @@ async def cameras(request):
             await resp.send(json.dumps(cameras))
     return resp
 
-from aiortc import RTCSessionDescription
 @routes.post('/{game_name}/camera')
 async def camera(request):
     game_name = request.match_info['game_name']

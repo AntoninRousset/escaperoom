@@ -10,8 +10,10 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-async def puzzles(game, params):
+async def game(game, params):
     if params['action'] == 'new_game':
         options = params['options']
-        await game.new_game(options.get('status'))
+        await game.new_game(options)
+    elif params['action'] == 'stop_game':
+        await game.stop_game()
     return ''
