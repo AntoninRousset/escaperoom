@@ -120,9 +120,9 @@ import os
 ROOT = os.path.dirname(__file__)
 
 app = web.Application()
-aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(f'{ROOT}/server/html/'))
+aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(f'{ROOT}/html/'))
 app.add_routes(routes)
-app.router.add_static('/time/', f'{ROOT}/server/html/', name='resources')
+app.router.add_static('/time/', f'{ROOT}/html/', name='resources')
 
 async def start(host, port):
     runner = web.AppRunner(app)
