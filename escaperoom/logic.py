@@ -12,7 +12,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import escaperoom.settings as settings
+import settings
 from .node import Node
 
 def log_debug(msg):

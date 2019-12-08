@@ -16,7 +16,7 @@ import asyncio, sys
 import argparse
 from importlib import import_module
 
-import escaperoom.settings
+import settings
 #settings.testing = 'b3'
 
 async def main():
@@ -30,8 +30,8 @@ async def main():
     )
     args = parser.parse_args()
 
-    import escaperoom.server as server
-    server.games['time'] = import_module('escaperoom.games.time').game
+    import server
+    server.games['time'] = import_module('games.time').game
     await server.start(host=args.host, port=args.port)
     while True:
         await asyncio.sleep(3600)
