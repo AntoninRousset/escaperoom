@@ -16,11 +16,9 @@ import asyncio, errno, importlib.util, sys
 from argparse import ArgumentParser
 from pathlib import Path
 
-import settings
-#settings.testing = 'b3'
-#import __init__
+import settings, server
 
-async def main():
+def get_args():
     parser = ArgumentParser(description='EscapeRoom server')
     parser.add_argument(
         '--host', type=str, default='0.0.0.0',
@@ -29,18 +27,14 @@ async def main():
     parser.add_argument(
         '--port', type=int, default=8080, help='Port for HTTP server (default: 8080)'
     )
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    try:
-        Path(settings.escaperoom_dir).mkdir(exist_ok=True)
-    except FileExistsError:
-        pass
-
-    import server
-    server.games.update(get_rooms(settings.rooms_dir))
-    await server.start(host=args.host, port=args.port)
-    while True:
-        await asyncio.sleep(3600)
+def create_dirs():
+    for path in settings.escaperoom_dir, settings.rooms_dir:
+        try:
+            Path(path).mkdir(exist_ok=True)
+        except FileExistsError:
+            pass
 
 def get_rooms(rooms_dir):
     try:
@@ -48,7 +42,6 @@ def get_rooms(rooms_dir):
     except FileExistsError:
         pass
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-    print(sys.path)
     rooms = dict()
     for child in Path(rooms_dir).iterdir():
         name = child.stem
@@ -61,22 +54,11 @@ def get_rooms(rooms_dir):
             rooms[name] = room.game
     return rooms
 
-import signal
-
-def shutdown(loop, signal=None):
-    if signal:
-        print('shutdown signal')
-
-def custom_exception_handler(loop, context):
-    loop.default_exception_handler(context)
-    exception = context.get('exception')
-    print(context)
-
+print(f'name: {__name__}')
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    #for s in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
-    #    loop.add_signal_handler(s, shutdown(loop, signal=s))
-    #loop.set_exception_handler(custom_exception_handler)
-    loop.create_task(main())
-    loop.run_forever()
+    args = get_args()
+    create_dirs()
+    server.games.update(get_rooms(settings.rooms_dir))
+    server.start(host=args.host, port=args.port)
+    asyncio.get_event_loop().run_forever()
 

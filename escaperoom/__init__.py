@@ -12,6 +12,8 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import database, game, logic, media, misc, network, node, server, settings
+
 from game import Game
 from logic import Logic, Puzzle
 from misc import Misc, LocalCamera, Display
@@ -21,6 +23,5 @@ import asyncio, errno, importlib.util, sys
 from argparse import ArgumentParser
 from pathlib import Path
 
-import settings
 #settings.testing = 'b3'
 #import __init__

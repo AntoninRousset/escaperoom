@@ -13,7 +13,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from os.path import expanduser, join
+from pathlib import Path
 
 testing = None 
 
@@ -21,14 +21,18 @@ com_debug = False
 log_debug = False 
 misc_debug = False
 
-escaperoom_dir = expanduser('~/Documents/EscapeRoom')
+escaperoom_dir = Path('~/Documents/EscapeRoom').expanduser()
+rooms_dir = None
+records_file = None
 
 def read_config(path):
-    print('execute settings')
+    print('TODO read config')
 
-read_config(expanduser('/etc/escaperoom'))
-read_config(expanduser('~/.config/escaperoom'))
+read_config('/etc/escaperoom')
+read_config(Path('~/.config/escaperoom').expanduser())
 
-#TODO if not defined
-rooms_dir = join(escaperoom_dir, 'rooms')
-records_file = join(escaperoom_dir, 'games.db')
+
+if rooms_dir is None:
+    rooms_dir = escaperoom_dir/'rooms'
+if records_file is None:
+    records_file = escaperoom_dir/'games.db'

@@ -10,11 +10,10 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import aiohttp_jinja2, asyncio, jinja2, json
 from aiohttp import web
 from aiohttp_sse import sse_response
-import aiohttp_jinja2, jinja2
 from aiortc import RTCSessionDescription
-import json
 
 from . import controls
 from . import readers 
@@ -118,16 +117,19 @@ async def display(request):
 
 import os
 ROOT = os.path.dirname(__file__)
+print(f'ROOT: {ROOT}')
+ROOT = 'escaperoom/server'
 
 app = web.Application()
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(f'{ROOT}/html/'))
 app.add_routes(routes)
 app.router.add_static('/time/', f'{ROOT}/html/', name='resources')
 
-async def start(host, port):
+def start(host, port):
+    loop = asyncio.new_event_loop()
     runner = web.AppRunner(app)
-    await runner.setup()
+    loop.run_until_complete(runner.setup())
     site = web.TCPSite(runner, host, port)
-    await site.start()
-    print(f'Running on {site._host}:{site._port}')
+    loop.run_until_complete(site.start())
+    print(f'Server on {site._host}:{site._port}')
 

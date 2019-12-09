@@ -16,7 +16,7 @@ from os import path
 
 import settings
 
-connection = sqlite3.connect(settings.records_file)
+connection = sqlite3.connect(str(settings.records_file))
 with connection:
     connection.execute(
     '''CREATE TABLE IF NOT EXISTS games (
