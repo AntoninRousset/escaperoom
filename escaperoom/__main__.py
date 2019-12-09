@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python
 
 '''
  This program is free software: you can redistribute it and/or modify
@@ -31,6 +31,11 @@ async def main():
     )
     args = parser.parse_args()
 
+    try:
+        Path(settings.escaperoom_dir).mkdir(exist_ok=True)
+    except FileExistsError:
+        pass
+
     import server
     server.games.update(get_rooms(settings.rooms_dir))
     await server.start(host=args.host, port=args.port)
@@ -42,7 +47,8 @@ def get_rooms(rooms_dir):
         Path(rooms_dir).mkdir(exist_ok=True)
     except FileExistsError:
         pass
-    sys.path.append(str(Path(__file__).resolve().parent.parent))
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    print(sys.path)
     rooms = dict()
     for child in Path(rooms_dir).iterdir():
         name = child.stem

@@ -16,3 +16,11 @@ from game import Game
 from logic import Logic, Puzzle
 from misc import Misc, LocalCamera, Display
 from network import Network, Bus, Device, Attribute
+
+import asyncio, errno, importlib.util, sys
+from argparse import ArgumentParser
+from pathlib import Path
+
+import settings
+#settings.testing = 'b3'
+#import __init__
