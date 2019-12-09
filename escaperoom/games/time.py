@@ -12,7 +12,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from escaperoom import *
+from import *
 
 # Features:
 # - Translate a physical events into a node

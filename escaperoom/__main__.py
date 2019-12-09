@@ -31,7 +31,7 @@ async def main():
     args = parser.parse_args()
 
     import server
-    server.games['time'] = import_module('games.time').game
+    #server.games['time'] = import_module('games.time').game
     await server.start(host=args.host, port=args.port)
     while True:
         await asyncio.sleep(3600)

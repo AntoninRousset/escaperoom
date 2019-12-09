@@ -13,7 +13,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from os.path import expanduser
+from os.path import expanduser, join
 
 testing = None 
 
@@ -21,4 +21,12 @@ com_debug = False
 log_debug = False 
 misc_debug = False
 
-records_dir = expanduser('~/Documents/EscapeRoom')
+escaperoom_dir = expanduser('~/Documents/EscapeRoom')
+records_file = join(escaperoom_dir, 'games.db')
+
+def read_config(path):
+    print('execute settings')
+
+read_config(expanduser('/etc/escaperoom'))
+read_config(expanduser('~/.config/escaperoom'))
+

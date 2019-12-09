@@ -19,7 +19,7 @@ from .logic import Logic
 from .misc import Misc 
 from .node import Node
 from .network import Network
-from . import database
+import .database
 
 class Game(Node):
     def __init__(self, name):

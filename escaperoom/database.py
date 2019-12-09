@@ -14,9 +14,9 @@ import sqlite3
 from datetime import datetime
 from os import path
 
-import settings as settings
+import .settings
 
-connection = sqlite3.connect(path.join(settings.records_dir, 'games.db'))
+connection = sqlite3.connect(settings.records_file)
 with connection:
     connection.execute(
     '''CREATE TABLE IF NOT EXISTS games (
