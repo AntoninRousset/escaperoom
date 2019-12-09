@@ -12,9 +12,8 @@
 
 import sqlite3
 from datetime import datetime
-from os import path
 
-import settings
+from . import settings
 
 connection = sqlite3.connect(str(settings.records_file))
 with connection:

@@ -12,12 +12,11 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import asyncio
+import asyncio, re
 import PJON_daemon_client as pac
-import re
 
-import settings
-from node import Node
+from . import settings
+from .node import Node
 
 if settings.testing == 'bus':
     from tests import bus_testing as testing

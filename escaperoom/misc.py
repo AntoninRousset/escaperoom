@@ -14,13 +14,12 @@
 
 import aiohttp, json
 from aiortc import RTCPeerConnection, RTCSessionDescription
-
-import settings
-
-from node import Node 
-
 from aiortc.contrib.media import MediaStreamTrack, MediaPlayer
+
 MediaStreamTrack.stop = lambda: None
+
+from . import settings
+from .node import Node 
 
 def misc_debug(msg):
     if settings.misc_debug:
