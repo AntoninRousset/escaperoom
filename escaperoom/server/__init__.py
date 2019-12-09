@@ -14,6 +14,7 @@ import aiohttp_jinja2, asyncio, jinja2, json
 from aiohttp import web
 from aiohttp_sse import sse_response
 from aiortc import RTCSessionDescription
+from os.path import dirname
 
 from . import controls
 from . import readers 
@@ -115,15 +116,11 @@ async def display(request):
     answer = await display.handle(params) 
     return web.Response(content_type='application/json', text=answer)
 
-import os
-ROOT = os.path.dirname(__file__)
-print(f'ROOT: {ROOT}')
-ROOT = 'escaperoom/server'
-
 app = web.Application()
+ROOT = dirname(__file__)
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(f'{ROOT}/html/'))
-app.add_routes(routes)
 app.router.add_static('/time/', f'{ROOT}/html/', name='resources')
+app.add_routes(routes)
 
 def start(host, port):
     loop = asyncio.new_event_loop()
