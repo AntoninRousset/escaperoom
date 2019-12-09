@@ -16,7 +16,7 @@ import asyncio, errno, importlib.util, sys
 from argparse import ArgumentParser
 from pathlib import Path
 
-import settings, server
+from escaperoom import settings, server
 
 def get_args():
     parser = ArgumentParser(description='EscapeRoom server')
@@ -41,7 +41,7 @@ def get_rooms(rooms_dir):
         Path(rooms_dir).mkdir(exist_ok=True)
     except FileExistsError:
         pass
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    #sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     rooms = dict()
     for child in Path(rooms_dir).iterdir():
         name = child.stem
