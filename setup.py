@@ -12,10 +12,8 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/AntoninRousset/escaperoom',
-    packages=['escaperoom', 'escaperoom.server'],
-    package_dir={'escaperoom' : 'escaperoom',
-        'escaperoom.server' : 'escaperoom/server'},
-    package_data={'escaperoom.server' : ['html/*']},
+    packages=['escaperoom'],
+    include_package_data=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
@@ -30,6 +28,11 @@ setuptools.setup(
     'aiohttp>=3.6.1'
     'aiohttp_jinja>=0.15.0'
     'aiohttp_sse>=2.0.0'
-    ]
+    ],
+    entry_points={
+        'console_scripts': [
+            'escaperoom=escaperoom.__main__:main',
+        ]
+    }
 )
 

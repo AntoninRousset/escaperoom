@@ -16,7 +16,7 @@ import asyncio, errno, importlib.util, sys
 from argparse import ArgumentParser
 from pathlib import Path
 
-from escaperoom import settings, server
+from . import settings, server
 
 def get_args():
     parser = ArgumentParser(description='EscapeRoom server')
