@@ -12,15 +12,16 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import asyncio, sys
-import argparse
-from importlib import import_module
+import asyncio, errno, importlib.util, sys
+from argparse import ArgumentParser
+from pathlib import Path
 
 import settings
 #settings.testing = 'b3'
+#import __init__
 
 async def main():
-    parser = argparse.ArgumentParser(description='EscapeRoom server')
+    parser = ArgumentParser(description='EscapeRoom server')
     parser.add_argument(
         '--host', type=str, default='0.0.0.0',
         help='Host for the HTTP server (default: 0.0.0.0)'
@@ -31,10 +32,28 @@ async def main():
     args = parser.parse_args()
 
     import server
-    #server.games['time'] = import_module('games.time').game
+    server.games.update(get_rooms(settings.rooms_dir))
     await server.start(host=args.host, port=args.port)
     while True:
         await asyncio.sleep(3600)
+
+def get_rooms(rooms_dir):
+    try:
+        Path(rooms_dir).mkdir(exist_ok=True)
+    except FileExistsError:
+        pass
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
+    rooms = dict()
+    for child in Path(rooms_dir).iterdir():
+        name = child.stem
+        if name in rooms:
+            raise Exception('duplicated room\'s names')
+        spec = importlib.util.spec_from_file_location(name, Path(rooms_dir) / child)
+        if spec is not None:
+            room = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(room)
+            rooms[name] = room.game
+    return rooms
 
 import signal
 

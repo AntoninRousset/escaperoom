@@ -15,11 +15,11 @@
 import asyncio
 from datetime import datetime, timedelta
 
-from .logic import Logic
-from .misc import Misc 
-from .node import Node
-from .network import Network
-import .database
+from logic import Logic
+from misc import Misc 
+from node import Node
+from network import Network
+import database
 
 class Game(Node):
     def __init__(self, name):

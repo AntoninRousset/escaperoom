@@ -15,9 +15,9 @@
 import aiohttp, json
 from aiortc import RTCPeerConnection, RTCSessionDescription
 
-import .settings
+import settings
 
-from .node import Node 
+from node import Node 
 
 from aiortc.contrib.media import MediaStreamTrack, MediaPlayer
 MediaStreamTrack.stop = lambda: None

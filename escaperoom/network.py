@@ -16,8 +16,8 @@ import asyncio
 import PJON_daemon_client as pac
 import re
 
-import .settings
-from .node import Node
+import settings
+from node import Node
 
 if settings.testing == 'bus':
     from tests import bus_testing as testing

@@ -12,8 +12,8 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import .settings
-from .node import Node
+import settings
+from node import Node
 
 def log_debug(msg):
     if settings.log_debug:

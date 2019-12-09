@@ -22,7 +22,6 @@ log_debug = False
 misc_debug = False
 
 escaperoom_dir = expanduser('~/Documents/EscapeRoom')
-records_file = join(escaperoom_dir, 'games.db')
 
 def read_config(path):
     print('execute settings')
@@ -30,3 +29,6 @@ def read_config(path):
 read_config(expanduser('/etc/escaperoom'))
 read_config(expanduser('~/.config/escaperoom'))
 
+#TODO if not defined
+rooms_dir = join(escaperoom_dir, 'rooms')
+records_file = join(escaperoom_dir, 'games.db')

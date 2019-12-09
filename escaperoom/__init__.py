@@ -12,7 +12,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from .game import Game
-from .logic import Logic, Puzzle
-from .misc import Misc, LocalCamera, Display
-from .network import Network, Bus, Device, Attribute
+from game import Game
+from logic import Logic, Puzzle
+from misc import Misc, LocalCamera, Display
+from network import Network, Bus, Device, Attribute
