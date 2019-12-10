@@ -54,11 +54,13 @@ def get_rooms(rooms_dir):
             rooms[name] = room.game
     return rooms
 
-print(f'name: {__name__}')
-if __name__ == '__main__':
+def main():
     args = get_args()
     create_dirs()
     server.games.update(get_rooms(Path(config['DEFAULT']['rooms_dir']).expanduser()))
     server.start(host=args.host, port=args.port)
     asyncio.get_event_loop().run_forever()
 
+
+if __name__ == '__main__':
+    main()
