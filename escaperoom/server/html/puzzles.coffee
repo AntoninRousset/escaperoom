@@ -62,7 +62,6 @@ class PuzzleInfo extends Subscriber
 			@shadowRoot.querySelector('puzzle-activate').hidden = true
 			@shadowRoot.querySelector('puzzle-complete').hidden = false
 			@shadowRoot.querySelector('puzzle-complete').disabled = false
-		else if data.state
 		@set_screen('info')
 
 customElements.define('puzzles-graph', PuzzlesGraph)
