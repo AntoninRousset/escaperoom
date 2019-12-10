@@ -4,19 +4,19 @@
 		<meta charset='utf-8'>
 		<meta name='viewport' content='width=device-width, initial-scale=1'>
 		<title>Escape room - {{game_name}}</title>
-		<link rel='stylesheet' type='text/css' href='{{game_name}}/monitor.css'>
-		<link rel='stylesheet' type='text/css' href='{{game_name}}/page.css'>
-		<script src='{{game_name}}/game.js' type='module'></script>
-		<script src='{{game_name}}/puzzles.js' type='module'></script>
-		<script src='{{game_name}}/cameras.js' type='module'></script>
-		<script src='{{game_name}}/devices.js' type='module'></script>
-		<script src='{{game_name}}/clues.js' type='module'></script>
+		<link rel='stylesheet' type='text/css' href='ressources/monitor.css'>
+		<link rel='stylesheet' type='text/css' href='ressources/page.css'>
+		<script src='ressources/game.js' type='module'></script>
+		<script src='ressources/puzzles.js' type='module'></script>
+		<script src='ressources/cameras.js' type='module'></script>
+		<script src='ressources/devices.js' type='module'></script>
+		<script src='ressources/clues.js' type='module'></script>
 	</head>
 	<body>
 		<game-box class='box' src='/{{game_name}}/game'>
 			<template>
 				<link rel='stylesheet' type='text/css'
-					  href='{{game_name}}/game.css'>
+					  href='ressources/game.css'>
 				<div class='screen' name='game'>
 					<div class='section scroll-y'>
 						<p id='game-name'><slot name='name'></slot></p>
@@ -78,7 +78,7 @@
 				<puzzles-box class='screen' name='puzzles' src='/{{game_name}}/puzzles'>
 					<template>
 						<link rel='stylesheet' type='text/css'
-							  href='{{game_name}}/puzzles.css'>
+							  href='ressources/puzzles.css'>
 						<div class='screen' name='graph'>
 							<button id='menu-button'>X</button>
 							<puzzles-graph class='dark metro section scroll-y'>
@@ -86,7 +86,7 @@
 							<puzzle-info class='section scroll-y' src='/{{game_name}}/puzzle'>
 								<template>
 									<link rel='stylesheet' type='text/css'
-										  href='{{game_name}}/puzzles.css'>
+										  href='ressources/puzzles.css'>
 									<div class='screen' name='info'>
 										<h1 id='puzzle-name'><slot name='name'></slot></h1>
 										<div id='puzzle-state'><slot name='state'></slot></div>
@@ -95,7 +95,7 @@
 										<puzzle-conditions>
 											<template>
 												<link rel='stylesheet' type='text/css'
-													  href='{{game_name}}/puzzles.css'>
+													  href='ressources/puzzles.css'>
 												<div class='screen' name='conditions'>
 												<details>
 													<summary></summary>
@@ -106,7 +106,7 @@
 										</puzzle-conditions>
 										<h2>Actions</h2>
 										<p>Un puzzle s'active lorsqu'un de ces parents est complété.</p>
-										<p>Un puzzle est complété lorsque, actif, toute ces conditions sont satisfaites.</p>
+										<p>Un puzzle est complété lorsque, actif, toutes ses conditions sont satisfaites.</p>
 										<div id='puzzle-controls'>
 												<button class='puzzle-control' id='puzzle-activate' dangerous>Activer</button>
 												<button class='puzzle-control' id='puzzle-complete' dangerous>Completer</button>
@@ -130,12 +130,12 @@
 		<cameras-box class='box dark' src='/{{game_name}}/cameras'>
 			<template>
 				<link rel='stylesheet' type='text/css'
-					  href='{{game_name}}/cameras.css'>
+					  href='ressources/cameras.css'>
 				<div class='screen' name='main'>
 					<cameras-list class='panel scroll-x'>
 						<template>
 							<link rel='stylesheet' type='text/css'
-								  href='{{game_name}}/cameras.css'>
+								  href='ressources/cameras.css'>
 							<camera-video autoplay src='/{{game_name}}/camera'>
 								no video
 							</camera-video>
@@ -151,12 +151,12 @@
 		<devices-box class='box' src='/{{game_name}}/devices'>
 			<template>
 				<link rel='stylesheet' type='text/css'
-					  href='{{game_name}}/devices.css'>
+					  href='ressources/devices.css'>
 				<div class='screen' name='main'>
 					<devices-list>
 						<template> 
 							<link rel='stylesheet' type='text/css'
-								  href='{{game_name}}/devices.css'>
+								  href='ressources/devices.css'>
 							<div class='selectable'>
 								<slot name="name">name</slot>
 							</div>

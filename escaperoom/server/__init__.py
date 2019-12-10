@@ -117,11 +117,10 @@ async def display(request):
     return web.Response(content_type='application/json', text=answer)
 
 app = web.Application()
-ROOT = dirname(__file__)
-aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(f'{ROOT}/html/'))
-app.router.add_static('/time/', f'{ROOT}/html/', name='resources')
 app.add_routes(routes)
-print(f'{ROOT}/html')
+ROOT = dirname(__file__)
+app.router.add_static('/ressources', f'{ROOT}/html/', append_version=True)
+aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(f'{ROOT}/html/'))
 
 async def start(host, port):
     runner = web.AppRunner(app)
