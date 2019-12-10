@@ -58,7 +58,7 @@ def main():
     args = get_args()
     create_dirs()
     server.games.update(get_rooms(Path(config['DEFAULT']['rooms_dir']).expanduser()))
-    server.start(host=args.host, port=args.port)
+    asyncio.get_event_loop().create_task(server.start(host=args.host, port=args.port))
     asyncio.get_event_loop().run_forever()
 
 

@@ -121,12 +121,12 @@ ROOT = dirname(__file__)
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(f'{ROOT}/html/'))
 app.router.add_static('/time/', f'{ROOT}/html/', name='resources')
 app.add_routes(routes)
+print(f'{ROOT}/html')
 
-def start(host, port):
-    loop = asyncio.new_event_loop()
+async def start(host, port):
     runner = web.AppRunner(app)
-    loop.run_until_complete(runner.setup())
+    await runner.setup()
     site = web.TCPSite(runner, host, port)
-    loop.run_until_complete(site.start())
+    await site.start()
     print(f'Server on {site._host}:{site._port}')
 
