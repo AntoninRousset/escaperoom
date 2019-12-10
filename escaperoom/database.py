@@ -12,10 +12,12 @@
 
 import sqlite3
 from datetime import datetime
+from pathlib import Path
 
-from . import settings
+from . import config
 
-connection = sqlite3.connect(str(settings.records_file))
+#TODO per room database
+connection = sqlite3.connect(str(Path(config['DEFAULT']['games_file']).expanduser()))
 with connection:
     connection.execute(
     '''CREATE TABLE IF NOT EXISTS games (

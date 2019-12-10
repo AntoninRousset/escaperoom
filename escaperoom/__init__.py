@@ -12,6 +12,15 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from configparser import ConfigParser
+from pathlib import Path
+from os.path import dirname
+
+config = ConfigParser()
+ROOT = dirname(__file__)
+config.read(Path(f'{ROOT}/escaperoom.conf').resolve())
+config.read(config['DEFAULT'].get('conf_file'))
+
 from .game import Game
 from .logic import Logic, Puzzle
 from .misc import Misc, LocalCamera, Display

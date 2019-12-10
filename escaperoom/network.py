@@ -15,16 +15,11 @@
 import asyncio, re
 import PJON_daemon_client as pac
 
-from . import settings
+from . import config
 from .node import Node
 
-if settings.testing == 'bus':
-    from tests import bus_testing as testing
-elif settings.testing == 'b3':
-    from tests import b3_testing as testing
-
 def com_debug(msg):
-    if settings.com_debug:
+    if config['DEFAULT'].getboolean('com_debug', False):
         print(msg)
 
 class Bus(Node):
@@ -39,7 +34,7 @@ class Bus(Node):
 
     async def _listener(self):
         try:
-            if settings.testing:
+            if config['DEFAULT'].get('testing', False):
                 async for p in testing.listen():
                     async with self.packet_changed:
                         com_debug(f'Bus: Received packet: (0x{p[0]:02x}, {p[1]})')
@@ -59,7 +54,7 @@ class Bus(Node):
             print('ERROR: room disconnected -> please connect and restart')
 
     async def send(self, dest, msg):
-        if settings.testing:
+        if config['DEFAULT'].get('testing', False):
             if await testing.send(dest, msg):
                 com_debug(f'Bus: Sent packet: (0x{dest:02x}, {msg})')
         else:

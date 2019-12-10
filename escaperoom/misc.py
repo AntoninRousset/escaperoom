@@ -18,11 +18,11 @@ from aiortc.contrib.media import MediaStreamTrack, MediaPlayer
 
 MediaStreamTrack.stop = lambda: None
 
-from . import settings
+from . import config 
 from .node import Node 
 
 def misc_debug(msg):
-    if settings.misc_debug:
+    if config['DEFAULT'].getboolean('misc_debug', False):
         print(msg)
 
 class Misc(Node):

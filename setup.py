@@ -31,7 +31,7 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts': [
-            'escaperoom=escaperoom.__main__:main',
+            'escaperoom=escaperoom.__main__',
         ]
     }
 )

@@ -12,11 +12,11 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from . import settings
+from . import config 
 from .node import Node
 
 def log_debug(msg):
-    if settings.log_debug:
+    if config['DEFAULT'].getboolean('log_debug', False):
         print(msg)
 
 class Logic(Node):

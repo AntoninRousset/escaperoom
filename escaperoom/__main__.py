@@ -16,7 +16,7 @@ import asyncio, errno, importlib.util, sys
 from argparse import ArgumentParser
 from pathlib import Path
 
-from . import settings, server
+from . import config, server
 
 def get_args():
     parser = ArgumentParser(description='EscapeRoom server')
@@ -30,15 +30,15 @@ def get_args():
     return parser.parse_args()
 
 def create_dirs():
-    for path in settings.escaperoom_dir, settings.rooms_dir:
+    for path in config['DEFAULT']['escaperoom_dir'], config['DEFAULT']['rooms_dir']:
         try:
-            Path(path).mkdir(exist_ok=True)
+            Path(path).expanduser().mkdir(exist_ok=True)
         except FileExistsError:
             pass
 
 def get_rooms(rooms_dir):
     try:
-        Path(rooms_dir).mkdir(exist_ok=True)
+        Path(rooms_dir).expanduser().mkdir(exist_ok=True)
     except FileExistsError:
         pass
     #sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -58,7 +58,7 @@ print(f'name: {__name__}')
 if __name__ == '__main__':
     args = get_args()
     create_dirs()
-    server.games.update(get_rooms(settings.rooms_dir))
+    server.games.update(get_rooms(Path(config['DEFAULT']['rooms_dir']).expanduser()))
     server.start(host=args.host, port=args.port)
     asyncio.get_event_loop().run_forever()
 
