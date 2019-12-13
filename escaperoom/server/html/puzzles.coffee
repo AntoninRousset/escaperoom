@@ -12,7 +12,7 @@ class PuzzlesBox extends Subscriber
 
 	update: (datas) ->
 		@set_screen('graph')
-		@fill_slots(datas)
+		@update_plugs(datas)
 		@shadowRoot.querySelector('puzzles-graph').read_items(datas.puzzles)
 
 customElements.define('puzzles-box', PuzzlesBox)
@@ -57,7 +57,7 @@ class PuzzleInfo extends Subscriber
 		@subscribe(null, '?id='+id)
 
 	update: (data) ->
-		@fill_slots(data)
+		@update_plugs(data)
 		if data.state == 'active'
 			@shadowRoot.querySelector('puzzle-activate').hidden = true
 			@shadowRoot.querySelector('puzzle-complete').hidden = false

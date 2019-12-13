@@ -18,7 +18,7 @@
 				<link rel='stylesheet' type='text/css'
 					  href='ressources/game.css'>
 				<div class='screen' name='game'>
-					<div class='section scroll-y'>
+					<div class='section light scroll-y'>
 						<p id='game-name'><slot name='name'></slot></p>
 						<p class='time-dial' id='game-chronometer'><slot name='chronometer'></p>
 						<div id='game-start-end'>
@@ -35,7 +35,7 @@
 							liste des problèmes
 						</game-issues>
 					</div>
-					<game-menu class='section scroll-y' src='{{game_name}}/game'>
+					<game-menu class='section light scroll-y' src='{{game_name}}/game'>
 						<fieldset id='game-options'>
 							<legend>Options de la partie</legend>
 							<div class='game-option'>
@@ -93,7 +93,7 @@
 										<p id='puzzle-description'><slot name='description'></slot></p>
 										<h2>Conditions</h2>
 										<puzzle-conditions>
-											<template>
+											<template class='item'>
 												<link rel='stylesheet' type='text/css'
 													  href='ressources/puzzles.css'>
 												<div class='screen' name='conditions'>
@@ -133,7 +133,7 @@
 					  href='ressources/cameras.css'>
 				<div class='screen' name='main'>
 					<cameras-list class='panel scroll-x'>
-						<template>
+						<template class='item'>
 							<link rel='stylesheet' type='text/css'
 								  href='ressources/cameras.css'>
 							<camera-video autoplay src='/{{game_name}}/camera'>
@@ -153,40 +153,39 @@
 				<link rel='stylesheet' type='text/css'
 					  href='ressources/devices.css'>
 				<div class='screen' name='main'>
-					<devices-list>
-						<template> 
+					<devices-list class='section list dark scroll-y'>
+						<template class='item selectable'> 
 							<link rel='stylesheet' type='text/css'
 								  href='ressources/devices.css'>
-							<div class='selectable'>
-								<slot name="name">name</slot>
-							</div>
+							<slot name='type'></slot>
+							<slot name='name'>name</slot>
 						</template>
 					</devices-list>
+					<device-info class='section light scroll-y' src="/{{game_name}}/device">
+						<template>
+							<div class='screen' name='main'>
+								<p>name: <slot name="name"></slot></p>
+								<p>msg: <slot name="msg"></slot></p>
+								<p>addr: <slot name="addr"></slot></p>
+								<p>Attibutes:
+								<attrs-list class='item'>
+									<template class='item'>
+										"<slot name="name"></slot>"
+										(<slot name="type"></slot>):
+										<slot name="value"></slot>
+									</template>
+								</attrs-list>
+								</p>
+							</div>
+							<div class='screen' name='empty'>Select a device</div>
+							<div class='screen' name='loading'>Loading</div>
+							<div class='screen' name='error'>Error</div>
+						</template>
+					</device-info>
 				</div>
 				<div class='screen' name='empty'>No device</div>
 				<div class='screen' name='loading'>Loading</div>
 				<div class='screen' name='error'>Error</div>
-				<device-info class='scroll-y' src="/{{game_name}}/device">
-					<template>
-						<div class='screen' name='main'>
-							<p>name: <slot name="name"></slot></p>
-							<p>msg: <slot name="msg"></slot></p>
-							<p>addr: <slot name="addr"></slot></p>
-							<p>Attibutes:
-							<attrs-list>
-								<template>
-									"<slot name="name"></slot>"
-									(<slot name="type"></slot>):
-									<slot name="value"></slot>
-								</template>
-							</attrs-list>
-							</p>
-						</div>
-						<div class='screen' name='empty'>Select a device</div>
-						<div class='screen' name='loading'>Loading</div>
-						<div class='screen' name='error'>Error</div>
-					</template>
-				</device-info>
 			</template>
 		</devices-box>
 		<clues-box class='box' src='/{{game_name}}/clues'>

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=ProgramName
+Comment=This is my comment
+Exec=/usr/share/MyApp/MyApp.py
+Icon=/usr/share/MyApp/MyApp.py
+Path=/usr/share/MyApp/
+Terminal=false
+Type=Application
+Categories=Utility;Application;

@@ -59,6 +59,5 @@ def main():
     asyncio.get_event_loop().create_task(server.start(host=args.host, port=args.port))
     asyncio.get_event_loop().run_forever()
 
-
 if __name__ == '__main__':
     main()

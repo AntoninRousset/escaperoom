@@ -12,13 +12,26 @@ class Templated extends HTMLElement
 			@slots = (slot.getAttribute('name') for slot in slots)
 
 	apply_template: (node=this) ->
+		if @template.hasAttribute('class')
+			node.setAttribute('class', @template.getAttribute('class'))
 		for slot in @slots
-			span = document.createElement('span')
-			span.setAttribute('slot', slot)
-			node.appendChild(span)
+			node.appendChild(@create_plug(slot))
 		node.attachShadow({mode: 'open'})
 		node.shadowRoot.appendChild(@template.content.cloneNode(true))
 		node
+
+	create_plug: (slot) ->
+		span = document.createElement('span')
+		span.setAttribute('slot', slot)
+		span
+
+	update_plugs: (data, node=this) ->
+		for slot in @slots
+			@update_plug(slot, data, node)
+
+	update_plug: (slot, data, node) ->
+		node = node.querySelector('[slot='+slot+']')
+		node.textContent = data[slot]
 
 	set_screen: (name, node=this) ->
 		for screen in node.shadowRoot.querySelectorAll('.screen')
@@ -29,12 +42,6 @@ class Templated extends HTMLElement
 
 	get_screen: () ->
 		@shadowRoot.querySelector('.screen:not([hidden])')
-
-
-	fill_slots: (data, node=this) ->
-		for slot in @slots
-			span = node.querySelector('span[slot='+slot+']')
-			span.textContent = data[slot]
 
 export class Subscriber extends Templated
 	constructor: () ->
@@ -62,7 +69,7 @@ export class Subscriber extends Templated
 			@subscription.close()
 
 	update: (datas) ->
-		@fill_slots(datas)
+		@update_plugs(datas)
 
 export class Container extends Templated
 	constructor: () ->
@@ -70,13 +77,12 @@ export class Container extends Templated
 		
 	create_item: (id, type='div') ->
 		item = document.createElement(type)
-		item.setAttribute('class', 'item')
 		item.setAttribute('item_id', id)
 		@apply_template(item)
 
 	update_item: (id, data) ->
 		item = @get_item(id)
-		@fill_slots(data, item)
+		@update_plugs(data, item)
 
 	read_items: (datas) ->
 		for id in @items_ids()

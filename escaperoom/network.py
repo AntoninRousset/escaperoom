@@ -142,12 +142,13 @@ class Network(Node):
 
 class Device(Node):
 
-    def __init__(self, *, name=None, addr=None): 
+    def __init__(self, *, name=None, addr=None, type='unknown'): 
         super().__init__()
         if name is None and addr is None: 
             raise RuntimeError()
         self.name = name
         self.addr = addr
+        self.type = type
         self.n_attr = None
         self.desc_changed = self.Condition()
         self.msg = None

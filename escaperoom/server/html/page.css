@@ -1,44 +1,67 @@
+:root {
+	--dark-color: #1f4e5f;
+	--light-color: #f4f7f7;
+
+	--controls-color: #aacfd0;
+	--activate-color: #79a8a9;
+	--dangerous-color: #ed643f;
+
+	--dark-text-color: white;
+	--light-text-color: #424242;
+}
+
 @font-face{
-    font-family: 'time-dial-font';
-    src: url('/time/digital_counter_7.ttf');
+	font-family: 'time-dial-font';
+	src: url('/ressources/digital_counter_7.ttf');
 }
 
 :disabled {
-    color: #666666;
-    cursor: default;
+	color: #666666;
+	cursor: default;
 }
 
 [hidden] {
-    display: none;
+	display: none;
 }
 
 [disabled] {
-    color: gray;
-    cursor: default;
+	color: gray;
+	cursor: default;
+}
+
+.box, .screen, .section {
+    background: var(--light-color);
+}
+
+.dark.box, .dark.screen, .dark.section {
+    background: var(--dark-color);
+}
+
+.dark {
+	font-weight: bold;
+	color: var(--dark-text-color);
 }
 
 .scroll-x {
-    overflow-x: scroll;
-    scrollbar-width: none;
+	overflow-x: scroll;
+	scrollbar-width: none;
 }
 
 .scroll-y {
-    overflow-y: scroll;
-    scrollbar-width: none;
+	overflow-y: scroll;
+	scrollbar-width: none;
 }
 
 h1 {
-  font-weight: normal;
-  color: #424242;
-  font-size: 38px;
-  margin: 8px 0 6px 0;
+	font-weight: normal;
+	font-size: 38px;
+	margin: 8px 0 6px 0;
 }
 
 h2 {
-  font-weight: normal;
-  color: #505050;
-  font-size: 18px;
-  margin 14px 0 8px 0;
+	font-weight: normal;
+	font-size: 18px;
+	margin 14px 0 8px 0;
 }
 
 p {
@@ -46,129 +69,67 @@ p {
 }
 
 button, input, select {
-    border: 1px solid #00000040;
-    border-radius: 4px;
-    padding: 2px 7px;
-    text-shadow: 0px 1px 0px #ffffff40;
-    cursor: pointer;
-    transition: background 0.2s ease;
+	border: 1px solid #00000040;
+	border-radius: 4px;
+	padding: 2px 7px;
+	text-shadow: 0px 1px 0px #ffffff40;
+	cursor: pointer;
+	transition: background 0.2s ease;
 }
 
 button, input[type='reset'], input[type='submit'] {
-    padding: 8px 14px;
+	padding: 8px 14px;
 }
 
 button:not(:disabled):hover {
-    background: #a9d7d8;
+	background: #a9d7d8;
 }
 
 button:not(:disabled)[dangerous]:hover {
-    background: #ed643f;
+	background: var(--dangerous-color); 
 }
 
 button:disabled {
-    border: 1px solid #999999;
-    background-color: #cccccc;
-    box-shadow: 0px 0px 0px #00000000 inset;
+	border: 1px solid #999999;
+	background-color: #cccccc;
+	box-shadow: 0px 0px 0px #00000000 inset;
 }
 
 .time-dial {
-    font-family: 'time-dial-font'
+	font-family: 'time-dial-font'
 }
 
 /** TO CHECK **/
 
 button:active{
-    box-shadow: 0px 0px 20px #00000040 inset;
+	box-shadow: 0px 0px 20px #00000040 inset;
 }
 
 button::-moz-focus-inner {
-    border: 0;
+	border: 0;
 }
 
 .rect {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  overflow: hidden;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	overflow: hidden;
 }
+
+.dark.list > .item:nth-child(odd) {
+	background: rgba(255,255,255, 0.2);
+}
+
+.dark.list > .item:nth-child(odd):hover {
+	background: var(--activate-color); 
+}
+
 
 /** LIST **/
 
-.list {
-  /*color: #a0a0a0;*/
-  display: flex;
-  flex-direction: column;
-}
-
-.list > *:not(template) {
-  display: block;
-  padding: 5px 10px;
-  margin: 0px;
-}
-
-.list:not(.long) > *:not(:last-child) {
-  border-bottom: 1px solid #ccc;
-}
-
-.list.long {
-  font-size: 14px;
-  overflow-y: scroll; 
-  scrollbar-color: #00000040 transparent;
-  scrollbar-width: none;
-}
-
-.list.long > *:nth-child(even) {
-  background: #eee;
-}
-
-
-.list.select > * {
-  cursor: pointer;
-}
-
-.list.select > *:hover {
-  background: #eee;
-}
-
-.list.select.blue > *:hover {
-  background: #0366d6;
-  color: white;
-}
-
-.list details {
-  padding: 2px 8px;
-}
-
-.list details summary {
-  display: block;
-  #cursor: pointer;
-  font-size: 14px;
-  outline: none;
-  opacity: 0.8;
-  margin-bottom: 4px;
-}
-
-.list details.red summary {
-  color: #d34c26;
-}
-
-.list details.green summary {
-  color: #36622b;
-}
-
-.list details summary:hover {
-  opacity: 1.0;
-}
-
-.list details p {
-  font-size: 10px;
-  margin-top: 0px;
-  margin-bottom: 10px;
-}
 
 .inspector .actions button.dangerous.confirm {
-  box-shadow: 0px 0px 20px #00000040 inset;
-  background: #ed2c00; 
-  color: #ede2df;
-  text-shadow: 0px -1px 0px #00000040;
+	box-shadow: 0px 0px 20px #00000040 inset;
+	background: #ed2c00; 
+	color: #ede2df;
+	text-shadow: 0px -1px 0px #00000040;
 }

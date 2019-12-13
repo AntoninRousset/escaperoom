@@ -10,7 +10,7 @@ class GameBox extends Subscriber
 		@subscribe()
 
 	update: (datas) ->
-		@fill_slots(datas)
+		@update_plugs(datas)
 		@shadowRoot.querySelector('game-menu').update(datas)
 		if @get_screen().getAttribute('name') == 'loading'
 			if datas.running

@@ -119,7 +119,8 @@ async def display(request):
 app = web.Application()
 app.add_routes(routes)
 ROOT = dirname(__file__)
-app.router.add_static('/ressources', f'{ROOT}/html/', append_version=True)
+#app.router.add_static('/ressources', f'{ROOT}/html/', append_version=True) #TODO
+app.router.add_static('/ressources', f'{ROOT}/html/')
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(f'{ROOT}/html/'))
 
 async def start(host, port):

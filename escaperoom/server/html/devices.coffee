@@ -10,7 +10,7 @@ class DevicesBox extends Subscriber
 		@subscribe()
 		
 	update: (datas) ->
-		@fill_slots(datas)
+		@update_plugs(datas)
 		@devices_list.read_items(datas.devices)
 		if is_empty(datas.devices)
 			@set_screen('empty')
@@ -28,6 +28,27 @@ class DevicesList extends Container
 			device_info.select(id)
 		@appendChild(item)
 
+	update_item: (id, data) ->
+		item = @get_item(id)
+		@update_plugs(data, item)
+		src = 'ressources/'+data.type+'_logo.svg'
+
+	create_plug: (slot) ->
+		if slot == 'type'
+			node = document.createElement('img')
+		else
+			node = document.createElement('span')
+		node.setAttribute('slot', slot)
+		node
+
+	update_plug: (slot, data, node) ->
+		node = node.querySelector('[slot='+slot+']')
+		if slot == 'type'
+			node.setAttribute('src', 'ressources/'+data[slot]+'_logo.svg')
+			node.setAttribute('alt', data[slot])
+		else
+			node.textContent = data[slot]
+
 customElements.define('devices-list', DevicesList)
 
 class DeviceInfo extends Subscriber
@@ -42,7 +63,7 @@ class DeviceInfo extends Subscriber
 		@subscribe(null, '?id='+id)
 
 	update: (datas) ->
-		@fill_slots(datas)
+		@update_plugs(datas)
 		@attrs_list.read_items(datas.attrs)
 		@set_screen('main')
 

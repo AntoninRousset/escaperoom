@@ -16,7 +16,7 @@ async def devices(game):
             datas = dict()
             devices = dict()
             for uid, device in game.network.devices.items():
-                devices[uid] = {'name' : device.name, 'n_attr' : device.n_attr}
+                devices[uid] = {'name' : device.name, 'type' : device.type, 'n_attr' : device.n_attr}
             datas['devices'] = devices 
             yield datas 
             await game.network.devices_changed.wait()
@@ -26,7 +26,7 @@ async def device(game, uid):
     while True:
         attrs = {uid : {'name' : attr.name, 'type' : attr.vtype, 'value' : attr.value}
                 for uid, attr in device.attrs.items()}
-        info = {'name' : device.name, 'attrs' : attrs,
+        info = {'name' : device.name, 'attrs' : attrs, 'type' : device.type,
                 'addr' : device.addr, 'msg' : device.msg}
         yield info
         await device.changed.wait()

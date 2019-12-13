@@ -14,7 +14,7 @@ class CamerasBox extends Subscriber
 			@cameras_list.setAttribute('visible', 'false')
 
 	update: (datas) ->
-		@fill_slots(datas)
+		@update_plugs(datas)
 		@cameras_list.read_items(datas.cameras)
 		if is_empty(datas.cameras)
 			@set_screen('empty')
