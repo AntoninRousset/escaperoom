@@ -15,7 +15,10 @@ PuzzlesBox = class PuzzlesBox extends Subscriber {
     super();
     this.apply_template();
     this.shadowRoot.querySelector('#puzzles-menu').onclick = (event) => {
-      return document.querySelector('game-box').set_screen('game');
+      var game_box;
+      game_box = document.querySelector('game-box');
+      game_box.current_screen = 'game';
+      return game_box.set_screen(game_box.current_screen);
     };
     this.subscribe();
   }

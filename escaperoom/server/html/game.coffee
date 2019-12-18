@@ -5,6 +5,7 @@ class GameBox extends Subscriber
 	constructor: () ->
 		super()
 		@apply_template()
+		@set_screen('game')
 		@subscribe()
 
 	update: (datas) ->
@@ -90,11 +91,12 @@ class GameMenu extends HTMLElement
 			}),
 			method: 'POST'
 		})
-		#TODO remove selected game
-		@back_to_game()
+		document.querySelector('game-box').current_screen = 'puzzles'
 
 	back_to_game: () ->
-		document.querySelector('game-box').current_screen = 'puzzles'
+		game_box = document.querySelector('game-box')
+		game_box.current_screen = 'puzzles'
+		game_box.set_screen(game_box.current_screen)
 
 	stop_game: () ->
 		reponse = await fetch(@getAttribute('src'), {

@@ -6,7 +6,9 @@ class PuzzlesBox extends Subscriber
 		super()
 		@apply_template()
 		@shadowRoot.querySelector('#puzzles-menu').onclick = (event) =>
-			document.querySelector('game-box').set_screen('game')
+			game_box = document.querySelector('game-box')
+			game_box.current_screen = 'game'
+			game_box.set_screen(game_box.current_screen)
 		@subscribe()
 
 	update: (datas) ->

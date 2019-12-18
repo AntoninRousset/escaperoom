@@ -14,6 +14,7 @@ GameBox = class GameBox extends Subscriber {
   constructor() {
     super();
     this.apply_template();
+    this.set_screen('game');
     this.subscribe();
   }
 
@@ -129,12 +130,14 @@ GameMenu = class GameMenu extends HTMLElement {
       }),
       method: 'POST'
     }));
-    //TODO remove selected game
-    return this.back_to_game();
+    return document.querySelector('game-box').current_screen = 'puzzles';
   }
 
   back_to_game() {
-    return document.querySelector('game-box').current_screen = 'puzzles';
+    var game_box;
+    game_box = document.querySelector('game-box');
+    game_box.current_screen = 'puzzles';
+    return game_box.set_screen(game_box.current_screen);
   }
 
   async stop_game() {
