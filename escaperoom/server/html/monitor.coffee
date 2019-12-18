@@ -40,7 +40,12 @@ class Templated extends HTMLElement
 			else
 				screen.setAttribute('hidden', '')
 
-	get_screen: () ->
+	has_screen: (name, node=this) ->
+		if not node.shadowRoot?
+			return false
+		node.shadowRoot.querySelector('.screen[name="'+name+'"]')?
+
+	get_screen: (node=this) ->
 		@shadowRoot.querySelector('.screen:not([hidden])')
 
 export class Subscriber extends Templated
@@ -55,7 +60,7 @@ export class Subscriber extends Templated
 		data = JSON.parse(event.data)
 		for subscriber in subscribers
 			if data['type'] == 'update' and data['loc'] == subscriber.loc
-				subscriber.sync()
+				await subscriber.sync()
 
 	subscribe: (query_str='', path=null) ->
 		if path?
@@ -71,10 +76,23 @@ export class Subscriber extends Templated
 		event_source.onmessage = event_handler
 		@sync()
 
-	sync: () ->
-		fetch(@loc)
-			.then((response) => response.json())
-			.then((data) => @update(data))
+	sync: () =>
+		now = new Date()
+		@now = now
+		loading_timeout = setTimeout(@onloading, 1000)
+		response = await fetch(@loc)
+		data = await response.json()
+		clearTimeout(loading_timeout)
+		if now is @now
+			@update(data)
+
+	onloading: (promise) =>
+		if @has_screen('loading')
+			@set_screen('loading')
+
+	onerror: () =>
+		if @has_screen('error')
+			@set_screen('error')
 
 	unsubscribe: () ->
 		for i, subscriber of subscribers

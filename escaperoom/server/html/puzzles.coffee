@@ -5,7 +5,6 @@ class PuzzlesBox extends Subscriber
 	constructor: () ->
 		super()
 		@apply_template()
-		@set_screen('loading')
 		@shadowRoot.querySelector('#puzzles-menu').onclick = (event) =>
 			document.querySelector('game-box').set_screen('game')
 		@subscribe()
@@ -23,7 +22,7 @@ class PuzzlesGraph extends Container
 	constructor: () ->
 		super()
 		svg = document.createElementNS(svgns, 'svg')
-		svg.setAttributeNS(null, 'style', 'width: 100%')
+		svg.setAttributeNS(null, 'style', 'width: 100%;')
 		@appendChild(svg)
 		@graph = document.createElementNS(svgns, 'g')
 		@graph.setAttributeNS(null, 'style', 'transform: translate(50%, 40px)')
@@ -55,7 +54,6 @@ class PuzzleInfo extends Subscriber
 		@set_screen('empty')
 
 	select: (id) ->
-		@set_screen('loading')
 		@subscribe('?id='+id)
 
 	update: (data) ->

@@ -5,7 +5,6 @@ class CamerasBox extends Subscriber
 	constructor: () ->
 		super()
 		@apply_template()
-		@set_screen('loading')
 		@cameras_list = @shadowRoot.querySelector('cameras-list')
 		@subscribe()
 		@onmouseover = (event) ->

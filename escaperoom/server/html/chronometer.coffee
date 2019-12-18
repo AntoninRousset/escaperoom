@@ -6,10 +6,8 @@ class ChronometerDial extends Subscriber
 		super()
 		@tick_period = 250
 		@subscribe()
-		console.log('chrono')
 
 	update: (data) =>
-		console.log('up ch', data)
 		@sync_time = Date.now()
 		@time = data['time']
 		@running = data['running']

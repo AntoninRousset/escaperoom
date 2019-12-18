@@ -5,7 +5,6 @@ class DevicesBox extends Subscriber
 	constructor: () ->
 		super()
 		@apply_template()
-		@set_screen('loading')
 		@devices_list = @shadowRoot.querySelector('devices-list')
 		@subscribe()
 		
@@ -59,7 +58,6 @@ class DeviceInfo extends Subscriber
 		@attrs_list = @shadowRoot.querySelector('device-attributes')
 	
 	select: (id) ->
-		@set_screen('loading')
 		@subscribe('?id='+id)
 
 	update: (datas) ->

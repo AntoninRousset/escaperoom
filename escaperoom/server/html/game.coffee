@@ -5,21 +5,17 @@ class GameBox extends Subscriber
 	constructor: () ->
 		super()
 		@apply_template()
-		@set_screen('loading')
 		@current_screen = 'puzzles' #Falls back to 'game' if not running
 		@subscribe()
 
 	update: (datas) ->
 		@update_plugs(datas)
 		@shadowRoot.querySelector('game-menu').update(datas)
-		if @get_screen().getAttribute('name') == 'loading'
+		if @get_screen() is null
 			if datas.running
 				@set_screen('puzzles')
 			else
 				@set_screen('game')
-
-	get_current_screen: () ->
-		@querySelector('screen:not([hidden])').name
 
 customElements.define('game-box', GameBox)
 

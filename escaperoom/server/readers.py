@@ -48,21 +48,6 @@ async def chronometer(game):
     return {'running' : running, 'time' : game.chronometer.total_seconds()*1000}
 
 
-'''
-async def chronometer(game, timeout):
-    p = {} 
-    await game.desc_changed.acquire()
-    while True:
-        if not p:
-            p = {asyncio.create_task(game.desc_changed.wait())}
-        running = game.start_time is not None and game.end_time is None
-        yield {'running' : running,
-               'time' : game.chronometer.total_seconds()*1000}
-        d, p = await asyncio.wait(p, timeout=timeout)
-        await asyncio.sleep(5)
-    game.desc_changed.release()
-'''
-
 async def devices(game):
     async with game.network.devices_changed:
         devices = dict()
