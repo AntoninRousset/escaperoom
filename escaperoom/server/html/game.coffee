@@ -5,17 +5,16 @@ class GameBox extends Subscriber
 	constructor: () ->
 		super()
 		@apply_template()
-		@current_screen = 'puzzles' #Falls back to 'game' if not running
 		@subscribe()
 
 	update: (datas) ->
 		@update_plugs(datas)
 		@shadowRoot.querySelector('game-menu').update(datas)
-		if @get_screen() is null
-			if datas.running
-				@set_screen('puzzles')
-			else
-				@set_screen('game')
+		if not datas.running
+			@current_screen = 'game'
+		else if not @current_screen?
+			@current_screen = 'puzzles'
+		@set_screen(@current_screen)
 
 customElements.define('game-box', GameBox)
 
@@ -95,7 +94,7 @@ class GameMenu extends HTMLElement
 		@back_to_game()
 
 	back_to_game: () ->
-		document.querySelector('game-box').set_screen('puzzles')
+		document.querySelector('game-box').current_screen = 'puzzles'
 
 	stop_game: () ->
 		reponse = await fetch(@getAttribute('src'), {

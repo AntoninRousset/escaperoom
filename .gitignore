@@ -1,7 +1,5 @@
 __pycache__/
 *.py[cod]
 *.log
-*.js
 todo.txt
 comments.txt
-games/records.db

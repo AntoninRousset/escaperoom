@@ -2,7 +2,7 @@
 @import 'page.css';
 
 .section[name='graph'] {
-	display: block;
+	display: flex;
 }
 
 #puzzles-menu {
@@ -32,9 +32,11 @@
 puzzles-graph {
 	display: block;
 	background: none;
+	flex: 1;
 }
 
 #graph-offset {
+	height: 70px;
 }
 
 puzzle-info {

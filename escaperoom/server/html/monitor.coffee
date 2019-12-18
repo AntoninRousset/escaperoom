@@ -60,7 +60,7 @@ export class Subscriber extends Templated
 		data = JSON.parse(event.data)
 		for subscriber in subscribers
 			if data['type'] == 'update' and data['loc'] == subscriber.loc
-				await subscriber.sync()
+				subscriber.sync()
 
 	subscribe: (query_str='', path=null) ->
 		if path?
