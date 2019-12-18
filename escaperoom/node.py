@@ -10,14 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import asyncio
-
-def create_task(future):
-    # python3.6
-    loop = asyncio.get_event_loop()
-    return loop.create_task(future)
-    # python3.7
-    #return asyncio.create_task(future)
+from . import asyncio
 
 #Abstract class
 class Node():
@@ -26,7 +19,7 @@ class Node():
         self.changed = asyncio.Event()
 
     def create_task(self, future):
-        task = create_task(future)
+        task = asyncio.create_task(future)
         self.__tasks.add(task)
         return task
 

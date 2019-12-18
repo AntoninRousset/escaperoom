@@ -10,14 +10,13 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import aiohttp_jinja2, asyncio, jinja2, json
+import aiohttp_jinja2, jinja2, json
 from aiohttp import web
 from aiohttp_sse import sse_response
 from aiortc import RTCSessionDescription
 from os.path import dirname
 
-from . import controls
-from . import readers 
+from . import controls, events, readers
 
 games = dict()
 routes = web.RouteTableDef()
@@ -32,33 +31,38 @@ async def monitor(request):
     context = {'game_name' : game_name}
     return aiohttp_jinja2.render_template('monitor.jinja2', request, context)
 
-@routes.get('/{game_name}/devices')
-async def devices(request):
+@routes.get('/{game_name}/events')
+async def events(request):
     game_name = request.match_info['game_name']
     game = games[game_name]
     async with sse_response(request) as resp:
-        async for devices in readers.devices(game):
-            await resp.send(json.dumps(devices))
+        async for event in readers.events_generator(game):
+            await resp.send(json.dumps(event))
     return resp
+
+@routes.get('/{game_name}/chronometer')
+async def chronometer(request):
+    game_name = request.match_info['game_name']
+    data = await readers.chronometer(games[game_name])
+    return web.Response(content_type='application/json', text=json.dumps(data))
+
+@routes.get('/{game_name}/devices')
+async def devices(request):
+    game_name = request.match_info['game_name']
+    data = await readers.devices(games[game_name])
+    return web.Response(content_type='application/json', text=json.dumps(data))
 
 @routes.get('/{game_name}/device')
 async def device(request):
     game_name = request.match_info['game_name']
-    game = games[game_name]
-    uid = request.query['id']
-    async with sse_response(request) as resp:
-        async for device in readers.device(game, uid):
-            await resp.send(json.dumps(device))
-    return resp
+    data = await readers.device(games[game_name], request.query['id'])
+    return web.Response(content_type='application/json', text=json.dumps(data))
 
 @routes.get('/{game_name}/game')
 async def game(request):
     game_name = request.match_info['game_name']
-    game = games[game_name]
-    async with sse_response(request) as resp:
-        async for game in readers.game(game):
-            await resp.send(json.dumps(game))
-    return resp
+    data = await readers.game(games[game_name])
+    return web.Response(content_type='application/json', text=json.dumps(data))
 
 @routes.post('/{game_name}/game')
 async def puzzles(request):
@@ -71,30 +75,22 @@ async def puzzles(request):
 @routes.get('/{game_name}/puzzles')
 async def puzzles(request):
     game_name = request.match_info['game_name']
-    game = games[game_name]
-    async with sse_response(request) as resp:
-        async for puzzles in readers.puzzles(game):
-            await resp.send(json.dumps(puzzles))
-    return resp
+    data = await readers.puzzles(games[game_name])
+    return web.Response(content_type='application/json', text=json.dumps(data))
 
 @routes.get('/{game_name}/puzzle')
 async def puzzle(request):
     game_name = request.match_info['game_name']
     game = games[game_name]
     uid = request.query['id']
-    async with sse_response(request) as resp:
-        async for puzzle in readers.puzzle(game, uid):
-            await resp.send(json.dumps(puzzle))
-    return resp
+    data = await readers.puzzle(games[game_name], request.query['id'])
+    return web.Response(content_type='application/json', text=json.dumps(data))
 
 @routes.get('/{game_name}/cameras')
 async def cameras(request):
     game_name = request.match_info['game_name']
-    game = games[game_name]
-    async with sse_response(request) as resp:
-        async for cameras in readers.cameras(game):
-            await resp.send(json.dumps(cameras))
-    return resp
+    data = await readers.cameras(games[game_name])
+    return web.Response(content_type='application/json', text=json.dumps(data))
 
 @routes.post('/{game_name}/camera')
 async def camera(request):
@@ -104,8 +100,8 @@ async def camera(request):
     camera = game.misc.cameras[uid]
     params = await request.json()
     offer = RTCSessionDescription(sdp=params['sdp'], type=params['type'])
-    answer = await camera.handle_offer(offer)
-    return web.Response(content_type='application/json', text=json.dumps(answer))
+    data = await camera.handle_offer(offer)
+    return web.Response(content_type='application/json', text=json.dumps(data))
 
 @routes.post('/{game_name}/display')
 async def display(request):

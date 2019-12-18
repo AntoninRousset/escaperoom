@@ -10,10 +10,10 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import asyncio, re
+import re
 import PJON_daemon_client as pac
 
-from . import config
+from . import asyncio, config
 from .node import Node
 
 def com_debug(msg):

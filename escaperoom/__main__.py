@@ -10,11 +10,11 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import asyncio, errno, importlib.util, sys
+import errno, importlib.util, sys
 from argparse import ArgumentParser
 from pathlib import Path
 
-from . import config, server
+from . import asyncio, config, server
 
 def get_args():
     parser = ArgumentParser(description='EscapeRoom server')

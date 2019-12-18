@@ -56,22 +56,22 @@ class DeviceInfo extends Subscriber
 		super()
 		@apply_template()
 		@set_screen('empty')
-		@attrs_list = @shadowRoot.querySelector('attrs-list')
+		@attrs_list = @shadowRoot.querySelector('device-attributes')
 	
 	select: (id) ->
 		@set_screen('loading')
-		@subscribe(null, '?id='+id)
+		@subscribe('?id='+id)
 
 	update: (datas) ->
 		@update_plugs(datas)
 		@attrs_list.read_items(datas.attrs)
-		@set_screen('main')
+		@set_screen('info')
 
 customElements.define('device-info', DeviceInfo)
 
-class AttrsList extends Container
+class DeviceAttributes extends Container
 	add_item: (id, data) ->
 		item = @create_item(id)
 		@appendChild(item)
 
-customElements.define('attrs-list', AttrsList)
+customElements.define('device-attributes', DeviceAttributes)

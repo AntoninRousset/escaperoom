@@ -44,29 +44,42 @@ class Templated extends HTMLElement
 		@shadowRoot.querySelector('.screen:not([hidden])')
 
 export class Subscriber extends Templated
+	event_source = null
+	subscribers = []
+
 	constructor: () ->
 		super()
-		@subscription = null
-		@query_str = ''
+		@loc = ''
+				
+	event_handler = (event) ->
+		data = JSON.parse(event.data)
+		for subscriber in subscribers
+			if data['type'] == 'update' and data['loc'] == subscriber.loc
+				subscriber.sync()
 
-	subscribe: (path=null, query_str=null) ->
+	subscribe: (query_str='', path=null) ->
 		if path?
 			path = @setAttribute('src', path)
 		else
 			path = @getAttribute('src')
-		if query_str?
-			@query_str = query_str
-		else
-			query_str = @query_str
-		loc = @getAttribute('src')+query_str
 		@unsubscribe()
-		@subscription = new EventSource(loc)
-		@subscription.onmessage = (event) =>
-			@update(JSON.parse(event.data))
+		@loc = path+query_str
+		event_path = path.substring(0, path.lastIndexOf('/'))+'/events'
+		if not event_source?
+			event_source = new EventSource(event_path)
+		subscribers.push(this)
+		event_source.onmessage = event_handler
+		@sync()
+
+	sync: () ->
+		fetch(@loc)
+			.then((response) => response.json())
+			.then((data) => @update(data))
 
 	unsubscribe: () ->
-		if @subscription?
-			@subscription.close()
+		for i, subscriber of subscribers
+			if this is subscriber
+				subscribers.splice(i, 1)
 
 	update: (datas) ->
 		@update_plugs(datas)

@@ -45,7 +45,7 @@ class Puzzle(Node):
         super().__init__()
         self.name = name
         self.initial_state = initial_state
-        self.state = self.initial_state
+        self.state = None
         self.description = None
         self.desc_changed = self.Condition()
         self.parents = set()
@@ -55,18 +55,21 @@ class Puzzle(Node):
         self.tail = lambda: None
 
         self.predicate = lambda: False
-        self.create_task(self._game_flow())
+        self.game_flow = None
 
     async def _game_flow(self):
         while True:
+            print(f'{self.name} game_flow', self.state, self.initial_state)
             async with self.desc_changed:
                 while self.state == 'inactive':
                     await self.desc_changed.wait()
-                self.head()
+                print('head')
+                self.head() #TODO if its a future, wait for it
                 while self.state == 'active':
                     await self.desc_changed.wait()
-                self.tail()
-                await self.desc_changed.wait()
+                self.tail() #TODO same
+                while self.state == 'completed':
+                    await self.desc_changed.wait()
 
     async def _parent_listening(self, parent):
         while True:
@@ -108,10 +111,15 @@ class Puzzle(Node):
             self.state = 'completed'
             self.desc_changed.notify_all()
 
+    async def stop(self):
+        if self.game_flow is not None:
+            await self.game_flow.cancel()
+
     async def reset(self):
         async with self.desc_changed:
-            self.state = initial_state
+            self.state = self.initial_state
             self.desc_changed.notify_all()
+        self.game_flow = self.create_task(self._game_flow())
 
     @property
     def predicate(self):

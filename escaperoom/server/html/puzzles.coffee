@@ -6,7 +6,7 @@ class PuzzlesBox extends Subscriber
 		super()
 		@apply_template()
 		@set_screen('loading')
-		@shadowRoot.querySelector('#menu-button').onclick = (event) =>
+		@shadowRoot.querySelector('#puzzles-menu').onclick = (event) =>
 			document.querySelector('game-box').set_screen('game')
 		@subscribe()
 
@@ -35,7 +35,7 @@ class PuzzlesGraph extends Container
 		item.setAttributeNS(null, 'item_id', id)
 		item.setAttributeNS(null, 'r', 20)
 		item.onclick = (event) =>
-			puzzle_info = @parentNode.querySelector('puzzle-info')
+			puzzle_info = @parentNode.parentNode.querySelector('puzzle-info')
 			puzzle_info.select(id)
 		@graph.appendChild(item)
 
@@ -46,6 +46,8 @@ class PuzzlesGraph extends Container
 		colors = {'inactive' : 'red', 'active' : 'orange', 'completed' : 'green'}
 		item.setAttributeNS(null, 'style', 'fill: '+colors[data['state']]+';')
 
+customElements.define('puzzles-graph', PuzzlesGraph)
+
 class PuzzleInfo extends Subscriber
 	constructor: () ->
 		super()
@@ -54,15 +56,14 @@ class PuzzleInfo extends Subscriber
 
 	select: (id) ->
 		@set_screen('loading')
-		@subscribe(null, '?id='+id)
+		@subscribe('?id='+id)
 
 	update: (data) ->
 		@update_plugs(data)
 		if data.state == 'active'
-			@shadowRoot.querySelector('puzzle-activate').hidden = true
-			@shadowRoot.querySelector('puzzle-complete').hidden = false
-			@shadowRoot.querySelector('puzzle-complete').disabled = false
+			@shadowRoot.querySelector('#puzzle-activate').hidden = true
+			@shadowRoot.querySelector('#puzzle-complete').hidden = false
+			@shadowRoot.querySelector('#puzzle-complete').disabled = false
 		@set_screen('info')
 
-customElements.define('puzzles-graph', PuzzlesGraph)
 customElements.define('puzzle-info', PuzzleInfo)

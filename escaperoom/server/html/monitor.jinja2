@@ -11,23 +11,22 @@
 		<script src='ressources/cameras.js' type='module'></script>
 		<script src='ressources/devices.js' type='module'></script>
 		<script src='ressources/clues.js' type='module'></script>
+		<script src='ressources/chronometer.js' type='module'></script>
 	</head>
 	<body>
 		<game-box class='box' src='/{{game_name}}/game'>
 			<template>
-				<link rel='stylesheet' type='text/css'
-					  href='ressources/game.css'>
+				<link rel='stylesheet' type='text/css' href='ressources/game.css'>
 				<div class='screen' name='game'>
-					<div class='section light scroll-y'>
+					<div class='section scroll-y'>
 						<p id='game-name'><slot name='name'></slot></p>
-						<p class='time-dial' id='game-chronometer'><slot name='chronometer'></p>
+						<chronometer-dial class='time-dial' id='game-chronometer' src='/{{game_name}}/chronometer'>
+						</chronometer-dial>
 						<div id='game-start-end'>
 							<div id='game-start'>
-								<p id='game-not-started'></p>
 								<p id='game-start-time'>start: <slot class='time-dial' name='start_time'></p>
 							</div>
 							<div id='game-end'>
-								<p id='game-not-ended'></p>
 								<p id='game-end-time'>end: <slot class='time-dial' name='end_time'></p>
 							</div>
 						</div>
@@ -35,7 +34,7 @@
 							liste des problèmes
 						</game-issues>
 					</div>
-					<game-menu class='section light scroll-y' src='{{game_name}}/game'>
+					<game-menu class='section scroll-y' src='{{game_name}}/game'>
 						<fieldset id='game-options'>
 							<legend>Options de la partie</legend>
 							<div class='game-option'>
@@ -77,16 +76,20 @@
 				</div>
 				<puzzles-box class='screen' name='puzzles' src='/{{game_name}}/puzzles'>
 					<template>
-						<link rel='stylesheet' type='text/css'
-							  href='ressources/puzzles.css'>
+						<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
 						<div class='screen' name='graph'>
-							<button id='menu-button'>X</button>
-							<puzzles-graph class='dark metro section scroll-y'>
-							</puzzles-graph>
+							<div class='section dark' name='graph'>
+								<div class='selectable' id='puzzles-menu'>
+									<chronometer-dial class='time-dial' id='puzzles-chronometer' src='/{{game_name}}/chronometer'>
+									</chronometer-dial>
+								</div>
+								<puzzles-graph class='dark scroll-y'>
+									<div id='graph-offset'></div>
+								</puzzles-graph>
+							</div>
 							<puzzle-info class='section scroll-y' src='/{{game_name}}/puzzle'>
 								<template>
-									<link rel='stylesheet' type='text/css'
-										  href='ressources/puzzles.css'>
+									<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
 									<div class='screen' name='info'>
 										<h1 id='puzzle-name'><slot name='name'></slot></h1>
 										<div id='puzzle-state'><slot name='state'></slot></div>
@@ -94,12 +97,11 @@
 										<h2>Conditions</h2>
 										<puzzle-conditions>
 											<template class='item'>
-												<link rel='stylesheet' type='text/css'
-													  href='ressources/puzzles.css'>
+												<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
 												<div class='screen' name='conditions'>
-												<details>
-													<summary></summary>
-												</details>
+													<details>
+														<summary></summary>
+													</details>
 												</div>
 												<div class='screen' name='empty'>No conditions</div>
 											</template>
@@ -108,8 +110,8 @@
 										<p>Un puzzle s'active lorsqu'un de ces parents est complété.</p>
 										<p>Un puzzle est complété lorsque, actif, toutes ses conditions sont satisfaites.</p>
 										<div id='puzzle-controls'>
-												<button class='puzzle-control' id='puzzle-activate' dangerous>Activer</button>
-												<button class='puzzle-control' id='puzzle-complete' dangerous>Completer</button>
+											<button class='puzzle-control' id='puzzle-activate' dangerous>Activer</button>
+											<button class='puzzle-control' id='puzzle-complete' dangerous>Completer</button>
 											<button class='puzzle-control' id='puzzle-restore' dangerous>Restaurer</button>
 										</div>
 									</div>
@@ -127,15 +129,13 @@
 				<div class='screen' name='error'>Error</div>
 			</template>
 		</game-box>
-		<cameras-box class='box dark' src='/{{game_name}}/cameras'>
+		<cameras-box class='box' src='/{{game_name}}/cameras'>
 			<template>
-				<link rel='stylesheet' type='text/css'
-					  href='ressources/cameras.css'>
-				<div class='screen' name='main'>
+				<link rel='stylesheet' type='text/css' href='ressources/cameras.css'>
+				<div class='screen dark' name='main'>
 					<cameras-list class='panel scroll-x'>
 						<template class='item'>
-							<link rel='stylesheet' type='text/css'
-								  href='ressources/cameras.css'>
+							<link rel='stylesheet' type='text/css' href='ressources/cameras.css'>
 							<camera-video autoplay src='/{{game_name}}/camera'>
 								no video
 							</camera-video>
@@ -143,42 +143,46 @@
 					</cameras-list>
 					<video autoplay muted id='bigscreen'></video>
 				</div>
-				<div class='screen' name='loading'>Loading</div>
-				<div class='screen' name='empty'>No camera</div>
-				<div class='screen' name='error'>Error</div>
+				<div class='screen dark' name='loading'>Loading</div>
+				<div class='screen dark' name='empty'>
+					<span class='screen-text'>No camera</span>
+				</div>
+				<div class='screen dark' name='error'>Error</div>
 			</template>
 		</cameras-box>
 		<devices-box class='box' src='/{{game_name}}/devices'>
 			<template>
-				<link rel='stylesheet' type='text/css'
-					  href='ressources/devices.css'>
+				<link rel='stylesheet' type='text/css' href='ressources/devices.css'>
 				<div class='screen' name='main'>
 					<devices-list class='section list dark scroll-y'>
 						<template class='item selectable'> 
-							<link rel='stylesheet' type='text/css'
-								  href='ressources/devices.css'>
+							<link rel='stylesheet' type='text/css' href='ressources/devices.css'>
 							<slot name='type'></slot>
 							<slot name='name'>name</slot>
 						</template>
 					</devices-list>
-					<device-info class='section light scroll-y' src="/{{game_name}}/device">
+					<device-info class='section scroll-y' src="/{{game_name}}/device">
 						<template>
-							<div class='screen' name='main'>
-								<p>name: <slot name="name"></slot></p>
-								<p>msg: <slot name="msg"></slot></p>
-								<p>addr: <slot name="addr"></slot></p>
-								<p>Attibutes:
-								<attrs-list class='item'>
+							<link rel='stylesheet' type='text/css' href='ressources/devices.css'>
+							<div class='screen' name='info'>
+								<h1 id='device-name'><slot name='name'></slot></h1>
+								<div id='device-state'><slot name='state'></slot></div>
+								<div id='device-addr'><slot name='addr'></slot></div>
+								<div id='device-msg'><slot name='msg'></slot></div>
+								<p id='device-description'><slot name='description'></slot></p>
+								<h2>Attibutes</h2>
+								<device-attributes>
 									<template class='item'>
-										"<slot name="name"></slot>"
-										(<slot name="type"></slot>):
-										<slot name="value"></slot>
+										<link rel='stylesheet' type='text/css' href='ressources/devices.css'>
+										<slot name='name'></slot>
+										(<slot name='type'></slot>):
+										<slot name='value'></slot>
 									</template>
-								</attrs-list>
-								</p>
+								</device-attributes>
+								<h2>Actions</h2>
 							</div>
-							<div class='screen' name='empty'>Select a device</div>
 							<div class='screen' name='loading'>Loading</div>
+							<div class='screen' name='empty'>Select a device</div>
 							<div class='screen' name='error'>Error</div>
 						</template>
 					</device-info>

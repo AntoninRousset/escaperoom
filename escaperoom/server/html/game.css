@@ -28,6 +28,7 @@
 }
 
 #game-chronometer {
+	display: block;
 	font-size: 32pt;
 	text-align: center;
 	margin: 10px;

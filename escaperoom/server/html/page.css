@@ -30,11 +30,23 @@
 }
 
 .box, .screen, .section {
+	position: relative;
     background: var(--light-color);
 }
 
 .dark.box, .dark.screen, .dark.section {
     background: var(--dark-color);
+}
+
+.screen-text {
+	font-size: 32px;
+	flex: 1;
+	text-align: center;
+}
+
+.dark .screen-text {
+	color: rgba(0,0,0, 0.7);
+	text-shadow: 0px 1px 0px rgba(255,255,255,0.2);
 }
 
 .dark {

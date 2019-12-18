@@ -10,10 +10,9 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import asyncio
 from datetime import datetime, timedelta
 
-from . import database
+from . import asyncio, database
 from .logic import Logic
 from .misc import Misc 
 from .node import Node
@@ -41,20 +40,18 @@ class Game(Node):
         pass #TODO read database to resume a game
 
     async def new_game(self, options):
+        await self.stop_game()
         async with self.desc_changed:
-            self.game_id = None
-            self.options = None
-            self.start_time = None
-            self.end_time = None
             cs = {self.create_task(p.reset()) for p in self.logic.puzzles.values()}
             await asyncio.wait(cs)
             self.options = options
             self.game_id = database.new_game(self.name, self.options)
             self.desc_changed.notify_all()
 
-
     async def stop_game(self):
         async with self.desc_changed:
+            cs = {self.create_task(p.stop()) for p in self.logic.puzzles.values()}
+            await asyncio.wait(cs)
             self.game_id = None
             self.options = None
             self.start_time = None
@@ -62,10 +59,12 @@ class Game(Node):
             self.desc_changed.notify_all()
 
     def start_chronometer(self):
-        database.game_start(self.game_id, datetime.today())
+        self.start_time = datetime.today()
+        database.game_start(self.game_id, self.start_time)
 
     def stop_chronometer(self):
-        database.game_end(self.game_id, datetime.today())
+        self.stop_time = datetime.today()
+        database.game_end(self.game_id, self.stop_time)
 
     @property
     def chronometer(self):

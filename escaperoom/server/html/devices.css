@@ -17,3 +17,43 @@ devices-list .item span[slot='name'] {
 	margin: 16px;
 	vertical-align: middle;
 }
+
+device-info {
+	display: flex;
+	flex-flow: row;
+}
+
+.screen[name='info']:not([hidden]) {
+	display: block;
+	padding: 16px;
+}
+
+#device-name {
+	float: left;
+}
+
+#device-state {
+	font-size: 12px;
+	float: right;
+	color: #a0a0a0;
+}
+
+#device-description {
+    clear: both;
+}
+
+#device-controls {
+    display: flex;
+    flex-flow: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    margin: 16px 0;
+}
+
+.device-control {
+    flex: 1;
+    margin: 0 5px;
+    min-width: 100px;
+}
+
+

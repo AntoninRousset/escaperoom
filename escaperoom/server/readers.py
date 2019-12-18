@@ -10,80 +10,99 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-async def devices(game):
-    while True:
-        async with game.network.devices_changed:
-            datas = dict()
-            devices = dict()
-            for uid, device in game.network.devices.items():
-                devices[uid] = {'name' : device.name, 'type' : device.type, 'n_attr' : device.n_attr}
-            datas['devices'] = devices 
-            yield datas 
-            await game.network.devices_changed.wait()
+from . import events
+from .. import asyncio
 
-async def device(game, uid):
-    device = game.network.devices[uid]
-    while True:
-        attrs = {uid : {'name' : attr.name, 'type' : attr.vtype, 'value' : attr.value}
-                for uid, attr in device.attrs.items()}
-        info = {'name' : device.name, 'attrs' : attrs, 'type' : device.type,
-                'addr' : device.addr, 'msg' : device.msg}
-        yield info
-        await device.changed.wait()
-
-def datetimeToString(datetime):
+def datetime_to_string(datetime):
     if datetime is not None:
         return datetime.strftime('%H:%M')
 
-def timedeltaToString(timedelta):
+#Not used
+def parse_timedelta(timedelta):
     if timedelta is not None:
         days = timedelta.days
         hours, remaining = divmod(timedelta.seconds, 3600)
         minutes, seconds = divmod(remaining, 60)
-        return f'{hours:02d}:{minutes:02d}:{seconds:02d}'
+        return days, hours, minutes, seconds
+
+async def events_generator(game):
+    queue = asyncio.Queue()
+    async def listener(event_generator):
+        async for event in event_generator:
+            await queue.put(event)
+    for event_generator in events.event_generators:
+        asyncio.create_task(listener(event_generator(game)))
+    while True:
+        yield await queue.get()
 
 async def game(game):
+    async with game.desc_changed:
+        return {'running' : game.running,
+                'name' : game.name,
+                'start_time' : datetime_to_string(game.start_time),
+                'end_time' : datetime_to_string(game.end_time),
+                'default_options' : game.default_options}
+
+async def chronometer(game):
+    running = game.start_time is not None and game.end_time is None
+    return {'running' : running, 'time' : game.chronometer.total_seconds()*1000}
+
+
+'''
+async def chronometer(game, timeout):
+    p = {} 
+    await game.desc_changed.acquire()
     while True:
-        async with game.desc_changed:
-            datas = dict()
-            datas['running'] = game.running
-            datas['name'] = game.name
-            datas['start_time'] = datetimeToString(game.start_time)
-            datas['end_time'] = datetimeToString(game.end_time)
-            datas['chronometer'] = timedeltaToString(game.chronometer)
-            datas['default_options'] = game.default_options
-            yield datas 
-            await game.desc_changed.wait()
+        if not p:
+            p = {asyncio.create_task(game.desc_changed.wait())}
+        running = game.start_time is not None and game.end_time is None
+        yield {'running' : running,
+               'time' : game.chronometer.total_seconds()*1000}
+        d, p = await asyncio.wait(p, timeout=timeout)
+        await asyncio.sleep(5)
+    game.desc_changed.release()
+'''
+
+async def devices(game):
+    async with game.network.devices_changed:
+        devices = dict()
+        for uid, device in game.network.devices.items():
+            devices[uid] = {'name' : device.name,
+                            'type' : device.type,
+                            'n_attr' : device.n_attr}
+        return {'devices' : devices}
+
+async def device(game, uid):
+    device = game.network.devices[uid]
+    attrs = {uid : {'name' : attr.name, 'type' : attr.vtype, 'value' : attr.value}
+            for uid, attr in device.attrs.items()}
+    return {'name' : device.name,
+            'attrs' : attrs,
+            'type' : device.type,
+            'addr' : device.addr,
+            'msg' : device.msg,
+            'state' : 'offline' if device.disconnected else 'online'}
 
 async def puzzles(game):
-    while True:
-        async with game.logic.puzzles_changed:
-            datas = dict()
-            puzzles = dict()
-            for uid, puzzle in game.logic.puzzles.items():
-                col, row = game.logic.positions[uid]
-                puzzles[uid] = {'name' : puzzle.name, 'state' : puzzle.state,
-                              'row' : row, 'col' : col} 
-            datas['puzzles'] = puzzles
-            yield datas 
-            await game.logic.puzzles_changed.wait()
+    async with game.logic.puzzles_changed:
+        puzzles = dict()
+        for uid, puzzle in game.logic.puzzles.items():
+            col, row = game.logic.positions[uid]
+            puzzles[uid] = {'name' : puzzle.name, 'state' : puzzle.state,
+                          'row' : row, 'col' : col} 
+        return {'puzzles' : puzzles}
 
 async def puzzle(game, uid):
     puzzle = game.logic.puzzles[uid]
-    while True:
-        info = {'uid' : uid, 'name' : puzzle.name, 'state' : puzzle.state,
-                'description' : puzzle.description}
-        yield info
-        await puzzle.changed.wait()
+    return {'uid' : uid,
+            'name' : puzzle.name,
+            'state' : puzzle.state,
+            'description' : puzzle.description}
 
 async def cameras(game):
-    while True:
-        async with game.misc.cameras_changed: 
-            datas = dict()
-            cameras = dict()
-            for uid, camera in game.misc.cameras.items():
-                cameras[uid] = {'name' : camera.name}
-            datas['cameras'] = cameras
-            yield datas 
-            await game.misc.cameras_changed.wait()
+    async with game.misc.cameras_changed: 
+        cameras = dict()
+        for uid, camera in game.misc.cameras.items():
+            cameras[uid] = {'name' : camera.name}
+        return {'cameras' : cameras}
 
