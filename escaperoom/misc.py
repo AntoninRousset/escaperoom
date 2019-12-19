@@ -59,18 +59,15 @@ class Camera(Node):
         self.desc_changed = self.Condition()
 
 class LocalCamera(Camera):
-    def __init__(self, name, path, format='v4l2'):
+    def __init__(self, name, *args, **kwargs):
         super().__init__(name)
-        self.path = path #do udev device instead
-        self.format = format
         self.pcs = set()
-        self.player = None
+        self.player = MediaPlayer(*args, **kwargs)
         self.player_changed = self.Condition()
 
     async def get_player(self):
         async with self.player_changed:
             if not self.player: 
-                self.player = MediaPlayer(self.path, format=self.format)
                 self.player_changed.notify_all()
 
     async def handle_offer(self, offer):
