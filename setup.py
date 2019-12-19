@@ -28,6 +28,7 @@ setuptools.setup(
     'aiohttp>=3.6.1'
     'aiohttp_jinja>=0.15.0'
     'aiohttp_sse>=2.0.0'
+    'PJON-daemon-client>=1.0.0'
     ],
     entry_points={
         'console_scripts': [

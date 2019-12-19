@@ -29,7 +29,7 @@ def get_args():
 
 def get_rooms(rooms_dir):
     try:
-        Path(rooms_dir).expanduser().mkdir(exist_ok=True)
+        Path(rooms_dir).expanduser().mkdir(parents=True, exist_ok=True)
     except FileExistsError:
         pass
     #sys.path.insert(0, str(Path(__file__).resolve().parent.parent))

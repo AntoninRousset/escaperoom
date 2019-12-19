@@ -98,20 +98,6 @@ class LocalCamera(Camera):
 
         return pc
 
-try:
-    from picamera import PiCamera
-except ImportError:
-    pass
-else:
-    from io import BytesIO
-
-    class LocalPiCamera(PiCamera, LocalCamera):
-        def __init__(self, name):
-            stream = BytesIO()
-            PiCamera.__init__()
-            camera.start_recording(stream, format='h264', quality=23)
-            LocalCamera(name, stream, format='h264')
-
 class Display(Node):
     def __init__(self, address):
         super().__init__()
