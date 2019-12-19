@@ -27,13 +27,6 @@ def get_args():
     )
     return parser.parse_args()
 
-def create_dirs():
-    for path in config['DEFAULT']['escaperoom_dir'], config['DEFAULT']['rooms_dir']:
-        try:
-            Path(path).expanduser().mkdir(exist_ok=True)
-        except FileExistsError:
-            pass
-
 def get_rooms(rooms_dir):
     try:
         Path(rooms_dir).expanduser().mkdir(exist_ok=True)
@@ -54,7 +47,6 @@ def get_rooms(rooms_dir):
 
 def main():
     args = get_args()
-    create_dirs()
     server.games.update(get_rooms(Path(config['DEFAULT']['rooms_dir']).expanduser()))
     asyncio.get_event_loop().create_task(server.start(host=args.host, port=args.port))
     asyncio.get_event_loop().run_forever()
