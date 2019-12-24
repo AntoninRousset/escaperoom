@@ -28,21 +28,25 @@ def get_args():
     return parser.parse_args()
 
 def get_rooms(rooms_dir):
-    try:
-        Path(rooms_dir).expanduser().mkdir(parents=True, exist_ok=True)
-    except FileExistsError:
-        pass
-    #sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    sys.path.append(str(rooms_dir))
     rooms = dict()
     for child in Path(rooms_dir).iterdir():
         name = child.stem
         if name in rooms:
             raise Exception('duplicated room\'s names')
-        spec = importlib.util.spec_from_file_location(name, Path(rooms_dir) / child)
-        if spec is not None:
-            room = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(room)
-            rooms[name] = room.game
+        path = Path(rooms_dir) / child
+        spec = importlib.util.spec_from_file_location(name, path) 
+        try:
+            if spec is None:
+                path /= '__init__.py'
+                spec = importlib.util.spec_from_file_location(name, path) 
+            if spec is not None:
+                room = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(room)
+                rooms[name] = room.game
+        except FileNotFoundError:
+            pass
+    sys.path.pop()
     return rooms
 
 def main():

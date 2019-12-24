@@ -17,11 +17,13 @@ from os.path import dirname
 config = ConfigParser()
 ROOT = dirname(__file__)
 config.read(Path(f'{ROOT}/escaperoom.conf').resolve())
+
 for path in config['DEFAULT']['escaperoom_dir'], config['DEFAULT']['rooms_dir']:
     try:
         Path(path).expanduser().mkdir(parents=True, exist_ok=True)
     except FileExistsError:
         pass
+
 config.read(config['DEFAULT'].get('conf_file'))
 
 from .game import Game

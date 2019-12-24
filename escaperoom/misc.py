@@ -12,11 +12,9 @@
 
 import aiohttp, json
 from aiortc import RTCPeerConnection, RTCSessionDescription
-from aiortc.contrib.media import MediaStreamTrack, MediaPlayer
-
-MediaStreamTrack.stop = lambda: None
 
 from . import config 
+from .media import MediaPlayer
 from .node import Node 
 
 def misc_debug(msg):
@@ -58,28 +56,21 @@ class Camera(Node):
         self.connected = False 
         self.desc_changed = self.Condition()
 
-class LocalCamera(Camera):
+class LocalCamera(Camera, MediaPlayer):
     def __init__(self, name, *args, **kwargs):
-        super().__init__(name)
+        Camera.__init__(self, name)
+        MediaPlayer.__init__(self, *args, **kwargs)
         self.pcs = set()
-        self.player = MediaPlayer(*args, **kwargs)
-        self.player_changed = self.Condition()
-
-    async def get_player(self):
-        async with self.player_changed:
-            if not self.player: 
-                self.player_changed.notify_all()
 
     async def handle_offer(self, offer):
-        await self.get_player()
         pc = self.create_peer_connection()
         self.pcs.add(pc)
         await pc.setRemoteDescription(offer)
         for t in pc.getTransceivers():
-            if t.kind == 'audio' and self.player.audio:
-                pc.addTrack(self.player.audio)
-            elif t.kind == 'video' and self.player.video:
-                pc.addTrack(self.player.video)
+            if t.kind == 'audio' and self.audio:
+                pc.addTrack(self.audio)
+            elif t.kind == 'video' and self.video:
+                pc.addTrack(self.video)
         answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
         return {'sdp' : pc.localDescription.sdp, 'type' : pc.localDescription.type} 
