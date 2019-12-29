@@ -10,9 +10,6 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from . import events
-from .. import asyncio
-
 def datetime_to_string(datetime):
     if datetime is not None:
         return datetime.strftime('%H:%M')
@@ -25,16 +22,6 @@ def parse_timedelta(timedelta):
         minutes, seconds = divmod(remaining, 60)
         return days, hours, minutes, seconds
 
-async def events_generator(game):
-    queue = asyncio.Queue()
-    async def listener(event_generator):
-        async for event in event_generator:
-            await queue.put(event)
-    for event_generator in events.event_generators:
-        asyncio.create_task(listener(event_generator(game)))
-    while True:
-        yield await queue.get()
-
 async def game(game):
     async with game.desc_changed:
         return {'running' : game.running,
@@ -46,7 +33,6 @@ async def game(game):
 async def chronometer(game):
     running = game.start_time is not None and game.end_time is None
     return {'running' : running, 'time' : game.chronometer.total_seconds()*1000}
-
 
 async def devices(game):
     async with game.network.devices_changed:
@@ -64,7 +50,7 @@ async def device(game, uid):
     return {'name' : device.name,
             'attrs' : attrs,
             'type' : device.type,
-            'addr' : device.addr,
+            'addr' : None if device.disconnected else device.addr[1],
             'msg' : device.msg,
             'state' : 'offline' if device.disconnected else 'online'}
 

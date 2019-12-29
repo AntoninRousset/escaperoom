@@ -16,7 +16,7 @@ from aiohttp_sse import sse_response
 from aiortc import RTCSessionDescription
 from os.path import dirname
 
-from . import controls, events, readers
+from . import controls, events_generator, readers
 
 games = dict()
 routes = web.RouteTableDef()
@@ -36,7 +36,7 @@ async def events(request):
     game_name = request.match_info['game_name']
     game = games[game_name]
     async with sse_response(request) as resp:
-        async for event in readers.events_generator(game):
+        async for event in events_generator.generator(game):
             await resp.send(json.dumps(event))
     return resp
 
