@@ -22,11 +22,16 @@ def com_debug(msg):
 
 class Bus(Node):
 
+    def __init__(self):
+        super().__init__()
+        self.packet = None
+        self.packet_changed = self.Condition()
+
+class SerialBus(Bus):
+
     def __init__(self, path):
         super().__init__()
         self.path = path
-        self.packet = None
-        self.packet_changed = self.Condition()
         self.create_task(self._listener())
         self.sending = self.Condition()
 
@@ -69,6 +74,14 @@ class Bus(Node):
     async def broadcast(self, msg):
         return await self.send(0x0, msg)
 
+class UDPBus(Bus):
+
+    def __init__(self, path):
+        super().__init__()
+        self.path = path
+        self.create_task(self._listener())
+        self.sending = self.Condition()
+
 class Network(Node):
 
     def __init__(self):
@@ -105,7 +118,7 @@ class Network(Node):
 
     def _find_device(addr=None, name=None):
         for device in self.devices.values():
-            if not device.disconnected() and device.addr = addr:
+            if not device.disconnected() and device.addr == addr:
                 return device
             elif device.name == name:
                 return device
@@ -218,11 +231,11 @@ class LocalDevice(Device):
         if re.match('\s*get\s+desc\s*', msg):
             await self.send(f'desc {self.name} {self.n_attr}')
         elif re.match('\s*get\s+attr\s+\d+\s*', msg):
-            attr = self._find_attr(int(words[2])
+            attr = self._find_attr(int(words[2]))
             if attr is not None:
                 await self.send(f'attr {attr.attr_id} {attr.name} {attr.type}')
         elif re.match('\s*get\s+val\s+\d+\s*'):
-            attr = self._find_attr(int(words[2])
+            attr = self._find_attr(int(words[2]))
             if attr is not None:
                 await self.send(f'val {attr.attr_id} {attr.value}')
 
@@ -294,15 +307,14 @@ class RemoteDevice(Device):
             attr = self._find_attr(attr_id, name)
             if attr is None:
                 com_debug(f'Device: Attr {attr_id} not existant')
-                attr = Attribute(self, attr_id=attr_id)
-                await attr.read_msg(msg)
+                attr = Attribute(self, name, type, attr_id=attr_id)
                 self.add_attr(attr)
             else:
                 async with attr.desc_changed:
                     if attr.attr_id != attr_id or attr.name != name:
                         attr.desc_changed.notify_all()
                     attr.attr_id, attr.name = attr_id, name
-    @property
+
     def disconnected(self):
         if self.addr is None: #TODO or timed out
             return True
@@ -323,9 +335,9 @@ class Attribute(Node):
     def value(self):
         if self._value is None:
             return None
-        if self.vtype == 'int':
+        if self.type == 'int':
             return int(self._value)
-        if self.vtype == 'bool':
+        if self.type == 'bool':
             return bool(float(self._value))
         return self._value
 

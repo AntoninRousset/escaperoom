@@ -29,5 +29,5 @@ config.read(config['DEFAULT'].get('conf_file'))
 from .game import Game
 from .logic import Logic, Puzzle
 from .misc import Misc, LocalCamera, Display
-from .network import Network, Bus, RemoteDevice, LocalDevice, Attribute
+from .network import Network, SerialBus, UDPBus, RemoteDevice, LocalDevice, Attribute
 

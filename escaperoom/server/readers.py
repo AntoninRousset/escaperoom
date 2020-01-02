@@ -45,14 +45,14 @@ async def devices(game):
 
 async def device(game, uid):
     device = game.network.devices[uid]
-    attrs = {uid : {'name' : attr.name, 'type' : attr.vtype, 'value' : attr.value}
+    attrs = {uid : {'name' : attr.name, 'type' : attr.type, 'value' : attr.value}
             for uid, attr in device.attrs.items()}
     return {'name' : device.name,
             'attrs' : attrs,
             'type' : device.type,
-            'addr' : None if device.disconnected else device.addr[1],
+            'addr' : None if device.disconnected() else device.addr[1],
             'msg' : device.msg,
-            'state' : 'offline' if device.disconnected else 'online'}
+            'state' : 'offline' if device.disconnected() else 'online'}
 
 async def puzzles(game):
     async with game.logic.puzzles_changed:
