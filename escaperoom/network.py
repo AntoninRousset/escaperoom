@@ -99,23 +99,33 @@ class Network(Node):
                         com_debug(f'Network: Read bus packet: {bus.packet}') 
                         self.packet = (addr, msg) 
                         self.packet_changed.notify_all()
-                        await self.read_packet(self.packet)
+                        await self.read_msg(addr, msg)
                 com_debug('Network: Waiting for new bus packet')
                 await bus.packet_changed.wait()
 
-    async def read_packet(self, packet): 
-        addr, msg = packet
-        cs = {device.read_msg(addr, msg) for device in self.devices.values()}
-        if cs:
-            await asyncio.wait(cs)
+    def _find_device(addr=None, name=None):
+        for device in self.devices.values():
+            if not device.disconnected() and device.addr = addr:
+                return device
+            elif device.name == name:
+                return device
+
+    async def read_msg(self, dest, msg): 
         if re.match('\s*desc\s+\w+\s+\w+\s*', msg):
-            async with self.devices_changed:
-                if addr not in {device.addr for device in self.devices.values()}:
-                    com_debug(f'Network: No device with addr {addr}')
-                    device = Device(addr=addr)
-                    await device.read_msg(addr, msg)
+            name = msg.split()[1]
+            device = self._find_device(dest, name)
+            if device is None:
+                com_debug(f'Network: No device with addr {addr}')
+                device = Device(addr=dest, name=name)
+                async with self.devices_changed:
                     self.add_device(device)
                     self.devices_changed.notify_all()
+            else:
+                async with device.desc_changed:
+                    if device.addr != addr or device.name != name:
+                        device.desc_changed.notify_all()
+                    device.addr, device.name = dest, name
+        await device.read_msg(dest, msg)
 
     async def _device_listening(self, device):
         while device in self.devices.values(): 
@@ -142,93 +152,18 @@ class Network(Node):
 
 class Device(Node):
 
-    def __init__(self, *, name=None, addr=None, type='unknown'): 
+    def __init__(self, *, addr=None, name=None, type='unknown'): 
         super().__init__()
-        if name is None and addr is None: 
-            raise RuntimeError()
-        self.name = name
         self.addr = addr
+        self.name = name
         self.type = type
-        self.n_attr = None
         self.desc_changed = self.Condition()
         self.msg = None
         self.msg_changed = self.Condition()
         self.attrs = dict()
         self.attrs_changed = self.Condition()
-        self.create_task(self._desc_fetching())
-        self.create_task(self._attrs_fetching())
         com_debug(f'Device: Created')
         print(f'Device create {self.name} {self.addr}')
-
-    async def _desc_fetching(self):
-        while True:
-            if self.name is None or self.n_attr is None:
-                com_debug(f'Device: Incomplete desc') 
-                try:
-                    await self.send(f'get desc')
-                except RuntimeError:
-                    async with self.desc_changed:
-                        await self.desc_changed.wait() # wait for reconnection
-                else:
-                    await asyncio.sleep(5)
-            else:
-                async with self.desc_changed:
-                    await self.desc_changed.wait()
-
-    async def _attrs_fetching(self):
-        while True:
-            com_debug('Device: Fetching attrs') 
-            if self.n_attr is None:
-                async with self.desc_changed:
-                    await self.desc_changed.wait()
-            else:
-                #TODO too many
-                if len(self.attrs) < self.n_attr:
-                    attrs_ids = set(range(self.n_attr)) - self.attrs_ids
-                    tasks = {self.create_task(self.send(f'get attr {attr_id}')) for attr_id in attrs_ids}
-                    try:
-                        done, pending = await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED) 
-                    except Exception as e:
-                        print(e)
-                        async with self.desc_changed:
-                            await self.desc_changed.wait()
-                    else:
-                        await asyncio.sleep(5)
-                else:
-                    async with self.desc_changed:
-                        await self.desc_changed.wait()
-
-    async def read_msg(self, addr, msg):
-        com_debug(f'Device: Read msg: {msg}') 
-        if (
-                self.disconnected and self.name is not None and
-                re.match(f'\s*desc\s+{self.name}\s+\d+\s*', msg)
-            ):
-            self.addr = addr
-        elif addr != self.addr:
-            return
-        async with self.msg_changed:
-            self.msg = msg
-            self.msg_changed.notify_all()
-        cs = {attr.read_msg(msg) for attr in self.attrs.values()}
-        if cs:
-            await asyncio.wait(cs)
-        if re.match('\s*desc\s+\w*\s+\d+\s*', msg):
-            async with self.desc_changed:
-                com_debug('Device: Set desc from msg')
-                words = msg.split()
-                name, n_attr = words[1], int(words[2]) 
-                if self.name != name or self.n_attr != n_attr:
-                    self.desc_changed.notify_all()
-                self.name = name 
-                self.n_attr = n_attr 
-        elif re.match('\s*attr\s+\d+\s+\w+\s+\w+\s*', msg):
-            attr_id = int(msg.split()[1])
-            if attr_id not in self.attrs_ids:
-                com_debug(f'Device: Attr {attr_id} not existant')
-                attr = Attribute(self, attr_id=attr_id)
-                await attr.read_msg(msg)
-                self.add_attr(attr)
 
     async def _attr_listening(self, attr):
         while attr in self.attrs.values(): 
@@ -243,15 +178,130 @@ class Device(Node):
         self.create_task(self._attr_listening(attr))
         com_debug(f'Device: Attr added')
 
+    async def remove_attr(self, attr_id, name):
+        async with self.attrs_changed:
+            for uid, attr in self.attrs.items():
+                if attr.name == name:
+                    return self.attrs.remove(uid)
+                elif attr.attr_id == attr_id:
+                    return self.attrs.remove(uid)
+
     async def send(self, msg):
-        bus = self.addr[0]
-        device_id = self.addr[1]
-        await bus.send(device_id, msg)
+        try:
+            await self.addr[0].send(self.addr[1], msg)
+        except RuntimeError:
+            async with self.desc_changed:
+                await self.desc_changed.wait() # wait for reconnection
+            await self.send(msg)
+
+    def _find_attr(attr_id=None, name=None):
+        for attr in self.attrs.values():
+            if attr.name == name:
+                return attr
+            elif attr.attr_id == attr_id:
+                return attr
 
     @property
     def attrs_ids(self):
         return {a.attr_id for a in self.attrs.values() if a.attr_id is not None}
 
+class LocalDevice(Device):
+
+    def __init__(self, *, addr, name, type='unknown'):
+        super().__init__(addr=addr, name=name, type=type)
+
+    async def read_msg(self, addr, msg):
+        async with self.msg_changed:
+            self.msg = msg
+            self.msg_changed.notify_all()
+        words = msg.split()
+        if re.match('\s*get\s+desc\s*', msg):
+            await self.send(f'desc {self.name} {self.n_attr}')
+        elif re.match('\s*get\s+attr\s+\d+\s*', msg):
+            attr = self._find_attr(int(words[2])
+            if attr is not None:
+                await self.send(f'attr {attr.attr_id} {attr.name} {attr.type}')
+        elif re.match('\s*get\s+val\s+\d+\s*'):
+            attr = self._find_attr(int(words[2])
+            if attr is not None:
+                await self.send(f'val {attr.attr_id} {attr.value}')
+
+    @property
+    def n_attr(self):
+        return len(self.attrs)
+
+class RemoteDevice(Device):
+
+    def __init__(self, *, addr=None, name=None, type='unknown'):
+        super().__init__(addr=addr, name=name, type=type)
+        self.n_attr = None
+        self.create_task(self._desc_fetching())
+        self.create_task(self._attrs_fetching())
+
+    async def _desc_fetching(self):
+        while True:
+            if self.name is None or self.n_attr is None:
+                com_debug(f'Device: Incomplete desc') 
+                await self.send(f'get desc')
+                await asyncio.sleep(5)
+            else:
+                await self.changed.wait()
+
+    async def _attrs_fetching(self):
+        while True:
+            com_debug('Device: Fetching attrs') 
+            if self.n_attr is None:
+                await self.changed.wait()
+            else:
+                if len(self.attrs) < self.n_attr:
+                    for attr_id in set(range(self.n_attr)) - self.attrs_ids:
+                        self.add_attr(Attribute(attr_id=attr_id))
+                elif len(self.attrs) > self.n_attr:
+                    for attr_id in self.attr_ids - set(range(self.n_attr)):
+                        self.remove_attr(attr_id)
+                else:
+                    await self.changed.wait()
+
+    async def _attr_fetching(self, attr):
+        while attr in self.attrs:
+            if attr.name is None and attr.attr_id is not None:
+                await self.send(f'get attr {attr.attr_id}')
+                await asyncio.sleep(5)
+            elif attr.value is None:
+                await self.send(f'get val {attr.attr_id}')
+                await asyncio.sleep(5)
+            else:
+                await self.changed.wait()
+
+    def add_attr(self, attr):
+        super().add_attr(attr)
+        self.create_task(self._attr_fetching(attr))
+
+    async def read_msg(self, addr, msg):
+        async with self.msg_changed:
+            self.msg = msg
+            self.msg_changed.notify_all()
+        words = msg.split()
+        if re.match('\s*desc\s+\w*\s+\d+\s*', msg):
+            async with self.desc_changed:
+                com_debug('Device: Set desc from msg')
+                name, n_attr = words[1], int(words[2]) 
+                if self.name != name or self.n_attr != n_attr:
+                    self.desc_changed.notify_all()
+                self.name, self.n_attr = name, n_attr 
+        elif re.match('\s*attr\s+\d+\s+\w+\s+\w+\s*', msg):
+            attr_id, name, type = int(words[1]), words[2], words[3]
+            attr = self._find_attr(attr_id, name)
+            if attr is None:
+                com_debug(f'Device: Attr {attr_id} not existant')
+                attr = Attribute(self, attr_id=attr_id)
+                await attr.read_msg(msg)
+                self.add_attr(attr)
+            else:
+                async with attr.desc_changed:
+                    if attr.attr_id != attr_id or attr.name != name:
+                        attr.desc_changed.notify_all()
+                    attr.attr_id, attr.name = attr_id, name
     @property
     def disconnected(self):
         if self.addr is None: #TODO or timed out
@@ -260,74 +310,14 @@ class Device(Node):
 
 class Attribute(Node):
 
-    def __init__(self, device,*, name=None, attr_id=None):
+    def __init__(self, type=None, value=None, *, attr_id=None, name=None):
         super().__init__()
-        self.device = device
-        self.name = name
         self.attr_id = attr_id
-        self.vtype = None 
-        self._value = None 
+        self.name = name
+        self.type = type 
+        self.value = value 
         self.desc_changed = self.Condition()
-        self.create_task(self._desc_fetching())
-        self.create_task(self._value_fetching())
         com_debug('Attribute: Created')
-
-    async def _desc_fetching(self):
-        while True:
-            if (self.name is None or self.vtype is None) and self.attr_id is not None:
-                com_debug(f'Attribute: Incomplete desc') 
-                try:
-                    await self.device.send(f'get attr {self.attr_id}')
-                except RuntimeError:
-                    async with self.desc_changed:
-                        await self.desc_changed.wait() # wait for reconnection
-                else:
-                    await asyncio.sleep(10)
-            else:
-                async with self.desc_changed:
-                    await self.desc_changed.wait()
-
-    async def _value_fetching(self):
-        while True:
-            if self._value is None and self.attr_id is not None: 
-                com_debug(f'Attribute: No value') 
-                try:
-                    await self.device.send(f'get val {self.attr_id}')
-                except RuntimeError:
-                    async with self.desc_changed:
-                        await self.desc_changed.wait() # wait for reconnection
-                else:
-                    await asyncio.sleep(10)
-            else:
-                async with self.desc_changed:
-                    await self.desc_changed.wait()
-
-    async def read_msg(self, msg):
-        com_debug(f'Attribute: Read msg: {msg}')
-        words = msg.split()
-        if (
-                self.attr_id is None and self.name is not None and
-                re.match(f'\s*attr\s+\d+\s+{self.name}\s+\w+\s*', msg)
-            ):
-            async with self.desc_changed:
-                self.attr_id = int(words[1])
-                self.desc_changed.notify_all()
-        elif self.attr_id is None:
-            return
-        if re.match(f'\s*attr\s+{self.attr_id}\s+\w+\s+\w+\s*', msg):
-            async with self.desc_changed:
-                name = words[2]
-                vtype = words[3]
-                if name != self.name or vtype != self.vtype:
-                    self.desc_changed.notify_all()
-                self.name = name
-                self.vtype = vtype
-        elif re.match(f'\s*val\s+{self.attr_id}\s+\w+\s*', msg):
-            async with self.desc_changed:
-                value = words[2]
-                if value != self._value:
-                    self.desc_changed.notify_all()
-                self._value = value
 
     @property
     def value(self):
@@ -338,4 +328,8 @@ class Attribute(Node):
         if self.vtype == 'bool':
             return bool(float(self._value))
         return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
 
