@@ -10,12 +10,11 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from configparser import ConfigParser
+import configparser, os.path
 from pathlib import Path
-from os.path import dirname
 
-config = ConfigParser()
-ROOT = dirname(__file__)
+config = configparser.ConfigParser()
+ROOT = Path(os.path.dirname(__file__))
 config.read(Path(f'{ROOT}/escaperoom.conf').resolve())
 
 for path in config['DEFAULT']['escaperoom_dir'], config['DEFAULT']['rooms_dir']:
@@ -24,7 +23,12 @@ for path in config['DEFAULT']['escaperoom_dir'], config['DEFAULT']['rooms_dir']:
     except FileExistsError:
         pass
 
-config.read(config['DEFAULT'].get('conf_file'))
+config.read(Path(config['DEFAULT'].get('conf_file')).expanduser())
+
+from .logging import ColoredFormatter
+
+import logging.config
+logging.config.fileConfig(config)
 
 from .game import Game
 from .logic import Logic, Puzzle

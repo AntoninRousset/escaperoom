@@ -10,15 +10,13 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import re
+import logging, re
 import PJON_daemon_client as pac
 
-from . import asyncio, config
+from . import asyncio
 from .node import Node
 
-def com_debug(msg):
-    if config['DEFAULT'].getboolean('com_debug', False):
-        print(msg)
+logger = logging.getLogger('network')
 
 class Bus(Node):
 
@@ -35,16 +33,12 @@ class SerialBus(Bus):
         self.create_task(self._listener())
         self.sending = self.Condition()
 
+    def __str__(self):
+        return f'serial [{self.path}]'
+
     async def _listener(self):
-        try:
-            if config['DEFAULT'].get('testing', False):
-                async for p in testing.listen():
-                    async with self.packet_changed:
-                        com_debug(f'Bus: Received packet: (0x{p[0]:02x}, {p[1]})')
-                        if p != self.packet_changed:
-                            self.packet_changed.notify_all()
-                        self.packet = p
-            else:
+        while True:
+            try:
                 async for packet in pac.listen():
                     if isinstance(packet, pac.proto.PacketIngoingMessage):
                         device_id = packet.src
@@ -53,23 +47,17 @@ class SerialBus(Bus):
                         async with self.packet_changed:
                             self.packet = packet
                             self.packet_changed.notify_all()
-        except ConnectionRefusedError:
-            print('ERROR: room disconnected -> please connect and restart')
+            except ConnectionRefusedError:
+                logger.warning(f'{self}: disconnected')
+                await asyncio.sleep(5)
 
     async def send(self, dest, msg):
-        if config['DEFAULT'].get('testing', False):
-            if await testing.send(dest, msg):
-                com_debug(f'Bus: Sent packet: (0x{dest:02x}, {msg})')
-        else:
-            async with self.sending:
-                try:
-                    result = await pac.send(dest, (msg).encode('ascii') + b'\0')
-                    if result is pac.proto.OutgoingResult.SUCCESS:
-                        com_debug(f'successful send to 0x{dest:02x}: {msg}')
-                    else:
-                        com_debug('********* PROBLEM')
-                except ConnectionRefusedError:
-                    print('ERROR: room disconnected')
+        async with self.sending:
+            result = await pac.send(dest, (msg).encode('ascii') + b'\0')
+            if result is pac.proto.OutgoingResult.SUCCESS:
+                logger.debug(f'{self}: msg sent to 0x{dest:02x}: {msg}')
+            else:
+                logger.error(f'{self}: failed to send: {msg}')
 
     async def broadcast(self, msg):
         return await self.send(0x0, msg)
@@ -82,6 +70,9 @@ class UDPBus(Bus):
         self.create_task(self._listener())
         self.sending = self.Condition()
 
+    def __str__(self):
+        return f'UDP [{self.path}]'
+
 class Network(Node):
 
     def __init__(self):
@@ -92,14 +83,16 @@ class Network(Node):
         self.buses_changed = self.Condition()
         self.devices = dict()
         self.devices_changed = self.Condition()
-        com_debug('Network: Created')
+
+    def __str__(self):
+        return 'network'
 
     async def _device_radar(self, bus):
         while bus in self.buses.values():
             try:
                 await bus.broadcast('get desc')
             except Exception as e: 
-                print(f'radar error: {e}')
+                logger.warning(f'{self}: {e}')
             await asyncio.sleep(5)
 
     async def _bus_listening(self, bus):
@@ -109,14 +102,14 @@ class Network(Node):
                     device_id, msg = bus.packet
                     addr = (bus, device_id) 
                     async with self.packet_changed:
-                        com_debug(f'Network: Read bus packet: {bus.packet}') 
+                        logger.debug(f'{self}: Reading packet: {bus.packet}') 
                         self.packet = (addr, msg) 
                         self.packet_changed.notify_all()
                         await self.read_msg(addr, msg)
-                com_debug('Network: Waiting for new bus packet')
+                logger.debug(f'{self}: Waiting for bus packet')
                 await bus.packet_changed.wait()
 
-    def _find_device(addr=None, name=None):
+    def _find_device(self, addr=None, name=None):
         for device in self.devices.values():
             if not device.disconnected() and device.addr == addr:
                 return device
@@ -128,23 +121,25 @@ class Network(Node):
             name = msg.split()[1]
             device = self._find_device(dest, name)
             if device is None:
-                com_debug(f'Network: No device with addr {addr}')
+                logger.debug(f'{self}: no device with addr: {dest}')
                 device = Device(addr=dest, name=name)
                 async with self.devices_changed:
                     self.add_device(device)
                     self.devices_changed.notify_all()
             else:
+                logger.debug(f'{self}: found device with addr: {dest}')
                 async with device.desc_changed:
-                    if device.addr != addr or device.name != name:
+                    if device.addr != dest or device.name != name:
                         device.desc_changed.notify_all()
                     device.addr, device.name = dest, name
-        await device.read_msg(dest, msg)
+        device = self._find_device(dest)
+        await device.read_msg(msg)
 
     async def _device_listening(self, device):
         while device in self.devices.values(): 
             async with device.desc_changed:
                 await device.desc_changed.wait()
-                com_debug(f'Network: Device {device} changed its desc')
+                logger.debug(f'Network: Device {device} changed its desc')
                 async with self.devices_changed:
                     self.devices_changed.notify_all()
 
@@ -153,14 +148,14 @@ class Network(Node):
         self.buses[uid] = bus
         self.create_task(self._device_radar(bus))
         self.create_task(self._bus_listening(bus))
-        com_debug('Network: Bus added')
+        logger.debug(f'{self}: {bus} added')
         return uid
 
     def add_device(self, device):
         uid = hex(id(device))
         self.devices[uid] = device
         self.create_task(self._device_listening(device))
-        com_debug('Network: Device added')
+        logger.debug(f'{self}: {device} added')
         return uid
 
 class Device(Node):
@@ -175,8 +170,6 @@ class Device(Node):
         self.msg_changed = self.Condition()
         self.attrs = dict()
         self.attrs_changed = self.Condition()
-        com_debug(f'Device: Created')
-        print(f'Device create {self.name} {self.addr}')
 
     async def _attr_listening(self, attr):
         while attr in self.attrs.values(): 
@@ -189,7 +182,7 @@ class Device(Node):
         uid = hex(id(attr)) 
         self.attrs[uid] = attr
         self.create_task(self._attr_listening(attr))
-        com_debug(f'Device: Attr added')
+        logger.debug(f'{self}: {attr} added')
 
     async def remove_attr(self, attr_id, name):
         async with self.attrs_changed:
@@ -200,16 +193,16 @@ class Device(Node):
                     return self.attrs.remove(uid)
 
     async def send(self, msg):
-        try:
-            await self.addr[0].send(self.addr[1], msg)
-        except RuntimeError:
-            async with self.desc_changed:
-                await self.desc_changed.wait() # wait for reconnection
-            await self.send(msg)
+        while True:
+            if self.disconnected():
+                async with self.desc_changed:
+                    await self.desc_changed.wait() # wait for reconnection
+            else:
+                return await self.addr[0].send(self.addr[1], msg)
 
-    def _find_attr(attr_id=None, name=None):
+    def _find_attr(self, attr_id=None, name=None):
         for attr in self.attrs.values():
-            if attr.name == name:
+            if name is not None and attr.name == name:
                 return attr
             elif attr.attr_id == attr_id:
                 return attr
@@ -251,10 +244,18 @@ class RemoteDevice(Device):
         self.create_task(self._desc_fetching())
         self.create_task(self._attrs_fetching())
 
+    def __str__(self):
+        if self.name is not None:
+            return f'device "{self.name}"'
+        elif not self.disconnected():
+            return f'device {self.addr[1]}@{self.addr[0]}'
+        else:
+            return 'device'
+
     async def _desc_fetching(self):
         while True:
-            if self.name is None or self.n_attr is None:
-                com_debug(f'Device: Incomplete desc') 
+            if (self.name is None or self.n_attr is None) and not self.disconnected():
+                logger.debug(f'{self}: incomplete desc') 
                 await self.send(f'get desc')
                 await asyncio.sleep(5)
             else:
@@ -262,25 +263,31 @@ class RemoteDevice(Device):
 
     async def _attrs_fetching(self):
         while True:
-            com_debug('Device: Fetching attrs') 
             if self.n_attr is None:
                 await self.changed.wait()
             else:
                 if len(self.attrs) < self.n_attr:
-                    for attr_id in set(range(self.n_attr)) - self.attrs_ids:
-                        self.add_attr(Attribute(attr_id=attr_id))
+                    logger.debug(f'{self}: fetching attrs') 
+                    attr_ids = set(range(self.n_attr)) - self.attrs_ids
+                    cs = {self.send(f'get attr {a_id}') for a_id in attr_ids}
+                    await asyncio.gather(*cs)
+                    await asyncio.sleep(5 * (len(cs) % 4))
                 elif len(self.attrs) > self.n_attr:
-                    for attr_id in self.attr_ids - set(range(self.n_attr)):
+                    attr_ids = self.attr_ids - set(range(self.n_attr))
+                    logger.debug(f'{self}: too many attrs, removing {attr_ids}') 
+                    for attr_id in attr_ids: 
                         self.remove_attr(attr_id)
                 else:
                     await self.changed.wait()
 
     async def _attr_fetching(self, attr):
-        while attr in self.attrs:
-            if attr.name is None and attr.attr_id is not None:
+        while attr in self.attrs.values():
+            if (attr.name is None or attr.type is None) and attr.attr_id is not None:
+                logger.debug(f'attribute {attr} has incomplete desc')
                 await self.send(f'get attr {attr.attr_id}')
                 await asyncio.sleep(5)
-            elif attr.value is None:
+            elif attr.value is None and attr.attr_id is not None:
+                logger.debug(f'attribute {attr} has no value')
                 await self.send(f'get val {attr.attr_id}')
                 await asyncio.sleep(5)
             else:
@@ -290,33 +297,47 @@ class RemoteDevice(Device):
         super().add_attr(attr)
         self.create_task(self._attr_fetching(attr))
 
-    async def read_msg(self, addr, msg):
+    async def read_msg(self, msg):
         async with self.msg_changed:
             self.msg = msg
             self.msg_changed.notify_all()
         words = msg.split()
+        logger.debug(f'{self}: reading message: {msg}')
         if re.match('\s*desc\s+\w*\s+\d+\s*', msg):
             async with self.desc_changed:
-                com_debug('Device: Set desc from msg')
+                logger.debug('device: Set desc from msg')
                 name, n_attr = words[1], int(words[2]) 
                 if self.name != name or self.n_attr != n_attr:
                     self.desc_changed.notify_all()
                 self.name, self.n_attr = name, n_attr 
         elif re.match('\s*attr\s+\d+\s+\w+\s+\w+\s*', msg):
+            logger.debug('device: setting attribute\'s desc')
             attr_id, name, type = int(words[1]), words[2], words[3]
             attr = self._find_attr(attr_id, name)
             if attr is None:
-                com_debug(f'Device: Attr {attr_id} not existant')
-                attr = Attribute(self, name, type, attr_id=attr_id)
-                self.add_attr(attr)
+                logger.debug(f'Device: Attr {attr_id} non existant, creating one')
+                attr = Attribute(type, attr_id=attr_id, name=name)
+                async with self.attrs_changed:
+                    self.add_attr(attr)
+                    self.attrs_changed.notify_all()
             else:
                 async with attr.desc_changed:
-                    if attr.attr_id != attr_id or attr.name != name:
-                        attr.desc_changed.notify_all()
-                    attr.attr_id, attr.name = attr_id, name
+                    attr.desc_changed.notify_all()
+                    attr.attr_id, attr.name, attr.type = attr_id, name, type
+        elif re.match('\s*val\s+\d+\s+\w+\s*', msg):
+            logger.debug('device: setting attribute\'s value')
+            attr_id, value = int(words[1]), words[2]
+            attr = self._find_attr(attr_id)
+            if attr is None:
+                logger.debug(f'{self}: non existant "{attr}"')
+                await self.send(f'get attr {attr.attr_id}')
+            else:
+                async with attr.desc_changed:
+                    attr.value = value
+                    attr.desc_changed.notify_all()
 
     def disconnected(self):
-        if self.addr is None: #TODO or timed out
+        if self.addr is None:
             return True
         return False
 
@@ -329,7 +350,14 @@ class Attribute(Node):
         self.type = type 
         self.value = value 
         self.desc_changed = self.Condition()
-        com_debug('Attribute: Created')
+
+    def __str__(self):
+        if self.name is not None:
+            return f'attribute "{self.name}"'
+        elif self.attr_id is not None:
+            return f'attribute [{self.attr_id}]'
+        else:
+            return 'attribute'
 
     @property
     def value(self):

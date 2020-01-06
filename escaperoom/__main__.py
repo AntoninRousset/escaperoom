@@ -10,11 +10,13 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import errno, importlib.util, sys
+import errno, importlib.util, os, sys
 from argparse import ArgumentParser
 from pathlib import Path
 
 from . import asyncio, config, server
+
+ROOT = Path(os.path.dirname(__file__))
 
 def get_args():
     parser = ArgumentParser(description='EscapeRoom server')
@@ -28,25 +30,17 @@ def get_args():
     return parser.parse_args()
 
 def get_rooms(rooms_dir):
-    sys.path.append(str(rooms_dir))
+    try:
+        os.remove(ROOT/'rooms')
+    except FileNotFoundError:
+        pass
+    os.symlink(rooms_dir, ROOT/'rooms', target_is_directory=True)
     rooms = dict()
     for child in Path(rooms_dir).iterdir():
         name = child.stem
         if name in rooms:
             raise Exception('duplicated room\'s names')
-        path = Path(rooms_dir) / child
-        spec = importlib.util.spec_from_file_location(name, path) 
-        try:
-            if spec is None:
-                path /= '__init__.py'
-                spec = importlib.util.spec_from_file_location(name, path) 
-            if spec is not None:
-                room = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(room)
-                rooms[name] = room.game
-        except FileNotFoundError:
-            pass
-    sys.path.pop()
+        importlib.import_module(f'.rooms.{name}', 'escaperoom')
     return rooms
 
 def main():

@@ -45,8 +45,8 @@ async def devices(game):
 
 async def device(game, uid):
     device = game.network.devices[uid]
-    attrs = {uid : {'name' : attr.name, 'type' : attr.type, 'value' : attr.value}
-            for uid, attr in device.attrs.items()}
+    attrs = {uid : {'attr_id' : attr.attr_id, 'name' : attr.name, 'type' : attr.type,
+             'value' : attr.value} for uid, attr in device.attrs.items()}
     return {'name' : device.name,
             'attrs' : attrs,
             'type' : device.type,
