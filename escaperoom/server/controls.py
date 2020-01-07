@@ -16,4 +16,6 @@ async def game(game, params):
         await game.new_game(options)
     elif params['action'] == 'stop_game':
         await game.stop_game()
+    elif params['action'] == 'force_activation':
+        uid = params['uid']
     return ''

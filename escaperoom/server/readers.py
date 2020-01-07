@@ -39,17 +39,17 @@ async def devices(game):
         devices = dict()
         for uid, device in game.network.devices.items():
             devices[uid] = {'name' : device.name,
-                            'type' : device.type,
+                            'type' : device.htype,
                             'n_attr' : device.n_attr}
         return {'devices' : devices}
 
 async def device(game, uid):
     device = game.network.devices[uid]
-    attrs = {uid : {'attr_id' : attr.attr_id, 'name' : attr.name, 'type' : attr.type_str(),
+    attrs = {uid : {'attr_id' : attr.attr_id, 'name' : attr.name, 'type' : attr.vtype,
              'value' : attr.value} for uid, attr in device.attrs.items()}
     return {'name' : device.name,
             'attrs' : attrs,
-            'type' : device.type,
+            'type' : device.htype,
             'addr' : None if device.disconnected() else device.addr[1],
             'msg' : device.msg,
             'state' : 'offline' if device.disconnected() else 'online'}

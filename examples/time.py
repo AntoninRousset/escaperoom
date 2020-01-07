@@ -40,7 +40,7 @@ start.description = '''First puzzle of the game, complete it to start the timer.
 start.head = lambda: print('Place the pod to start')
 start.tail = lambda: game.start_chronometer()
 start.add_condition(b_hexa_state)
-start.predicate = lambda: b_hexa_state.value
+start.predicate = lambda: b_hexa_state.value == True
 game.logic.add_puzzle(start, pos=(0,0))
 
 end = Puzzle('end')
@@ -49,7 +49,7 @@ end.head = lambda: print('Now remove it to end')
 end.tail = lambda: game.stop_counter()
 end.add_parent(start)
 end.add_condition(b_hexa_state)
-end.predicate = lambda: not b_hexa_state.value
+end.predicate = lambda: b_hexa_state.value == False
 game.logic.add_puzzle(end, pos=(0,1))
 
 camera = LocalCamera('video0', '/dev/video0')
