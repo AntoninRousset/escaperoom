@@ -56,9 +56,19 @@ async def chronometer_events(game, events_queue):
                                 'loc' : f'/{game.name}/chronometer'})
 
 async def puzzles_events(game, events_queue):
+    puzzle_events = dict()
     while True:
-        await game.logic.changed.wait()
-        await events_queue.put({'type' : 'update', 'loc' : f'/{game.name}/puzzles'})
+        async with game.logic.puzzles_changed:
+            for uid, p in game.logic.puzzles.items():
+                if uid not in puzzle_events:
+                    t = asyncio.create_task(_puzzle_events(game, uid, events_queue))
+                    puzzle_events[uid] = t
+            for uid, t in puzzle_events.items():
+                if uid not in game.logic.puzzles:
+                    t.cancel()
+                    puzzle_events.pop(uid)
+            await game.logic.puzzles_changed.wait()
+            await events_queue.put({'type' : 'update', 'loc' : f'/{game.name}/puzzles'})
 
 async def _puzzle_events(game, uid, events_queue):
     while True:
@@ -67,13 +77,17 @@ async def _puzzle_events(game, uid, events_queue):
                                 'loc' : f'/{game.name}/puzzle?id={uid}'})
 
 async def devices_events(game, events_queue):
-    devices = dict()
+    device_events = dict()
     while True:
         async with game.network.devices_changed:
-            for uid in game.network.devices:
-                if uid not in devices:
+            for uid, p in game.network.devices.items():
+                if uid not in device_events:
                     t = asyncio.create_task(_device_events(game, uid, events_queue))
-                    devices[uid] = t
+                    device_events[uid] = t
+            for uid, t in device_events.items():
+                if uid not in game.network.devices:
+                    t.cancel()
+                    device_events.pop(uid)
             await game.network.devices_changed.wait()
             await events_queue.put({'type' : 'update',
                                     'loc' : f'/{game.name}/devices'})

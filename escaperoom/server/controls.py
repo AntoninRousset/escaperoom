@@ -21,7 +21,18 @@ async def game(game, params):
     return ''
 
 async def puzzle(game, params, uid):
+    puzzle = game.logic.puzzles[uid]
     if params['action'] == 'activate':
-        pass
+        async with puzzle.desc_changed:
+            puzzle.force_active = True
+            puzzle.desc_changed.notify_all()
     elif params['action'] == 'complete':
-        pass
+        async with puzzle.desc_changed:
+            puzzle.force_completed = True
+            puzzle.desc_changed.notify_all()
+    elif params['action'] == 'restore':
+        async with puzzle.desc_changed:
+            puzzle.force_active = False
+            puzzle.force_completed = False
+            puzzle.desc_changed.notify_all()
+

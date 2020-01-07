@@ -84,19 +84,20 @@ PuzzleInfo = class PuzzleInfo extends Subscriber {
     super();
     this.activate = this.activate.bind(this);
     this.complete = this.complete.bind(this);
+    this.restore = this.restore.bind(this);
     this.apply_template();
     this.shadowRoot.querySelector('#puzzle-activate').onclick = this.activate;
     this.shadowRoot.querySelector('#puzzle-complete').onclick = this.complete;
+    this.shadowRoot.querySelector('#puzzle-restore').onclick = this.restore;
     this.set_screen('empty');
   }
 
   select(id) {
-    return this.puzzle_id = id;
+    return this.subscribe('?id=' + id);
   }
 
   update(data) {
     this.update_plugs(data);
-    console.log(data.state);
     if (data.state === 'inactive') {
       this.shadowRoot.querySelector('#puzzle-activate').hidden = false;
       this.shadowRoot.querySelector('#puzzle-activate').disable = false;
@@ -115,8 +116,7 @@ PuzzleInfo = class PuzzleInfo extends Subscriber {
   async activate() {
     var reponse;
     boundMethodCheck(this, PuzzleInfo);
-    console.log('activate');
-    return reponse = (await fetch(this.getAttribute('src'), {
+    return reponse = (await fetch(this.loc, {
       headers: {
         'Content-Type': 'application/json'
       },
@@ -130,12 +130,26 @@ PuzzleInfo = class PuzzleInfo extends Subscriber {
   async complete() {
     var reponse;
     boundMethodCheck(this, PuzzleInfo);
-    return reponse = (await fetch(this.getAttribute('src'), {
+    return reponse = (await fetch(this.loc, {
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         action: 'complete'
+      }),
+      method: 'POST'
+    }));
+  }
+
+  async restore() {
+    var reponse;
+    boundMethodCheck(this, PuzzleInfo);
+    return reponse = (await fetch(this.loc, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        action: 'restore'
       }),
       method: 'POST'
     }));

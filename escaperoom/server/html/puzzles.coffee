@@ -55,14 +55,14 @@ class PuzzleInfo extends Subscriber
 		@apply_template()
 		@shadowRoot.querySelector('#puzzle-activate').onclick = @activate
 		@shadowRoot.querySelector('#puzzle-complete').onclick = @complete
+		@shadowRoot.querySelector('#puzzle-restore').onclick = @restore
 		@set_screen('empty')
 
 	select: (id) ->
-		@puzzle_id = id
+		@subscribe('?id='+id)
 
 	update: (data) ->
 		@update_plugs(data)
-		console.log(data.state)
 		if data.state == 'inactive'
 			@shadowRoot.querySelector('#puzzle-activate').hidden = false
 			@shadowRoot.querySelector('#puzzle-activate').disable = false
@@ -77,8 +77,7 @@ class PuzzleInfo extends Subscriber
 		@set_screen('info')
 
 	activate: () =>
-		console.log('activate')
-		reponse = await fetch(@getAttribute('src'), {
+		reponse = await fetch(@loc, {
 			headers: {
 				'Content-Type': 'application/json'
 			},
@@ -89,12 +88,23 @@ class PuzzleInfo extends Subscriber
 		})
 
 	complete: () =>
-		reponse = await fetch(@getAttribute('src'), {
+		reponse = await fetch(@loc, {
 			headers: {
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
 				action: 'complete'
+			}),
+			method: 'POST'
+		})
+
+	restore: () =>
+		reponse = await fetch(@loc, {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				action: 'restore'
 			}),
 			method: 'POST'
 		})

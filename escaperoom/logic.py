@@ -45,7 +45,9 @@ class Puzzle(Node):
         super().__init__()
         self.name = name
         self.initial_state = initial_state
-        self.state = None
+        self._state = None
+        self.force_active = None
+        self.force_completed = None
         self.paused = True
         self.description = None
         self.desc_changed = self.Condition()
@@ -73,15 +75,15 @@ class Puzzle(Node):
     async def _parent_listening(self, parent):
         while True:
             async with parent.desc_changed:
-                if self.state is 'inactive' and parent.state is 'completed':
+                if self.state == 'inactive' and parent.state is 'completed':
                     async with self.desc_changed:
-                        self.state = 'active'
+                        self._state = 'active'
                         self.desc_changed.notify_all()
                 await parent.desc_changed.wait()
 
     async def _cond_listening(self, cond):
         while True:
-            if self.state is 'active':
+            if self.state == 'active':
                 await self.check_conds()
                 await cond.changed.wait()
             else:
@@ -103,7 +105,7 @@ class Puzzle(Node):
         except Exception as e:
             return log_debug(f'Puzzle: Predicate error: {e}')
         async with self.desc_changed:
-            self.state = 'completed'
+            self._state = 'completed'
             self.desc_changed.notify_all()
 
     async def pause(self):
@@ -126,7 +128,17 @@ class Puzzle(Node):
     async def reset(self):
         async with self.desc_changed:
             self.paused = True
-            self.state = self.initial_state
+            self._state = self.initial_state
+            self.force_activate = False
+            self.force_completed = False
             self.game_flow = self.create_task(self._game_flow())
             self.desc_changed.notify_all()
+
+    @property
+    def state(self):
+        if self.force_completed:
+            return 'completed'
+        if self.force_active and self._state == 'inactive':
+            return 'active'
+        return self._state
 
