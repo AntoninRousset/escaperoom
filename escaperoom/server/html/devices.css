@@ -38,6 +38,10 @@ device-info {
 	color: #a0a0a0;
 }
 
+#device-msg {
+	clear: both;
+}
+
 #device-description {
     clear: both;
 }

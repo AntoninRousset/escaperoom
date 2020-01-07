@@ -169,13 +169,13 @@
 							<div class='screen' name='info'>
 								<h1 id='device-name'><slot name='name'></slot></h1>
 								<div id='device-state'><slot name='state'></slot></div>
-								<div id='device-addr'><slot name='addr'></slot></div>
 								<div id='device-msg'><slot name='msg'></slot></div>
 								<p id='device-description'><slot name='description'></slot></p>
-								<h2>Attibutes</h2>
+								<h2>Attributes</h2>
 								<device-attributes>
 									<template class='item'>
 										<link rel='stylesheet' type='text/css' href='ressources/devices.css'>
+										[<slot name='attr_id'></slot>] 
 										<slot name='name'></slot>
 										(<slot name='type'></slot>):
 										<slot name='value'></slot>

@@ -10,13 +10,12 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from asyncio import *
+from escaperoom import *
 
-try:
-    create_task
-except NameError:
-    def create_task(*args, **kwargs):
-        return get_event_loop().create_task(*args, **kwargs)
+game = Game('remote')
 
-def run_until_complete(*args, **kwargs):
-    return get_event_loop().run_until_complete(*args, **kwargs)
+bus = SocketBus('127.0.0.1', 1234, bus_id=0x42)
+remote = RemoteDevice(name='local')
+game.network.add_device(remote)
+game.network.add_bus(bus)
+

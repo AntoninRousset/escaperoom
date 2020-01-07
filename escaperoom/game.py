@@ -19,6 +19,7 @@ from .node import Node
 from .network import Network
 
 class Game(Node):
+
     def __init__(self, name):
         super().__init__()
         self.name = name
