@@ -25,14 +25,14 @@ from escaperoom import *
 
 game = Game('time')
 
-game.network.add_bus(Bus('socket path'))
+game.network.add_bus(SerialBus('socket path'))
 
-base_hexa = Device(name='base_hexagon', type='arduino')
-b_hexa_state = Attribute(base_hexa, name='state')
+base_hexa = RemoteDevice(name='base_hexagon', htype='arduino')
+b_hexa_state = Attribute(name='state')
 base_hexa.add_attr(b_hexa_state)
 game.network.add_device(base_hexa)
 
-other_device = Device(name='other_device', type='rpi')
+other_device = RemoteDevice(name='other_device', htype='rpi')
 game.network.add_device(other_device)
 
 start = Puzzle('start', initial_state='active')
@@ -40,7 +40,7 @@ start.description = '''First puzzle of the game, complete it to start the timer.
 start.head = lambda: print('Place the pod to start')
 start.tail = lambda: game.start_chronometer()
 start.add_condition(b_hexa_state)
-start.predicate = lambda: b_hexa_state.value == True
+start.predicate = lambda: b_hexa_state.value
 game.logic.add_puzzle(start, pos=(0,0))
 
 end = Puzzle('end')
@@ -49,7 +49,7 @@ end.head = lambda: print('Now remove it to end')
 end.tail = lambda: game.stop_counter()
 end.add_parent(start)
 end.add_condition(b_hexa_state)
-end.predicate = lambda: b_hexa_state.value == False
+end.predicate = lambda: b_hexa_state.value
 game.logic.add_puzzle(end, pos=(0,1))
 
 camera = LocalCamera('video0', '/dev/video0')

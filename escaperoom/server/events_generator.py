@@ -47,13 +47,7 @@ async def generator(game):
 async def game_events(game, events_queue):
     while True:
         await game.changed.wait()
-        try:
-            print('putting game event')
-            await events_queue.put({'type' : 'update', 'loc' : f'/{game.name}/game'})
-        except Exception as e:
-            print(e)
-        else:
-            print('game event put')
+        await events_queue.put({'type' : 'update', 'loc' : f'/{game.name}/game'})
 
 async def chronometer_events(game, events_queue):
     while True:

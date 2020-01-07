@@ -39,9 +39,7 @@ async def events(request):
     game = games[game_name]
     async with sse_response(request) as resp:
         async for event in events_generator.generator(game):
-            print('sending event:', event)
             await resp.send(json.dumps(event))
-            print('event sent')
     return resp
 
 @routes.get('/{game_name}/chronometer')
@@ -86,9 +84,16 @@ async def puzzles(request):
 async def puzzle(request):
     game_name = request.match_info['game_name']
     game = games[game_name]
-    uid = request.query['id']
     data = await readers.puzzle(games[game_name], request.query['id'])
     return web.Response(content_type='application/json', text=json.dumps(data))
+
+@routes.post('/{game_name}/puzzle')
+async def puzzle(request):
+    game_name = request.match_info['game_name']
+    game = games[game_name]
+    params = await request.json()
+    answer = await controls.puzzle(game, params, request.query['id'])
+    return web.Response(content_type='application/json', text=json.dumps(answer))
 
 @routes.get('/{game_name}/cameras')
 async def cameras(request):

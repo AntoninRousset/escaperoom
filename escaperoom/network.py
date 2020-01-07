@@ -181,7 +181,7 @@ class Network(Node):
             device = self._find_device(sender, name)
             if device is None:
                 logger.debug(f'{self}: no device with id 0x{sender[1]:02x}')
-                device = Device(addr=sender, name=name)
+                device = RemoteDevice(addr=sender, name=name)
                 async with self.devices_changed:
                     self.add_device(device)
                     self.devices_changed.notify_all()
@@ -222,11 +222,12 @@ class Network(Node):
 
 class Device(Node):
 
-    def __init__(self, *, addr=None, name=None, htype='unknown'): 
+    def __init__(self, *, addr=None, name=None, htype='?'): 
         super().__init__()
         self.addr = addr
         self.name = name
         self.htype = htype
+        self.n_attr = None
         self.desc_changed = self.Condition()
         self.msg = None
         self.msg_changed = self.Condition()
@@ -249,8 +250,6 @@ class Device(Node):
                     self.attrs_changed.notify_all()
 
     def add_attr(self, attr):
-        if attr.attr_id is None:
-            attr.attr_id = len(self.attrs)
         uid = hex(id(attr)) 
         self.attrs[uid] = attr
         self.create_task(self._attr_listening(attr))
@@ -283,7 +282,7 @@ class Device(Node):
 
 class LocalDevice(Device):
 
-    def __init__(self, *, addr, name, htype='unknown'):
+    def __init__(self, *, addr, name, htype='?'):
         super().__init__(addr=addr, name=name, htype=htype)
         self.create_task(self._bus_listening(addr[0]))
 
@@ -332,13 +331,18 @@ class LocalDevice(Device):
             else:
                 return await self.addr[0].send(0x42, msg)
 
+    def add_attr(self, attr):
+        if attr.attr_id is None:
+            attr.attr_id = len(self.attrs)
+        super().add_attr(attr)
+
     @property
     def n_attr(self):
         return len(self.attrs)
 
 class RemoteDevice(Device):
 
-    def __init__(self, *, addr=None, name=None, htype='unknown'):
+    def __init__(self, *, addr=None, name=None, htype='?'):
         super().__init__(addr=addr, name=name, htype=htype)
         self.n_attr = None
         self.create_task(self._desc_fetching())

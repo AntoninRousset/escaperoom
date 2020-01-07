@@ -59,7 +59,6 @@ export class Subscriber extends Templated
 	event_handler = (event) ->
 		data = JSON.parse(event.data)
 		for subscriber in subscribers
-			console.log('update for', data['loc'])
 			if data['type'] == 'update' and data['loc'] == subscriber.loc
 				subscriber.sync()
 

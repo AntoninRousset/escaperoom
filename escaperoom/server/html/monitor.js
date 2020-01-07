@@ -187,7 +187,6 @@ export var Subscriber = (function() {
     results = [];
     for (j = 0, len = subscribers.length; j < len; j++) {
       subscriber = subscribers[j];
-      console.log('update for', data['loc']);
       if (data['type'] === 'update' && data['loc'] === subscriber.loc) {
         results.push(subscriber.sync());
       } else {

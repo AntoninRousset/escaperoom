@@ -19,3 +19,9 @@ async def game(game, params):
     elif params['action'] == 'force_activation':
         uid = params['uid']
     return ''
+
+async def puzzle(game, params, uid):
+    if params['action'] == 'activate':
+        pass
+    elif params['action'] == 'complete':
+        pass

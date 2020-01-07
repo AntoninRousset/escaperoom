@@ -32,10 +32,9 @@ class GameMenu extends HTMLElement
 			@timeout_enabled_changed()
 		@querySelector('#game-option-reset').onclick = (event) =>
 			@read_options(@default_options)
-		@querySelector('#new-game').onclick = (event) =>
-			@new_game()
-		@querySelector('#back-to-game').onclick = (event) => @back_to_game()
-		@querySelector('#stop-game').onclick = (event) => @stop_game()
+		@querySelector('#new-game').onclick = @new_game
+		@querySelector('#back-to-game').onclick = @back_to_game
+		@querySelector('#stop-game').onclick = @stop_game
 
 	update: (datas) ->
 		console.log('update')
@@ -74,7 +73,7 @@ class GameMenu extends HTMLElement
 		@querySelector('#game-option-timeout-m').value = data.timeout.split(':')[1]
 		@timeout_enabled_changed()
 
-	new_game: () ->
+	new_game: () =>
 		@querySelector('#game-options').disabled = true
 		reponse = await fetch(@getAttribute('src'), {
 			headers: {
@@ -94,12 +93,12 @@ class GameMenu extends HTMLElement
 		})
 		document.querySelector('game-box').current_screen = 'puzzles'
 
-	back_to_game: () ->
+	back_to_game: () =>
 		game_box = document.querySelector('game-box')
 		game_box.current_screen = 'puzzles'
 		game_box.set_screen(game_box.current_screen)
 
-	stop_game: () ->
+	stop_game: () =>
 		reponse = await fetch(@getAttribute('src'), {
 			headers: {
 				'Content-Type': 'application/json'
