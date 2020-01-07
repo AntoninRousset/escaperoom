@@ -38,9 +38,12 @@ def get_rooms(rooms_dir):
     rooms = dict()
     for child in Path(rooms_dir).iterdir():
         name = child.stem
-        if name in rooms:
+        if name == '__pycache__':
+            continue
+        elif name in rooms:
             raise Exception('duplicated room\'s names')
-        importlib.import_module(f'.rooms.{name}', 'escaperoom')
+        room = importlib.import_module(f'.rooms.{name}', 'escaperoom')
+        rooms[name] = room.game
     return rooms
 
 def main():

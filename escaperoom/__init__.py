@@ -15,7 +15,7 @@ from pathlib import Path
 
 config = configparser.ConfigParser()
 ROOT = Path(os.path.dirname(__file__))
-config.read(Path(f'{ROOT}/escaperoom.conf').resolve())
+config.read(Path(ROOT/'escaperoom.conf').resolve())
 
 for path in config['DEFAULT']['escaperoom_dir'], config['DEFAULT']['rooms_dir']:
     try:
@@ -33,5 +33,5 @@ logging.config.fileConfig(config)
 from .game import Game
 from .logic import Logic, Puzzle
 from .misc import Misc, LocalCamera, Display
-from .network import Network, SerialBus, UDPBus, RemoteDevice, LocalDevice, Attribute
+from .network import Network, SerialBus, SocketBus, RemoteDevice, LocalDevice, Attribute
 
