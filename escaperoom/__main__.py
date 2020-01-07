@@ -43,7 +43,10 @@ def get_rooms(rooms_dir):
         elif name in rooms:
             raise Exception('duplicated room\'s names')
         room = importlib.import_module(f'.rooms.{name}', 'escaperoom')
-        rooms[name] = room.game
+        try:
+            rooms[name] = room.game
+        except AttributeError:
+            pass
     return rooms
 
 def main():
