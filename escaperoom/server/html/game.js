@@ -63,6 +63,7 @@ GameMenu = class GameMenu extends HTMLElement {
   }
 
   update(datas) {
+    console.log('update');
     if (typeof default_options === "undefined" || default_options === null) {
       this.read_options(datas.default_options);
     }

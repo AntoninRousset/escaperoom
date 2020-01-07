@@ -38,6 +38,7 @@ class GameMenu extends HTMLElement
 		@querySelector('#stop-game').onclick = (event) => @stop_game()
 
 	update: (datas) ->
+		console.log('update')
 		if not default_options?
 			@read_options(datas.default_options)
 		@default_options = datas.default_options

@@ -183,13 +183,12 @@ export var Subscriber = (function() {
 
   event_handler = function(event) {
     var data, j, len, results, subscriber;
-    console.log(event);
     data = JSON.parse(event.data);
     results = [];
     for (j = 0, len = subscribers.length; j < len; j++) {
       subscriber = subscribers[j];
+      console.log('update for', data['loc']);
       if (data['type'] === 'update' && data['loc'] === subscriber.loc) {
-        console.log('update for', subscriber.loc);
         results.push(subscriber.sync());
       } else {
         results.push(void 0);

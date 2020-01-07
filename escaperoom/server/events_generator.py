@@ -37,13 +37,23 @@ async def generator(game):
             asyncio.create_task(events(game, events_queue))
         events_queues[game] = events_queue
     while True:
-        event = await events_queues[game].get()
+        q = events_queues[game]
+        try:
+            event = events_queues[game].get_nowait()
+        except asyncio.QueueEmpty:
+            event = await events_queues[game].get()
         yield event
 
 async def game_events(game, events_queue):
     while True:
         await game.changed.wait()
-        await events_queue.put({'type' : 'update', 'loc' : f'/{game.name}/game'})
+        try:
+            print('putting game event')
+            await events_queue.put({'type' : 'update', 'loc' : f'/{game.name}/game'})
+        except Exception as e:
+            print(e)
+        else:
+            print('game event put')
 
 async def chronometer_events(game, events_queue):
     while True:

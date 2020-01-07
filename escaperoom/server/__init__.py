@@ -39,7 +39,9 @@ async def events(request):
     game = games[game_name]
     async with sse_response(request) as resp:
         async for event in events_generator.generator(game):
+            print('sending event:', event)
             await resp.send(json.dumps(event))
+            print('event sent')
     return resp
 
 @routes.get('/{game_name}/chronometer')

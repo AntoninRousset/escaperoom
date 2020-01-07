@@ -57,11 +57,10 @@ export class Subscriber extends Templated
 		@loc = ''
 				
 	event_handler = (event) ->
-		console.log(event)
 		data = JSON.parse(event.data)
 		for subscriber in subscribers
+			console.log('update for', data['loc'])
 			if data['type'] == 'update' and data['loc'] == subscriber.loc
-				console.log('update for', subscriber.loc)
 				subscriber.sync()
 
 	subscribe: (query_str='', path=null) ->

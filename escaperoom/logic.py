@@ -10,7 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from . import config 
+from . import asyncio, config 
 from .node import Node
 
 def log_debug(msg):
@@ -46,7 +46,7 @@ class Puzzle(Node):
         self.name = name
         self.initial_state = initial_state
         self.state = None
-        self.pause = True
+        self.paused = True
         self.description = None
         self.desc_changed = self.Condition()
         self.parents = set()
@@ -60,15 +60,14 @@ class Puzzle(Node):
 
     async def _game_flow(self):
         while True:
-            print(f'{self.name} game_flow', self.state, self.initial_state)
             async with self.desc_changed:
-                while self.state == 'inactive' or self.pause:
+                while self.state == 'inactive' or self.paused:
                     await self.desc_changed.wait()
                 self.head() #TODO if its a future, wait for it
-                while self.state == 'active' or self.pause:
+                while self.state == 'active' or self.paused:
                     await self.desc_changed.wait()
                 self.tail() #TODO if its a future, wait for it
-                while self.state == 'completed' or self.pause:
+                while self.state == 'completed' or self.paused:
                     await self.desc_changed.wait()
 
     async def _parent_listening(self, parent):
@@ -109,22 +108,25 @@ class Puzzle(Node):
 
     async def pause(self):
         async with self.desc_changed:
-            self.pause = True
+            self.paused = True
             self.desc_changed.notify_all()
 
     async def play(self):
         async with self.desc_changed:
-            self.pause = False
+            self.paused = False
             self.desc_changed.notify_all()
 
     async def stop(self):
-        if self.game_flow is not None:
-            await self.game_flow.cancel()
+        await self.pause()
+        async with self.desc_changed:
+            if self.game_flow is not None:
+                self.game_flow.cancel()
+            self.desc_changed.notify_all()
 
     async def reset(self):
         async with self.desc_changed:
-            self.pause = True
+            self.paused = True
             self.state = self.initial_state
+            self.game_flow = self.create_task(self._game_flow())
             self.desc_changed.notify_all()
-        self.game_flow = self.create_task(self._game_flow())
 
