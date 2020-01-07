@@ -14,7 +14,7 @@ import errno, importlib.util, os, sys
 from argparse import ArgumentParser
 from pathlib import Path
 
-from . import asyncio, config, server
+from . import asyncio, config
 
 ROOT = Path(os.path.dirname(__file__))
 
@@ -29,13 +29,13 @@ def get_args():
     )
     return parser.parse_args()
 
-def get_rooms(rooms_dir):
+def load_rooms(rooms_dir):
     try:
         os.remove(ROOT/'rooms')
     except FileNotFoundError:
         pass
     os.symlink(rooms_dir, ROOT/'rooms', target_is_directory=True)
-    rooms = dict()
+    rooms = set()
     for child in Path(rooms_dir).iterdir():
         name = child.stem
         if name == '__pycache__':
@@ -43,15 +43,13 @@ def get_rooms(rooms_dir):
         elif name in rooms:
             raise Exception('duplicated room\'s names')
         room = importlib.import_module(f'.rooms.{name}', 'escaperoom')
-        try:
-            rooms[name] = room.game
-        except AttributeError:
-            pass
-    return rooms
 
 def main():
     args = get_args()
-    server.games.update(get_rooms(Path(config['DEFAULT']['rooms_dir']).expanduser()))
+    from .game import Game
+    load_rooms(Path(config['DEFAULT']['rooms_dir']).expanduser())
+    from . import server
+    server.games.update(Game.games)
     asyncio.get_event_loop().create_task(server.start(host=args.host, port=args.port))
     asyncio.get_event_loop().run_forever()
 

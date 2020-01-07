@@ -28,6 +28,8 @@ async def index(request):
 @routes.get('/{game_name}')
 async def monitor(request):
     game_name = request.match_info['game_name']
+    if game_name not in games:
+        return ''
     context = {'game_name' : game_name}
     return aiohttp_jinja2.render_template('monitor.jinja2', request, context)
 

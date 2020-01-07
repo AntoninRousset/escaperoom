@@ -20,7 +20,11 @@ from .network import Network
 
 class Game(Node):
 
+    games = dict()
+
     def __init__(self, name):
+        if name in self.games:
+            raise RuntimeError()
         super().__init__()
         self.name = name
         self.game_id = None
@@ -36,6 +40,7 @@ class Game(Node):
         self.network = Network() 
         self.logic = Logic()
         self.misc = Misc()
+        self.games[name] = self
 
     def resume_game(self):
         pass #TODO read database to resume a game
