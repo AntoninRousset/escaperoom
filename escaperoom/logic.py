@@ -46,6 +46,7 @@ class Puzzle(Node):
         self.name = name
         self.initial_state = initial_state
         self.state = None
+        self.pause = True
         self.description = None
         self.desc_changed = self.Condition()
         self.parents = set()
@@ -54,21 +55,20 @@ class Puzzle(Node):
         self.head = lambda: None
         self.tail = lambda: None
 
-        self.predicate = lambda: False
+        self.predicate = lambda: True
         self.game_flow = None
 
     async def _game_flow(self):
         while True:
             print(f'{self.name} game_flow', self.state, self.initial_state)
             async with self.desc_changed:
-                while self.state == 'inactive':
+                while self.state == 'inactive' or self.pause:
                     await self.desc_changed.wait()
-                print('head')
                 self.head() #TODO if its a future, wait for it
-                while self.state == 'active':
+                while self.state == 'active' or self.pause:
                     await self.desc_changed.wait()
-                self.tail() #TODO same
-                while self.state == 'completed':
+                self.tail() #TODO if its a future, wait for it
+                while self.state == 'completed' or self.pause:
                     await self.desc_changed.wait()
 
     async def _parent_listening(self, parent):
@@ -84,11 +84,7 @@ class Puzzle(Node):
         while True:
             if self.state is 'active':
                 await self.check_conds()
-                try:
-                    async with cond.desc_changed:
-                        await cond.desc_changed.wait()
-                except Exception as e:
-                    print(e)
+                await cond.changed.wait()
             else:
                 async with self.desc_changed:
                     await self.desc_changed.wait()
@@ -111,22 +107,24 @@ class Puzzle(Node):
             self.state = 'completed'
             self.desc_changed.notify_all()
 
+    async def pause(self):
+        async with self.desc_changed:
+            self.pause = True
+            self.desc_changed.notify_all()
+
+    async def play(self):
+        async with self.desc_changed:
+            self.pause = False
+            self.desc_changed.notify_all()
+
     async def stop(self):
         if self.game_flow is not None:
             await self.game_flow.cancel()
 
     async def reset(self):
         async with self.desc_changed:
+            self.pause = True
             self.state = self.initial_state
             self.desc_changed.notify_all()
         self.game_flow = self.create_task(self._game_flow())
-
-    @property
-    def predicate(self):
-        return self._predicate
-
-    @predicate.setter
-    def predicate(self, val):
-        self._predicate = val
-        #self.create_task(self.check_conds())
 

@@ -43,16 +43,21 @@ class Game(Node):
     async def new_game(self, options):
         await self.stop_game()
         async with self.desc_changed:
-            cs = {self.create_task(p.reset()) for p in self.logic.puzzles.values()}
-            await asyncio.wait(cs)
+            await asyncio.gather(*(p.reset() for p in self.logic.puzzles.values()))
             self.options = options
             self.game_id = database.new_game(self.name, self.options)
+            await self.play()
             self.desc_changed.notify_all()
+
+    async def pause(self):
+        await asyncio.gather(*(p.pause() for p in self.logic.puzzles.values()))
+
+    async def play(self):
+        await asyncio.gather(*(p.play() for p in self.logic.puzzles.values()))
 
     async def stop_game(self):
         async with self.desc_changed:
-            cs = {self.create_task(p.stop()) for p in self.logic.puzzles.values()}
-            await asyncio.wait(cs)
+            await asyncio.gather(*(p.stop() for p in self.logic.puzzles.values()))
             self.game_id = None
             self.options = None
             self.start_time = None
