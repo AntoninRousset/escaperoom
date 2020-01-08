@@ -69,13 +69,17 @@ class Game(Node):
             self.end_time = None
             self.desc_changed.notify_all()
 
-    def start_chronometer(self):
-        self.start_time = datetime.today()
-        database.game_start(self.game_id, self.start_time)
+    async def start_chronometer(self):
+        async with self.desc_changed:
+            self.start_time = datetime.today()
+            database.game_start(self.game_id, self.start_time)
+            self.desc_changed.notify_all()
 
-    def stop_chronometer(self):
-        self.stop_time = datetime.today()
-        database.game_end(self.game_id, self.stop_time)
+    async def stop_chronometer(self):
+        async with self.desc_changed:
+            self.end_time = datetime.today()
+            database.game_end(self.game_id, self.end_time)
+            self.desc_changed.notify_all()
 
     @property
     def chronometer(self):

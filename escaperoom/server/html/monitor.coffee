@@ -69,7 +69,6 @@ export class Subscriber extends Templated
 			path = @getAttribute('src')
 		@unsubscribe()
 		@loc = path+query_str
-		console.log('subscribing to', @loc)
 		event_path = path.substring(0, path.lastIndexOf('/'))+'/events'
 		if not event_source?
 			event_source = new EventSource(event_path)

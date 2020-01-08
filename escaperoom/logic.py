@@ -65,10 +65,10 @@ class Puzzle(Node):
             async with self.desc_changed:
                 while self.state == 'inactive' or self.paused:
                     await self.desc_changed.wait()
-                self.head() #TODO if its a future, wait for it
+                await asyncio.ensure_finished(self.head())
                 while self.state == 'active' or self.paused:
                     await self.desc_changed.wait()
-                self.tail() #TODO if its a future, wait for it
+                await asyncio.ensure_finished(self.tail())
                 while self.state == 'completed' or self.paused:
                     await self.desc_changed.wait()
 

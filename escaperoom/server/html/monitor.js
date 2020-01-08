@@ -119,7 +119,6 @@ export var Subscriber = (function() {
       }
       this.unsubscribe();
       this.loc = path + query_str;
-      console.log('subscribing to', this.loc);
       event_path = path.substring(0, path.lastIndexOf('/')) + '/events';
       if (event_source == null) {
         event_source = new EventSource(event_path);

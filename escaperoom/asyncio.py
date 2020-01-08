@@ -20,3 +20,9 @@ except NameError:
 
 def run_until_complete(*args, **kwargs):
     return get_event_loop().run_until_complete(*args, **kwargs)
+
+async def ensure_finished(cr):
+    if isfuture(cr) or iscoroutine(cr):
+        return await cr
+    else:
+        return cr
