@@ -10,6 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from threading import Lock
 from aiortc.contrib.media import MediaPlayer, PlayerStreamTrack
 
 from . import asyncio
