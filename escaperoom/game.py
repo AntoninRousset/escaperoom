@@ -20,7 +20,11 @@ from .network import Network
 
 class Game(Node):
 
+    games = dict()
+
     def __init__(self, name):
+        if name in self.games:
+            raise RuntimeError()
         super().__init__()
         self.name = name
         self.game_id = None
@@ -36,6 +40,7 @@ class Game(Node):
         self.network = Network() 
         self.logic = Logic()
         self.misc = Misc()
+        self.games[name] = self
 
     def resume_game(self):
         pass #TODO read database to resume a game
@@ -43,29 +48,38 @@ class Game(Node):
     async def new_game(self, options):
         await self.stop_game()
         async with self.desc_changed:
-            cs = {self.create_task(p.reset()) for p in self.logic.puzzles.values()}
-            await asyncio.wait(cs)
+            await asyncio.gather(*{p.reset() for p in self.logic.puzzles.values()})
             self.options = options
+            await self.play()
             self.game_id = database.new_game(self.name, self.options)
             self.desc_changed.notify_all()
 
+    async def pause(self):
+        await asyncio.gather(*{p.pause() for p in self.logic.puzzles.values()})
+
+    async def play(self):
+        await asyncio.gather(*{p.play() for p in self.logic.puzzles.values()})
+
     async def stop_game(self):
         async with self.desc_changed:
-            cs = {self.create_task(p.stop()) for p in self.logic.puzzles.values()}
-            await asyncio.wait(cs)
+            await asyncio.gather(*{p.stop() for p in self.logic.puzzles.values()})
             self.game_id = None
             self.options = None
             self.start_time = None
             self.end_time = None
             self.desc_changed.notify_all()
 
-    def start_chronometer(self):
-        self.start_time = datetime.today()
-        database.game_start(self.game_id, self.start_time)
+    async def start_chronometer(self):
+        async with self.desc_changed:
+            self.start_time = datetime.today()
+            database.game_start(self.game_id, self.start_time)
+            self.desc_changed.notify_all()
 
-    def stop_chronometer(self):
-        self.stop_time = datetime.today()
-        database.game_end(self.game_id, self.stop_time)
+    async def stop_chronometer(self):
+        async with self.desc_changed:
+            self.end_time = datetime.today()
+            database.game_end(self.game_id, self.end_time)
+            self.desc_changed.notify_all()
 
     @property
     def chronometer(self):

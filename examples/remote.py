@@ -15,7 +15,7 @@ from escaperoom import *
 game = Game('remote')
 
 bus = SocketBus('127.0.0.1', 1234, bus_id=0x42)
-remote = RemoteDevice(name='local')
+remote = RemoteDevice(name='local', htype='rpi')
 game.network.add_device(remote)
 game.network.add_bus(bus)
 

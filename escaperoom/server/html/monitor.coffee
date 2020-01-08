@@ -57,11 +57,9 @@ export class Subscriber extends Templated
 		@loc = ''
 				
 	event_handler = (event) ->
-		console.log(event)
 		data = JSON.parse(event.data)
 		for subscriber in subscribers
 			if data['type'] == 'update' and data['loc'] == subscriber.loc
-				console.log('update for', subscriber.loc)
 				subscriber.sync()
 
 	subscribe: (query_str='', path=null) ->
@@ -71,7 +69,6 @@ export class Subscriber extends Templated
 			path = @getAttribute('src')
 		@unsubscribe()
 		@loc = path+query_str
-		console.log('subscribing to', @loc)
 		event_path = path.substring(0, path.lastIndexOf('/'))+'/events'
 		if not event_source?
 			event_source = new EventSource(event_path)

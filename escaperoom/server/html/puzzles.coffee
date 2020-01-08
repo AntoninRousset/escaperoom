@@ -53,6 +53,9 @@ class PuzzleInfo extends Subscriber
 	constructor: () ->
 		super()
 		@apply_template()
+		@shadowRoot.querySelector('#puzzle-activate').onclick = @activate
+		@shadowRoot.querySelector('#puzzle-complete').onclick = @complete
+		@shadowRoot.querySelector('#puzzle-restore').onclick = @restore
 		@set_screen('empty')
 
 	select: (id) ->
@@ -60,10 +63,50 @@ class PuzzleInfo extends Subscriber
 
 	update: (data) ->
 		@update_plugs(data)
-		if data.state == 'active'
+		if data.state == 'inactive'
+			@shadowRoot.querySelector('#puzzle-activate').hidden = false
+			@shadowRoot.querySelector('#puzzle-activate').disable = false
+			@shadowRoot.querySelector('#puzzle-complete').hidden = true
+		else if data.state == 'active'
 			@shadowRoot.querySelector('#puzzle-activate').hidden = true
 			@shadowRoot.querySelector('#puzzle-complete').hidden = false
 			@shadowRoot.querySelector('#puzzle-complete').disabled = false
+		else if data.state == 'completed'
+			@shadowRoot.querySelector('#puzzle-activate').hidden = true
+			@shadowRoot.querySelector('#puzzle-complete').hidden = true
 		@set_screen('info')
+
+	activate: () =>
+		reponse = await fetch(@loc, {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				action: 'activate'
+			}),
+			method: 'POST'
+		})
+
+	complete: () =>
+		reponse = await fetch(@loc, {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				action: 'complete'
+			}),
+			method: 'POST'
+		})
+
+	restore: () =>
+		reponse = await fetch(@loc, {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				action: 'restore'
+			}),
+			method: 'POST'
+		})
 
 customElements.define('puzzle-info', PuzzleInfo)

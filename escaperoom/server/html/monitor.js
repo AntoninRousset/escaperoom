@@ -119,7 +119,6 @@ export var Subscriber = (function() {
       }
       this.unsubscribe();
       this.loc = path + query_str;
-      console.log('subscribing to', this.loc);
       event_path = path.substring(0, path.lastIndexOf('/')) + '/events';
       if (event_source == null) {
         event_source = new EventSource(event_path);
@@ -183,13 +182,11 @@ export var Subscriber = (function() {
 
   event_handler = function(event) {
     var data, j, len, results, subscriber;
-    console.log(event);
     data = JSON.parse(event.data);
     results = [];
     for (j = 0, len = subscribers.length; j < len; j++) {
       subscriber = subscribers[j];
       if (data['type'] === 'update' && data['loc'] === subscriber.loc) {
-        console.log('update for', subscriber.loc);
         results.push(subscriber.sync());
       } else {
         results.push(void 0);

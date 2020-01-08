@@ -13,13 +13,11 @@
 import aiohttp, json
 from aiortc import RTCPeerConnection, RTCSessionDescription
 
-from . import config 
+from . import asyncio, logging 
 from .media import MediaPlayer
 from .node import Node 
 
-def misc_debug(msg):
-    if config['DEFAULT'].getboolean('misc_debug', False):
-        print(msg)
+logger = logging.getLogger('misc')
 
 class Misc(Node):
     def __init__(self):
@@ -32,7 +30,7 @@ class Misc(Node):
         while True: 
             async with camera.desc_changed:
                 await camera.desc_changed.wait()
-                misc_debug(f'Misc: Camera {camera} changed its desc')
+                logger.debug(f'Misc: Camera {camera} changed its desc')
                 async with self.cameras_changed:
                     self.cameras_changed.notify_all()
 
@@ -40,7 +38,7 @@ class Misc(Node):
         uid = hex(id(camera))
         self.cameras[uid] = camera 
         self.create_task(self._camera_listening(camera))
-        misc_debug('Misc: Camera added')
+        logger.debug('Misc: Camera added')
         return uid
 
     #TODO multiple displays
@@ -87,11 +85,36 @@ class LocalCamera(Camera, MediaPlayer):
         return pc
 
 class Display(Node):
-    def __init__(self, address):
+    def __init__(self, address, game=None):
         super().__init__()
         self.address = address
+        if game is not None:
+            self.create_task(self._chronometer_listener(game))
+        self.sending = asyncio.Lock()
 
-    async def handle(self, data):
-        async with aiohttp.ClientSession() as session:
-            async with session.post(self.address, data=json.dumps(data)) as resp:
-                return 'done'
+    async def _chronometer_listener(self, game):
+        while True:
+            async with game.desc_changed:
+                self.create_task(self._send_chronometer(game))
+                await game.desc_changed.wait()
+
+    async def _send_chronometer(self, game):
+        async with self.sending:
+            while True:
+                try:
+                    running = game.start_time is not None and game.end_time is None
+                    data = {'type' : 'chronometer', 'running' : running,
+                            'seconds' : game.chronometer.total_seconds()}
+                    return await self.send(data)
+                except aiohttp.ClientConnectionError:
+                    await asyncio.sleep(2)
+
+    async def send(self, data):
+        try:
+            async with aiohttp.ClientSession() as s:
+                async with s.post(self.address, data=json.dumps(data)) as r:
+                    return 'done'
+        except aiohttp.ClientConnectionError as e:
+            logger.warning(f'cannot connect to display on {self.address}')
+            raise e
+

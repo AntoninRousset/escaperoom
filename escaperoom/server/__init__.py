@@ -28,6 +28,8 @@ async def index(request):
 @routes.get('/{game_name}')
 async def monitor(request):
     game_name = request.match_info['game_name']
+    if game_name not in games:
+        return ''
     context = {'game_name' : game_name}
     return aiohttp_jinja2.render_template('monitor.jinja2', request, context)
 
@@ -82,9 +84,16 @@ async def puzzles(request):
 async def puzzle(request):
     game_name = request.match_info['game_name']
     game = games[game_name]
-    uid = request.query['id']
     data = await readers.puzzle(games[game_name], request.query['id'])
     return web.Response(content_type='application/json', text=json.dumps(data))
+
+@routes.post('/{game_name}/puzzle')
+async def puzzle(request):
+    game_name = request.match_info['game_name']
+    game = games[game_name]
+    params = await request.json()
+    answer = await controls.puzzle(game, params, request.query['id'])
+    return web.Response(content_type='application/json', text=json.dumps(answer))
 
 @routes.get('/{game_name}/cameras')
 async def cameras(request):
@@ -107,16 +116,14 @@ async def camera(request):
 async def display(request):
     game_name = request.match_info['game_name']
     game = games[game_name]
-    display = game.misc.display
     params = await request.json()
-    answer = await display.handle(params) 
+    answer = await controls.display(game, params) 
     return web.Response(content_type='application/json', text=answer)
 
 app = web.Application()
 app.add_routes(routes)
 ROOT = dirname(__file__)
-#app.router.add_static('/ressources', f'{ROOT}/html/', append_version=True) #TODO
-app.router.add_static('/ressources', f'{ROOT}/html/')
+app.router.add_static('/ressources', f'{ROOT}/html/', append_version=True)
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(f'{ROOT}/html/'))
 
 async def start(host, port):

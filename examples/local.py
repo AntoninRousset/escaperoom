@@ -12,14 +12,10 @@
 
 from escaperoom import *
 
-game = Game('local')
-
 bus = SocketBus('127.0.0.1', 1234, bus_id=0x1, create_server=True)
-local = LocalDevice(addr=(bus, 0x1), name='local', type='arduino')
-local_state = Attribute(name='state', type=int, value=0)
+local = LocalDevice(addr=(bus, 0x1), name='local', htype='rpi')
+local_state = Attribute(name='state', vtype='int', value=0)
 local.add_attr(local_state)
-
-game.network.add_device(local)
 
 async def play_with_device(attribute):
     import random

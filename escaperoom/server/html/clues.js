@@ -27,6 +27,7 @@ CluesBox = class CluesBox extends HTMLElement {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
+        type: 'clue',
         text: text
       }),
       method: 'POST'
