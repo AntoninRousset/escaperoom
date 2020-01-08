@@ -36,3 +36,7 @@ async def puzzle(game, params, uid):
             puzzle.force_completed = False
             puzzle.desc_changed.notify_all()
 
+async def display(game, params):
+    display = game.misc.display
+    async with display.sending:
+        return await display.send(params)

@@ -116,16 +116,14 @@ async def camera(request):
 async def display(request):
     game_name = request.match_info['game_name']
     game = games[game_name]
-    display = game.misc.display
     params = await request.json()
-    answer = await display.handle(params) 
+    answer = await controls.display(game, params) 
     return web.Response(content_type='application/json', text=answer)
 
 app = web.Application()
 app.add_routes(routes)
 ROOT = dirname(__file__)
-#app.router.add_static('/ressources', f'{ROOT}/html/', append_version=True) #TODO
-app.router.add_static('/ressources', f'{ROOT}/html/')
+app.router.add_static('/ressources', f'{ROOT}/html/', append_version=True)
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(f'{ROOT}/html/'))
 
 async def start(host, port):

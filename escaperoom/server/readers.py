@@ -14,14 +14,6 @@ def datetime_to_string(datetime):
     if datetime is not None:
         return datetime.strftime('%H:%M')
 
-#Not used
-def parse_timedelta(timedelta):
-    if timedelta is not None:
-        days = timedelta.days
-        hours, remaining = divmod(timedelta.seconds, 3600)
-        minutes, seconds = divmod(remaining, 60)
-        return days, hours, minutes, seconds
-
 async def game(game):
     async with game.desc_changed:
         return {'running' : game.running,
