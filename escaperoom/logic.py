@@ -46,9 +46,16 @@ class Logic(Node):
         self.create_task(self._puzzle_listening(puzzle))
         logger.debug(f'{self}: {puzzle} added')
 
+    def create_puzzle(self, pos, *args, **kwargs):
+        puzzle = Puzzle(*args, **kwargs)
+        self.add_puzzle(puzzle, pos)
+        return puzzle
+
 class Puzzle(Node):
 
-    def __init__(self, name, *, initial_state='inactive'):
+    def __init__(self, name, *, initial_state='inactive', description='',
+                 head=lambda: None, tail=lambda: None, parents=[], conditions=[],
+                 predicate=lambda: True):
         super().__init__()
         self.name = name
         self.initial_state = initial_state
@@ -56,16 +63,19 @@ class Puzzle(Node):
         self.force_active = None
         self.force_completed = None
         self.paused = True
-        self.description = None
+        self.description = description
         self.desc_changed = self.Condition()
         self.parents = set()
         self.conditions = set()
 
-        self.head = lambda: None
-        self.tail = lambda: None
+        self.head = head
+        self.tail = tail
 
-        self.predicate = lambda: True
+        self.predicate = predicate
         self.game_flow = None
+
+        {self.add_parent(parent) for parent in parents}
+        {self.add_condition(condition) for condition in conditions}
 
     def __str__(self):
         return f'puzzle "{self.name}" [{self.state}]'
