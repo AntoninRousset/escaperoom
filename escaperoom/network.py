@@ -165,20 +165,19 @@ class Network(Node):
                         await self.read_msg(addr, msg)
                 await bus.packet_changed.wait()
 
-    def _find_device(self, addr=None, name=None):
+    def _find_device(self, *, addr=None, name=None):
         for device in self.devices.values():
-            if not device.disconnected() and device.addr == addr:
-                return device
-            elif not device.disconnected() and device.addr[0] == addr[0] and addr[1] == 0:
-                return device
-            elif device.name == name:
+            if not device.disconnected() and device.addr[0] == addr[0]:
+                if device.addr[1] == addr[1] or device.add[1] == 0:
+                    return device
+            if device.name == name:
                 return device
 
     async def read_msg(self, sender, msg): 
         logger.debug(f'{self}: reading msg "{msg}"') 
         if re.match('\s*desc\s+\w+\s+\w+\s*', msg):
             name = msg.split()[1]
-            device = self._find_device(sender, name)
+            device = self._find_device(addr=sender, name=name)
             if device is None:
                 logger.debug(f'{self}: no device with id 0x{sender[1]:02x}')
                 device = RemoteDevice(addr=sender, name=name)
@@ -191,7 +190,7 @@ class Network(Node):
                     if device.addr != sender or device.name != name:
                         device.desc_changed.notify_all()
                     device.addr, device.name = sender, name
-        device = self._find_device(sender)
+        device = self._find_device(addr=sender)
         if device is None:
             logger.warning(f'Cannot find device with id 0x{sender[1]:02x}')
         else:

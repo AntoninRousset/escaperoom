@@ -31,6 +31,11 @@ class Logic(Node):
                 async with self.puzzles_changed:
                     self.puzzles_changed.notify_all()
 
+    def find_puzzle(self, name):
+        for device in self.puzzles.values():
+            if device.name == name:
+                return device
+
     def add_puzzle(self, puzzle, pos):
         uid = hex(id(puzzle))
         self.puzzles[uid] = puzzle

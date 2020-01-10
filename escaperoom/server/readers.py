@@ -22,13 +22,13 @@ async def read(game, service, query=None):
     if service == 'chronometer':
         return await chronometer_reader(game)
     if service == 'device':
-        return await device_reader(game, query['id'])
+        return await device_reader(game, query.get('id'), query.get('name'))
     if service == 'devices':
         return await devices_reader(game)
     if service == 'game':
         return await game_reader(game)
     if service == 'puzzle':
-        return await puzzle_reader(game, query['id'])
+        return await puzzle_reader(game, query.get('id'), query.get('name'))
     if service == 'puzzles':
         return await puzzles_reader(game)
     raise KeyError(service)
@@ -49,7 +49,9 @@ async def chronometer_reader(game):
             }
 
 async def device_reader(game, uid):
-    device = game.network.devices[uid]
+    device = game.network.devices.get(uid)
+    if uid is None or device is None:
+        device = game.network.devices._find_device(name=name)
     attrs = {
             uid : {
                 'attr_id' : attr.attr_id, 'name' : attr.name,
@@ -87,7 +89,9 @@ async def game_reader(game):
                 }
 
 async def puzzle_reader(game, uid):
-    puzzle = game.logic.puzzles[uid]
+    puzzle = game.logic.puzzles.get(uid)
+    if uid is None or puzzle is None:
+        puzzle = game.logic.find_puzzle(name)
     async with puzzle.desc_changed:
         return {
                 'uid' : uid,

@@ -35,6 +35,11 @@ class Misc(Node):
                 async with self.cameras_changed:
                     self.cameras_changed.notify_all()
 
+    def find_camera(self, name):
+        for uid, camera in self.cameras.items():
+            if camera.name == name:
+                return camera
+
     def add_camera(self, camera):
         uid = hex(id(camera))
         self.cameras[uid] = camera 
@@ -110,7 +115,7 @@ class RemoteCamera(Camera):
                 if uid is None:
                     logger.warning(f'camera "{self.remote_name}" not found on {self.address}')
                     raise RuntimeError()
-                address = self.address + f'/camera?id={uid}'
+                address = self.address + f'/camera?name={self.remote_name}'
                 data = {'sdp' : sdp, 'type' : type}
                 async with s.post(address, data=json.dumps(data)) as r:
                     return await r.json()

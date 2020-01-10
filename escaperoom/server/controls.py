@@ -12,16 +12,18 @@
 
 async def control(game, params, service, query=None):
     if service == 'camera':
-        return await camera_control(game, params, query['id'])
+        return await camera_control(game, params, query.get('id'), query.get('name'))
     if service == 'display':
         return await display_control(game, params)
     if service == 'game':
         return await game_control(game, params)
     if service == 'puzzle':
-        return await puzzle_control(game, params, query['id'])
+        return await puzzle_control(game, params, query.get('id'), query.get('name'))
 
-async def camera_control(game, params, uid):
-    camera = game.misc.cameras[uid]
+async def camera_control(game, params, uid, name):
+    camera = game.misc.cameras.get(uid)
+    if uid is None or camera is None:
+        camera = game.misc.find_camera(name)
     return await camera.handle_sdp(params['sdp'], params['type'])
 
 async def display_control(game, params):
@@ -40,7 +42,9 @@ async def game_control(game, params):
     return ''
 
 async def puzzle_control(game, params, uid):
-    puzzle = game.logic.puzzles[uid]
+    puzzle = game.logic.puzzles.get(uid)
+    if uid is None or puzzle is None:
+        puzzle = game.logic.find_puzzle(name)
     if params['action'] == 'activate':
         async with puzzle.desc_changed:
             puzzle.force_active = True
