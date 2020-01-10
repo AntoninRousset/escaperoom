@@ -13,10 +13,6 @@
 from . import asyncio, config, logging 
 from .node import Node
 
-def log_debug(msg):
-    if config['DEFAULT'].getboolean('log_debug', False):
-        print(msg)
-
 logger = logging.getLogger('logic')
 
 class Logic(Node):
@@ -71,6 +67,9 @@ class Puzzle(Node):
         self.predicate = lambda: True
         self.game_flow = None
 
+    def __str__(self):
+        return f'puzzle {self.name} [{self.state}]'
+
     async def _game_flow(self):
         while True:
             async with self.desc_changed:
@@ -114,7 +113,7 @@ class Puzzle(Node):
             if not self.predicate():
                 return
         except Exception as e:
-            return log_debug(f'Puzzle: Predicate error: {e}')
+            return loggger.debug(f'{self}: predicate error: {e}')
         async with self.desc_changed:
             self._state = 'completed'
             self.desc_changed.notify_all()

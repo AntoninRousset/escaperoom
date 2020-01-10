@@ -27,11 +27,14 @@ class Misc(Node):
         self.cameras_changed = self.Condition()
         self.display = None
 
+    def __str__(self):
+        return 'misc'
+
     async def _camera_listening(self, camera):
         while True: 
             async with camera.desc_changed:
                 await camera.desc_changed.wait()
-                logger.debug(f'Misc: Camera {camera} changed its desc')
+                logger.debug(f'{self}: {camera} changed its desc')
                 async with self.cameras_changed:
                     self.cameras_changed.notify_all()
 
@@ -46,7 +49,7 @@ class Misc(Node):
         _id = hex(id(camera))
         self.cameras[_id] = camera 
         self.create_task(self._camera_listening(camera))
-        logger.debug('Misc: Camera added')
+        logger.debug(f'{self}: {camera} added')
         return _id
 
     #TODO multiple displays
@@ -59,6 +62,9 @@ class Camera(ABC, Node):
         self.name = name
         self.connected = False 
         self.desc_changed = self.Condition()
+
+    def __str__(self):
+        return f'camera "{self.name}"'
 
     @abstractmethod
     async def handle_sdp(self, sdp, type):
