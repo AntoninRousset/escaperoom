@@ -101,6 +101,7 @@ class LocalCamera(Camera, MediaPlayer):
         return {'sdp' : pc.localDescription.sdp, 'type' : pc.localDescription.type}
 
 class RemoteCamera(Camera):
+
     def __init__(self, name, address, *, rename=None):
         if rename is None:
             rename = name
@@ -119,30 +120,62 @@ class RemoteCamera(Camera):
             logger.warning(f'cannot connect to camera on {self.address}')
             raise e
 
-class RemoteDisplay(Node):
-    def __init__(self, address, game=None):
+class Display(ABC, Node):
+
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+
+    def __str__(self):
+        return f'display "{self.name}"'
+
+class LocalDisplay(Display):
+    
+    EXEC_NAME = 'escaperoom-display'
+
+    def __init__(self, name, game=None):
+        super().__init__(name)
+        from subprocess import Popen
+        from asyncio.subprocess import PIPE
+        try:
+            co = asyncio.create_subprocess_shell(self.EXEC_NAME, stdin=PIPE)
+            self.ps = asyncio.run_until_complete(co)
+        except FileNotFoundError:
+            logger.error(f'{self}: could not find escaperoom-display')
+            raise RuntimeError()
+        if game is not None:
+            self.game = game
+            self.create_task(self._chronometer_listener())
+
+    async def _chronometer_listener(self):
+        while True:
+            print('listening')
+            async with self.game.desc_changed:
+                data = {
+                        'running' : ( self.game.start_time is not None and
+                                      self.game.end_time is None ),
+                        'seconds' : self.game.chronometer.total_seconds()
+                        }
+                self.create_task(self._send_chronometer(data))
+                await self.game.desc_changed.wait()
+
+    async def _send_chronometer(self, data):
+        msg = f'chronometer {int(data["running"])} {data["seconds"]}\n'
+        print('sending', data)
+        try:
+            self.ps.stdin.write(msg.encode())
+            await self.ps.stdin.drain()
+        except Exception as e:
+            logger.error(f'{self} is dead: {e}')
+            raise RuntimeError()
+
+#TODO
+class RemoteDisplay(Display):
+
+    def __init__(self, name, address, game=None):
         super().__init__()
         self.address = address
-        if game is not None:
-            self.create_task(self._chronometer_listener(game))
         self.sending = asyncio.Lock()
-
-    async def _chronometer_listener(self, game):
-        while True:
-            async with game.desc_changed:
-                self.create_task(self._send_chronometer(game))
-                await game.desc_changed.wait()
-
-    async def _send_chronometer(self, game):
-        async with self.sending:
-            while True:
-                try:
-                    running = game.start_time is not None and game.end_time is None
-                    data = {'type' : 'chronometer', 'running' : running,
-                            'seconds' : game.chronometer.total_seconds()}
-                    return await self.send(data)
-                except aiohttp.ClientConnectionError:
-                    await asyncio.sleep(2)
 
     async def send(self, data):
         try:
