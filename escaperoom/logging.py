@@ -48,7 +48,8 @@ class ColoredFormatter(logging.Formatter):
     modulecolors = defaultdict(lambda: '', {
             'logic' : ANSI['cyan'],
             'misc' : ANSI['magenta'],
-            'network' : ANSI['yellow']
+            'network' : ANSI['yellow'],
+            'server' : ANSI['green']
         })
 
     def __init__(self, fmt=None, datefmt=None, style='%'):
@@ -59,6 +60,6 @@ class ColoredFormatter(logging.Formatter):
         record.resetcolor = ANSI['reset']
         record.levelcolor = self.levelcolors[record.levelname]
         record.levelname_pad = record.levelname.ljust(7)
-        record.modulecolor = self.modulecolors[record.module]
+        record.modulecolor = self.modulecolors[record.name]
         return super().format(record)
 

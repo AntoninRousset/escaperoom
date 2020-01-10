@@ -53,14 +53,14 @@ async def device_reader(game, uid):
     attrs = {
             uid : {
                 'attr_id' : attr.attr_id, 'name' : attr.name,
-                'type' : attr.vtype,
+                'type' : attr.type,
                 'value' : attr.value
                 } for uid, attr in device.attrs.items()
             }
     return {
             'name' : device.name,
             'attrs' : attrs,
-            'type' : device.htype,
+            'type' : device.type,
             'addr' : None if device.disconnected() else device.addr[1],
             'msg' : device.msg,
             'state' : 'offline' if device.disconnected() else 'online'
@@ -70,7 +70,7 @@ async def devices_reader(game):
     devices = {
             uid : {
                 'name' : device.name,
-                'type' : device.htype,
+                'type' : device.type,
                 'n_attr' : device.n_attr
                 } for uid, device in game.network.devices.items()
             }

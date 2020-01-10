@@ -222,11 +222,11 @@ class Network(Node):
 
 class Device(Node):
 
-    def __init__(self, *, addr=None, name=None, htype='?'): 
+    def __init__(self, name, *, addr=None, type='?'): 
         super().__init__()
         self.addr = addr
         self.name = name
-        self.htype = htype
+        self.type = type
         self.n_attr = None
         self.desc_changed = self.Condition()
         self.msg = None
@@ -282,18 +282,18 @@ class Device(Node):
 
 class LocalDevice(Device):
 
-    def __init__(self, *, addr, name, htype='?'):
-        super().__init__(addr=addr, name=name, htype=htype)
-        self.create_task(self._bus_listening(addr[0]))
+    def __init__(self, name, *, bus, addr, type='?'):
+        super().__init__(name=name, addr=(bus, addr), type=type)
+        self.create_task(self._bus_listening(bus))
 
     async def _attr_listening(self, attr):
         while attr in self.attrs.values(): 
-            attr_name, attr_vtype = attr.name, attr.vtype
+            attr_name, attr_type = attr.name, attr.type
             attr_value = attr.value
             async with attr.desc_changed: 
                 await attr.desc_changed.wait()
-                if attr.name != attr_name or attr.vtype != attr_vtype:
-                    await self.send(f'attr {attr.attr_id} {attr.name} {attr.vtype}')
+                if attr.name != attr_name or attr.type != attr_type:
+                    await self.send(f'attr {attr.attr_id} {attr.name} {attr.type}')
                 elif attr.value != attr_value:
                     await self.send(f'val {attr.attr_id} {attr.value}')
                 async with self.attrs_changed:
@@ -317,7 +317,7 @@ class LocalDevice(Device):
         elif re.match('\s*get\s+attr\s+\d+\s*', msg):
             attr = self._find_attr(int(words[2]))
             if attr is not None:
-                await self.send(f'attr {attr.attr_id} {attr.name} {attr.vtype}')
+                await self.send(f'attr {attr.attr_id} {attr.name} {attr.type}')
         elif re.match('\s*get\s+val\s+\d+\s*', msg):
             attr = self._find_attr(int(words[2]))
             if attr is not None:
@@ -342,8 +342,8 @@ class LocalDevice(Device):
 
 class RemoteDevice(Device):
 
-    def __init__(self, *, addr=None, name=None, htype='?'):
-        super().__init__(addr=addr, name=name, htype=htype)
+    def __init__(self, name, *, addr=None, type='?'):
+        super().__init__(addr=addr, name=name, type=type)
         self.n_attr = None
         self.create_task(self._desc_fetching())
         self.create_task(self._attrs_fetching())
@@ -378,7 +378,7 @@ class RemoteDevice(Device):
 
     async def _attr_fetching(self, attr):
         while attr in self.attrs.values():
-            if (attr.name is None or attr.vtype is None) and attr.attr_id is not None:
+            if (attr.name is None or attr.type is None) and attr.attr_id is not None:
                 logger.debug(f'{attr} has incomplete desc')
                 await self.send(f'get attr {attr.attr_id}')
                 await asyncio.sleep(5)
@@ -408,18 +408,18 @@ class RemoteDevice(Device):
                 self.name, self.n_attr = name, n_attr 
         elif re.match('\s*attr\s+\d+\s+\w+\s+\w+\s*', msg):
             logger.debug(f'{self}: setting attribute\'s desc')
-            attr_id, name, vtype = int(words[1]), words[2], words[3]
+            attr_id, name, type = int(words[1]), words[2], words[3]
             attr = self._find_attr(attr_id, name)
             if attr is None:
                 logger.debug(f'{self}: no attribute with id {attr_id}, creating one')
-                attr = Attribute(vtype, attr_id=attr_id, name=name)
+                attr = Attribute(type, attr_id=attr_id, name=name)
                 async with self.attrs_changed:
                     self.add_attr(attr)
                     self.attrs_changed.notify_all()
             else:
                 async with attr.desc_changed:
                     attr.desc_changed.notify_all()
-                    attr.attr_id, attr.name, attr.vtype = attr_id, name, vtype
+                    attr.attr_id, attr.name, attr.type = attr_id, name, type
         elif re.match('\s*val\s+\d+\s+\w+\s*', msg):
             logger.debug(f'{self}: setting attribute\'s value')
             attr_id, value = int(words[1]), words[2]
@@ -447,11 +447,11 @@ class RemoteDevice(Device):
 
 class Attribute(Node):
 
-    def __init__(self, vtype=None, value=None, *, attr_id=None, name=None):
+    def __init__(self, name, type=None, value=None, *, attr_id=None):
         super().__init__()
         self.attr_id = attr_id
         self.name = name
-        self.vtype = vtype 
+        self.type = type 
         self.value = value 
         self.desc_changed = self.Condition()
 
@@ -467,13 +467,13 @@ class Attribute(Node):
     def value(self):
         if self._value is None:
             return None
-        if self.vtype == 'int':
+        if self.type == 'int':
             return int(self._value)
-        if self.vtype == 'float':
+        if self.type == 'float':
             return float(self._value)
-        if self.vtype == 'bool':
+        if self.type == 'bool':
             return bool(float(self._value))
-        if self.vtype == 'str':
+        if self.type == 'str':
             return str(self._value)
         return self._value
 

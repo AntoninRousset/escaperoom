@@ -11,7 +11,6 @@
 '''
 
 async def control(game, params, service, query=None):
-    print(service)
     if service == 'camera':
         return await camera_control(game, params, query['id'])
     if service == 'display':
@@ -22,6 +21,7 @@ async def control(game, params, service, query=None):
         return await puzzle_control(game, params, query['id'])
 
 async def camera_control(game, params, uid):
+    from aiortc import RTCSessionDescription
     camera = game.misc.cameras[uid]
     offer = RTCSessionDescription(sdp=params['sdp'], type=params['type'])
     return await camera.handle_offer(offer)

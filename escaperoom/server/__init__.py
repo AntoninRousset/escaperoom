@@ -18,9 +18,11 @@ from os.path import dirname
 
 from . import controls, events_generator, readers
 
-from .. import asyncio
+from .. import asyncio, logging
 from ..game import Game
 from ..node import Node
+
+logger = logging.getLogger('server')
 
 routes = web.RouteTableDef()
 interface_routes = web.RouteTableDef()
@@ -89,5 +91,5 @@ class HTTPServer(Node):
         asyncio.run_until_complete(runner.setup())
         site = web.TCPSite(runner, host, port)
         asyncio.run_until_complete(site.start())
-        print(f'Server on {site._host}:{site._port}')
+        logger.info(f'Server on {site._host}:{site._port}')
 
