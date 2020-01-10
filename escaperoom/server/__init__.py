@@ -18,90 +18,47 @@ from os.path import dirname
 
 from . import controls, events_generator, readers
 
-games = dict()
+from .. import asyncio
+from ..game import Game
+from ..node import Node
+
 routes = web.RouteTableDef()
+interface_routes = web.RouteTableDef()
 
-@routes.get('/')
+@interface_routes.get('/')
 async def index(request):
-    return web.Response(text=f'available games are {games.keys()}')
+    return web.Response(text=f'available games are {Game.games.keys()}')
 
-@routes.get('/{game_name}')
+@interface_routes.get('/{game_name}')
 async def monitor(request):
     game_name = request.match_info['game_name']
-    if game_name not in games:
+    if game_name not in Game.games:
         return ''
     context = {'game_name' : game_name}
     return aiohttp_jinja2.render_template('monitor.jinja2', request, context)
 
 @routes.get('/{game_name}/events')
 async def events(request):
-    game_name = request.match_info['game_name']
-    game = games[game_name]
+    game = Game.games[request.match_info['game_name']]
     async with sse_response(request) as resp:
         async for event in events_generator.generator(game):
             await resp.send(json.dumps(event))
     return resp
 
-@routes.get('/{game_name}/chronometer')
-async def chronometer(request):
-    game_name = request.match_info['game_name']
-    data = await readers.chronometer(games[game_name])
+@routes.get('/{game_name}/{service}')
+async def reader(request):
+    game = Game.games[request.match_info['game_name']]
+    service = request.match_info['service']
+    data = await readers.read(game, service, request.query)
     return web.Response(content_type='application/json', text=json.dumps(data))
 
-@routes.get('/{game_name}/devices')
-async def devices(request):
-    game_name = request.match_info['game_name']
-    data = await readers.devices(games[game_name])
-    return web.Response(content_type='application/json', text=json.dumps(data))
-
-@routes.get('/{game_name}/device')
-async def device(request):
-    game_name = request.match_info['game_name']
-    data = await readers.device(games[game_name], request.query['id'])
-    return web.Response(content_type='application/json', text=json.dumps(data))
-
-@routes.get('/{game_name}/game')
-async def game(request):
-    game_name = request.match_info['game_name']
-    data = await readers.game(games[game_name])
-    return web.Response(content_type='application/json', text=json.dumps(data))
-
-@routes.post('/{game_name}/game')
+@routes.post('/{game_name}/{service}')
 async def puzzles(request):
-    game_name = request.match_info['game_name']
-    game = games[game_name]
-    params = await request.json()
-    answer = await controls.game(game, params)
+    game = Game.games[request.match_info['game_name']]
+    service = request.match_info['service']
+    answer = await controls.control(game, await request.json(), service, request.query)
     return web.Response(content_type='application/json', text=json.dumps(answer))
 
-@routes.get('/{game_name}/puzzles')
-async def puzzles(request):
-    game_name = request.match_info['game_name']
-    data = await readers.puzzles(games[game_name])
-    return web.Response(content_type='application/json', text=json.dumps(data))
-
-@routes.get('/{game_name}/puzzle')
-async def puzzle(request):
-    game_name = request.match_info['game_name']
-    game = games[game_name]
-    data = await readers.puzzle(games[game_name], request.query['id'])
-    return web.Response(content_type='application/json', text=json.dumps(data))
-
-@routes.post('/{game_name}/puzzle')
-async def puzzle(request):
-    game_name = request.match_info['game_name']
-    game = games[game_name]
-    params = await request.json()
-    answer = await controls.puzzle(game, params, request.query['id'])
-    return web.Response(content_type='application/json', text=json.dumps(answer))
-
-@routes.get('/{game_name}/cameras')
-async def cameras(request):
-    game_name = request.match_info['game_name']
-    data = await readers.cameras(games[game_name])
-    return web.Response(content_type='application/json', text=json.dumps(data))
-
-@routes.post('/{game_name}/camera')
 async def camera(request):
     game_name = request.match_info['game_name']
     game = games[game_name]
@@ -112,24 +69,25 @@ async def camera(request):
     data = await camera.handle_offer(offer)
     return web.Response(content_type='application/json', text=json.dumps(data))
 
-@routes.post('/{game_name}/display')
-async def display(request):
-    game_name = request.match_info['game_name']
-    game = games[game_name]
-    params = await request.json()
-    answer = await controls.display(game, params) 
-    return web.Response(content_type='application/json', text=answer)
+class HTTPServer(Node):
 
-app = web.Application()
-app.add_routes(routes)
-ROOT = dirname(__file__)
-app.router.add_static('/ressources', f'{ROOT}/html/', append_version=True)
-aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(f'{ROOT}/html/'))
+    def __init__(self, host='127.0.0.1', port=8080, *, interface=False):
+        self.app = web.Application()
+        if interface:
+            self._activate_interface()
+        self.app.add_routes(routes)
+        self._start(host, port)
 
-async def start(host, port):
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, host, port)
-    await site.start()
-    print(f'Server on {site._host}:{site._port}')
+    def _activate_interface(self):
+        ROOT = dirname(__file__)
+        self.app.router.add_static('/ressources', f'{ROOT}/html/', append_version=True)
+        aiohttp_jinja2.setup(self.app, loader=jinja2.FileSystemLoader(f'{ROOT}/html/'))
+        self.app.add_routes(interface_routes)
+
+    def _start(self, host, port):
+        runner = web.AppRunner(self.app)
+        asyncio.run_until_complete(runner.setup())
+        site = web.TCPSite(runner, host, port)
+        asyncio.run_until_complete(site.start())
+        print(f'Server on {site._host}:{site._port}')
 

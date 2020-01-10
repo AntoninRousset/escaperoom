@@ -64,6 +64,7 @@ CameraVideo = class CameraVideo extends HTMLElement {
   constructor() {
     var error;
     super();
+    console.log('camera');
     try {
       this.pc = new RTCPeerConnection();
       this.pc.onnegotiationneeded = (event) => {

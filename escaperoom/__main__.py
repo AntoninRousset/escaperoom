@@ -46,11 +46,7 @@ def load_rooms(rooms_dir):
 
 def main():
     args = get_args()
-    from .game import Game
     load_rooms(Path(config['DEFAULT']['rooms_dir']).expanduser())
-    from . import server
-    server.games.update(Game.games)
-    asyncio.get_event_loop().create_task(server.start(host=args.host, port=args.port))
     asyncio.get_event_loop().run_forever()
 
 if __name__ == '__main__':

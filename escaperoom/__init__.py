@@ -13,6 +13,7 @@
 import configparser, os.path
 from pathlib import Path
 
+#TODO All config should be red in config.py
 config = configparser.ConfigParser()
 ROOT = Path(os.path.dirname(__file__))
 config.read(Path(ROOT/'escaperoom.conf').resolve())
@@ -34,4 +35,5 @@ from .game import Game
 from .logic import Logic, Puzzle
 from .misc import Misc, LocalCamera, Display
 from .network import Network, SerialBus, SocketBus, RemoteDevice, LocalDevice, Attribute
+from .server import HTTPServer
 

@@ -38,6 +38,7 @@ class CamerasList extends Container
 
 customElements.define('cameras-list', CamerasList)
 
+#TODO remove the need for a STUN server
 class CameraVideo extends HTMLElement
 	constructor: () ->
 		super()

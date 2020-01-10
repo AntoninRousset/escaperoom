@@ -10,62 +10,100 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+#TODO use the locks for reading? to ensure there is corruption 
+
 def datetime_to_string(datetime):
     if datetime is not None:
         return datetime.strftime('%H:%M')
 
-async def game(game):
-    async with game.desc_changed:
-        return {'running' : game.running,
-                'name' : game.name,
-                'start_time' : datetime_to_string(game.start_time),
-                'end_time' : datetime_to_string(game.end_time),
-                'default_options' : game.default_options}
+async def read(game, service, query=None):
+    if service == 'cameras':
+        return await cameras_reader(game)
+    if service == 'chronometer':
+        return await chronometer_reader(game)
+    if service == 'device':
+        return await device_reader(game, query['id'])
+    if service == 'devices':
+        return await devices_reader(game)
+    if service == 'game':
+        return await game_reader(game)
+    if service == 'puzzle':
+        return await puzzle_reader(game, query['id'])
+    if service == 'puzzles':
+        return await puzzles_reader(game)
+    raise KeyError(service)
 
-async def chronometer(game):
+async def cameras_reader(game):
+    cameras = {
+            uid : {
+                'name' : camera.name
+                } for uid, camera in game.misc.cameras.items()
+            }
+    return {'cameras' : cameras}
+
+async def chronometer_reader(game):
     running = game.start_time is not None and game.end_time is None
-    return {'running' : running, 'time' : game.chronometer.total_seconds()*1000}
+    return {
+            'running' : running,
+            'time' : game.chronometer.total_seconds()*1000
+            }
 
-async def devices(game):
-    async with game.network.devices_changed:
-        devices = dict()
-        for uid, device in game.network.devices.items():
-            devices[uid] = {'name' : device.name,
-                            'type' : device.htype,
-                            'n_attr' : device.n_attr}
-        return {'devices' : devices}
-
-async def device(game, uid):
+async def device_reader(game, uid):
     device = game.network.devices[uid]
-    attrs = {uid : {'attr_id' : attr.attr_id, 'name' : attr.name, 'type' : attr.vtype,
-             'value' : attr.value} for uid, attr in device.attrs.items()}
-    return {'name' : device.name,
+    attrs = {
+            uid : {
+                'attr_id' : attr.attr_id, 'name' : attr.name,
+                'type' : attr.vtype,
+                'value' : attr.value
+                } for uid, attr in device.attrs.items()
+            }
+    return {
+            'name' : device.name,
             'attrs' : attrs,
             'type' : device.htype,
             'addr' : None if device.disconnected() else device.addr[1],
             'msg' : device.msg,
-            'state' : 'offline' if device.disconnected() else 'online'}
+            'state' : 'offline' if device.disconnected() else 'online'
+            }
 
-async def puzzles(game):
-    async with game.logic.puzzles_changed:
-        puzzles = dict()
-        for uid, puzzle in game.logic.puzzles.items():
-            col, row = game.logic.positions[uid]
-            puzzles[uid] = {'name' : puzzle.name, 'state' : puzzle.state,
-                          'row' : row, 'col' : col} 
-        return {'puzzles' : puzzles}
+async def devices_reader(game):
+    devices = {
+            uid : {
+                'name' : device.name,
+                'type' : device.htype,
+                'n_attr' : device.n_attr
+                } for uid, device in game.network.devices.items()
+            }
+    return {'devices' : devices}
 
-async def puzzle(game, uid):
+async def game_reader(game):
+    async with game.desc_changed:
+        return {
+                'running' : game.running,
+                'name' : game.name,
+                'start_time' : datetime_to_string(game.start_time),
+                'end_time' : datetime_to_string(game.end_time),
+                'default_options' : game.default_options
+                }
+
+async def puzzle_reader(game, uid):
     puzzle = game.logic.puzzles[uid]
-    return {'uid' : uid,
-            'name' : puzzle.name,
-            'state' : puzzle.state,
-            'description' : puzzle.description}
+    async with puzzle.desc_changed:
+        return {
+                'uid' : uid,
+                'name' : puzzle.name,
+                'state' : puzzle.state,
+                'description' : puzzle.description
+                }
 
-async def cameras(game):
-    async with game.misc.cameras_changed: 
-        cameras = dict()
-        for uid, camera in game.misc.cameras.items():
-            cameras[uid] = {'name' : camera.name}
-        return {'cameras' : cameras}
+async def puzzles_reader(game):
+    puzzles = {
+            uid : {
+                'name' : puzzle.name,
+                'state' : puzzle.state,
+                'col' : game.logic.positions[uid][0],
+                'row' : game.logic.positions[uid][1]
+                } for uid, puzzle in game.logic.puzzles.items()
+            }
+    return {'puzzles' : puzzles}
 
