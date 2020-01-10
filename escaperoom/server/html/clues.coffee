@@ -13,8 +13,8 @@ class CluesBox extends HTMLElement
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
-				type: 'clue',
-				text: text
+				type: 'msg',
+				msg: text
 			}),
 			method: 'POST'
 		})

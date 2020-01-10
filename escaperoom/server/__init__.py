@@ -74,7 +74,7 @@ async def camera(request):
 class HTTPServer(Node):
 
     #TODO can we use port 80?
-    def __init__(self, host='127.0.0.1', port=8080, *, interface=False):
+    def __init__(self, host='0.0.0.0', port=8080, *, interface=False):
         self.app = web.Application()
         if interface:
             self._activate_interface()

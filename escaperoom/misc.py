@@ -149,21 +149,29 @@ class LocalDisplay(Display):
 
     async def _chronometer_listener(self):
         while True:
-            print('listening')
             async with self.game.desc_changed:
                 data = {
                         'running' : ( self.game.start_time is not None and
                                       self.game.end_time is None ),
                         'seconds' : self.game.chronometer.total_seconds()
                         }
-                self.create_task(self._send_chronometer(data))
+                self.create_task(self._set_chronometer(data))
                 await self.game.desc_changed.wait()
 
-    async def _send_chronometer(self, data):
-        msg = f'chronometer {int(data["running"])} {data["seconds"]}\n'
-        print('sending', data)
+    async def _set_chronometer(self, data):
         try:
-            self.ps.stdin.write(msg.encode())
+            msg = f'chronometer {int(data["running"])} {data["seconds"]}\n'
+            await self._write_to_process(msg.encode())
+        except Exception as e:
+            print(e)
+
+    async def set_msg(self, msg):
+        msg = f'msg {msg}\n'
+        await self._write_to_process(msg.encode())
+
+    async def _write_to_process(self, data):
+        try:
+            self.ps.stdin.write(data)
             await self.ps.stdin.drain()
         except Exception as e:
             logger.error(f'{self} is dead: {e}')

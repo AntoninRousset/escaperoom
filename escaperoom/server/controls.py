@@ -26,8 +26,7 @@ async def camera_control(game, params, query):
 
 async def display_control(game, params):
     display = game.misc.display
-    async with display.sending:
-        return await display.send(params)
+    return await display.set_msg(params['msg'])
 
 async def game_control(game, params):
     if params['action'] == 'new_game':
