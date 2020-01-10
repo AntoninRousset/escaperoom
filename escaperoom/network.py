@@ -165,19 +165,21 @@ class Network(Node):
                         await self.read_msg(addr, msg)
                 await bus.packet_changed.wait()
 
-    def _find_device(self, *, addr=None, name=None):
-        for device in self.devices.values():
+    def find_device(self, *, id=None, name=None, addr=None):
+        if id is not None:
+            return id, self.devices[id]
+        for id, device in self.devices.items():
             if not device.disconnected() and device.addr[0] == addr[0]:
                 if device.addr[1] == addr[1] or device.add[1] == 0:
-                    return device
+                    return id, device
             if device.name == name:
-                return device
+                return id, device
 
     async def read_msg(self, sender, msg): 
         logger.debug(f'{self}: reading msg "{msg}"') 
         if re.match('\s*desc\s+\w+\s+\w+\s*', msg):
             name = msg.split()[1]
-            device = self._find_device(addr=sender, name=name)
+            _, device = self.find_device(name=name, addr=sender)
             if device is None:
                 logger.debug(f'{self}: no device with id 0x{sender[1]:02x}')
                 device = RemoteDevice(addr=sender, name=name)
@@ -190,7 +192,7 @@ class Network(Node):
                     if device.addr != sender or device.name != name:
                         device.desc_changed.notify_all()
                     device.addr, device.name = sender, name
-        device = self._find_device(addr=sender)
+        _, device = self.find_device(addr=sender)
         if device is None:
             logger.warning(f'Cannot find device with id 0x{sender[1]:02x}')
         else:
@@ -205,19 +207,22 @@ class Network(Node):
                     self.devices_changed.notify_all()
 
     def add_bus(self, bus):
-        uid = hex(id(bus))
-        self.buses[uid] = bus
+        _id = hex(id(bus))
+        self.buses[_id] = bus
         self.create_task(self._device_radar(bus))
         self.create_task(self._bus_listening(bus))
         logger.debug(f'{self}: {bus} added')
-        return uid
 
     def add_device(self, device):
-        uid = hex(id(device))
-        self.devices[uid] = device
+        _id = hex(id(device))
+        self.devices[_id] = device
         self.create_task(self._device_listening(device))
         logger.debug(f'{self}: {device} added')
-        return uid
+
+    def create_device(self, *args, **kwargs):
+        device = RemoteDevice(*args, **kwargs)
+        self.add_device(device)
+        return device
 
 class Device(Node):
 
@@ -249,21 +254,26 @@ class Device(Node):
                     self.attrs_changed.notify_all()
 
     def add_attr(self, attr):
-        uid = hex(id(attr)) 
-        self.attrs[uid] = attr
+        _id = hex(id(attr)) 
+        self.attrs[_id] = attr
         self.create_task(self._attr_listening(attr))
         logger.debug(f'{self}: {attr} added')
+
+    def create_attr(self, *args, **kwargs):
+        attr = Attribute(*args, **kwargs)
+        self.add_attr(attr)
+        return attr
 
     async def read_msg(self, msg):
         pass
 
     async def remove_attr(self, attr_id, name):
         async with self.attrs_changed:
-            for uid, attr in self.attrs.items():
+            for id, attr in self.attrs.items():
                 if attr.name == name:
-                    return self.attrs.remove(uid)
+                    return self.attrs.remove(id)
                 elif attr.attr_id == attr_id:
-                    return self.attrs.remove(uid)
+                    return self.attrs.remove(id)
 
     def _find_attr(self, attr_id=None, name=None):
         for attr in self.attrs.values():

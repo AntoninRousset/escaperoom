@@ -22,22 +22,22 @@ async def read(game, service, query=None):
     if service == 'chronometer':
         return await chronometer_reader(game)
     if service == 'device':
-        return await device_reader(game, query.get('id'), query.get('name'))
+        return await device_reader(game, query)
     if service == 'devices':
         return await devices_reader(game)
     if service == 'game':
         return await game_reader(game)
     if service == 'puzzle':
-        return await puzzle_reader(game, query.get('id'), query.get('name'))
+        return await puzzle_reader(game, query)
     if service == 'puzzles':
         return await puzzles_reader(game)
     raise KeyError(service)
 
 async def cameras_reader(game):
     cameras = {
-            uid : {
+            id : {
                 'name' : camera.name
-                } for uid, camera in game.misc.cameras.items()
+                } for id, camera in game.misc.cameras.items()
             }
     return {'cameras' : cameras}
 
@@ -48,18 +48,17 @@ async def chronometer_reader(game):
             'time' : game.chronometer.total_seconds()*1000
             }
 
-async def device_reader(game, uid):
-    device = game.network.devices.get(uid)
-    if uid is None or device is None:
-        device = game.network.devices._find_device(name=name)
+async def device_reader(game, query):
+    id, device = game.network.find_device(**query)
     attrs = {
-            uid : {
+            id : {
                 'attr_id' : attr.attr_id, 'name' : attr.name,
                 'type' : attr.type,
                 'value' : attr.value
-                } for uid, attr in device.attrs.items()
+                } for id, attr in device.attrs.items()
             }
     return {
+            'id' : id,
             'name' : device.name,
             'attrs' : attrs,
             'type' : device.type,
@@ -70,11 +69,11 @@ async def device_reader(game, uid):
 
 async def devices_reader(game):
     devices = {
-            uid : {
+            id : {
                 'name' : device.name,
                 'type' : device.type,
                 'n_attr' : device.n_attr
-                } for uid, device in game.network.devices.items()
+                } for id, device in game.network.devices.items()
             }
     return {'devices' : devices}
 
@@ -88,13 +87,11 @@ async def game_reader(game):
                 'default_options' : game.default_options
                 }
 
-async def puzzle_reader(game, uid):
-    puzzle = game.logic.puzzles.get(uid)
-    if uid is None or puzzle is None:
-        puzzle = game.logic.find_puzzle(name)
+async def puzzle_reader(game, query):
+    id, puzzle = game.logic.find_puzzle(**query)
     async with puzzle.desc_changed:
         return {
-                'uid' : uid,
+                'id' : id,
                 'name' : puzzle.name,
                 'state' : puzzle.state,
                 'description' : puzzle.description
@@ -102,12 +99,12 @@ async def puzzle_reader(game, uid):
 
 async def puzzles_reader(game):
     puzzles = {
-            uid : {
+            id : {
                 'name' : puzzle.name,
                 'state' : puzzle.state,
-                'col' : game.logic.positions[uid][0],
-                'row' : game.logic.positions[uid][1]
-                } for uid, puzzle in game.logic.puzzles.items()
+                'col' : game.logic.positions[id][0],
+                'row' : game.logic.positions[id][1]
+                } for id, puzzle in game.logic.puzzles.items()
             }
     return {'puzzles' : puzzles}
 

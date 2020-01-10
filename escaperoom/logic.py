@@ -10,12 +10,14 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from . import asyncio, config 
+from . import asyncio, config, logging 
 from .node import Node
 
 def log_debug(msg):
     if config['DEFAULT'].getboolean('log_debug', False):
         print(msg)
+
+logger = logging.getLogger('logic')
 
 class Logic(Node):
     def __init__(self):
@@ -24,6 +26,9 @@ class Logic(Node):
         self.puzzles = dict()
         self.puzzles_changed = self.Condition()
 
+    def __str__(self):
+        return 'logic'
+
     async def _puzzle_listening(self, puzzle):
         while True:
             async with puzzle.desc_changed:
@@ -31,18 +36,19 @@ class Logic(Node):
                 async with self.puzzles_changed:
                     self.puzzles_changed.notify_all()
 
-    def find_puzzle(self, name):
+    def find_puzzle(self, *, id=None, name=None):
+        if id is not None:
+            return id, self.puzzles[id]
         for device in self.puzzles.values():
             if device.name == name:
-                return device
+                return id, device
 
     def add_puzzle(self, puzzle, pos):
-        uid = hex(id(puzzle))
-        self.puzzles[uid] = puzzle
-        self.positions[uid] = pos
+        _id = hex(id(puzzle))
+        self.puzzles[_id] = puzzle
+        self.positions[_id] = pos
         self.create_task(self._puzzle_listening(puzzle))
-        log_debug('Logic: Puzzle added')
-        return uid
+        logger.debug(f'{self}: puzzle {puzzle} added')
 
 class Puzzle(Node):
 

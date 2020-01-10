@@ -59,42 +59,42 @@ async def puzzles_events(game, events_queue):
     puzzle_events = dict()
     while True:
         async with game.logic.puzzles_changed:
-            for uid, p in game.logic.puzzles.items():
-                if uid not in puzzle_events:
-                    t = asyncio.create_task(_puzzle_events(game, uid, events_queue))
-                    puzzle_events[uid] = t
-            for uid, t in puzzle_events.items():
-                if uid not in game.logic.puzzles:
+            for id, p in game.logic.puzzles.items():
+                if id not in puzzle_events:
+                    t = asyncio.create_task(_puzzle_events(game, id, events_queue))
+                    puzzle_events[id] = t
+            for id, t in puzzle_events.items():
+                if id not in game.logic.puzzles:
                     t.cancel()
-                    puzzle_events.pop(uid)
+                    puzzle_events.pop(id)
             await game.logic.puzzles_changed.wait()
             await events_queue.put({'type' : 'update', 'loc' : f'/{game.name}/puzzles'})
 
-async def _puzzle_events(game, uid, events_queue):
+async def _puzzle_events(game, id, events_queue):
     while True:
-        await game.logic.puzzles[uid].changed.wait()
+        await game.logic.puzzles[id].changed.wait()
         await events_queue.put({'type' : 'update',
-                                'loc' : f'/{game.name}/puzzle?id={uid}'})
+                                'loc' : f'/{game.name}/puzzle?id={id}'})
 
 async def devices_events(game, events_queue):
     device_events = dict()
     while True:
         async with game.network.devices_changed:
-            for uid, p in game.network.devices.items():
-                if uid not in device_events:
-                    t = asyncio.create_task(_device_events(game, uid, events_queue))
-                    device_events[uid] = t
-            for uid, t in device_events.items():
-                if uid not in game.network.devices:
+            for id, p in game.network.devices.items():
+                if id not in device_events:
+                    t = asyncio.create_task(_device_events(game, id, events_queue))
+                    device_events[id] = t
+            for id, t in device_events.items():
+                if id not in game.network.devices:
                     t.cancel()
-                    device_events.pop(uid)
+                    device_events.pop(id)
             await game.network.devices_changed.wait()
             await events_queue.put({'type' : 'update',
                                     'loc' : f'/{game.name}/devices'})
 
-async def _device_events(game, uid, events_queue):
+async def _device_events(game, id, events_queue):
     while True:
-        await game.network.devices[uid].changed.wait()
+        await game.network.devices[id].changed.wait()
         await events_queue.put({'type' : 'update',
-                                'loc' : f'/{game.name}/device?id={uid}'})
+                                'loc' : f'/{game.name}/device?id={id}'})
 

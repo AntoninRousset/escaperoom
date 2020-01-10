@@ -64,8 +64,8 @@ async def puzzles(request):
 async def camera(request):
     game_name = request.match_info['game_name']
     game = games[game_name]
-    uid = request.query['id']
-    camera = game.misc.cameras[uid]
+    id = request.query['id']
+    camera = game.misc.cameras[id]
     params = await request.json()
     offer = RTCSessionDescription(sdp=params['sdp'], type=params['type'])
     data = await camera.handle_offer(offer)

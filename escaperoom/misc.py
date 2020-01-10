@@ -35,17 +35,19 @@ class Misc(Node):
                 async with self.cameras_changed:
                     self.cameras_changed.notify_all()
 
-    def find_camera(self, name):
-        for uid, camera in self.cameras.items():
+    def find_camera(self, *, id=None, name=None):
+        if id is not None:
+            return id, self.cameras[id]
+        for id, camera in self.cameras.items():
             if camera.name == name:
-                return camera
+                return id, camera
 
     def add_camera(self, camera):
-        uid = hex(id(camera))
-        self.cameras[uid] = camera 
+        _id = hex(id(camera))
+        self.cameras[_id] = camera 
         self.create_task(self._camera_listening(camera))
         logger.debug('Misc: Camera added')
-        return uid
+        return _id
 
     #TODO multiple displays
     def add_display(self, display):
@@ -100,21 +102,9 @@ class RemoteCamera(Camera):
         self.address = address
         self.remote_name = name
         
-    def _find_uid(self, cameras):
-        for uid, camera in cameras.items():
-            if camera['name'] == self.remote_name:
-                return uid
-
     async def handle_sdp(self, sdp, type):
         try:
             async with aiohttp.ClientSession() as s:
-                address = self.address + '/cameras'
-                async with s.get(address) as r:
-                    data = await r.json()
-                    uid = self._find_uid(data['cameras'])
-                if uid is None:
-                    logger.warning(f'camera "{self.remote_name}" not found on {self.address}')
-                    raise RuntimeError()
                 address = self.address + f'/camera?name={self.remote_name}'
                 data = {'sdp' : sdp, 'type' : type}
                 async with s.post(address, data=json.dumps(data)) as r:
