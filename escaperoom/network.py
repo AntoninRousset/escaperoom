@@ -16,7 +16,7 @@ import PJON_daemon_client as pac
 from . import asyncio
 from .node import Node
 
-logger = logging.getLogger('network')
+logger = logging.getLogger('escaperoom.network')
 
 class Bus(Node):
 

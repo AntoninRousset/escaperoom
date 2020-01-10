@@ -18,7 +18,7 @@ from . import asyncio, logging
 from .media import MediaPlayer
 from .node import Node 
 
-logger = logging.getLogger('misc')
+logger = logging.getLogger('escaperoom.misc')
 
 class Misc(Node):
     def __init__(self):

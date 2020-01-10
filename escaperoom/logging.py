@@ -48,11 +48,12 @@ class ColoredFormatter(logging.Formatter):
             'DEBUG' : ANSI['bold']+ANSI['bright_blue']
         }
 
+    _prefix = 'escaperoom.'
     namecolor = defaultdict(lambda: '', {
-            'logic' : ANSI['cyan'],
-            'misc' : ANSI['magenta'],
-            'network' : ANSI['yellow'],
-            'server' : ANSI['green']
+            _prefix+'logic' : ANSI['cyan'],
+            _prefix+'misc' : ANSI['magenta'],
+            _prefix+'network' : ANSI['yellow'],
+            _prefix+'server' : ANSI['green']
         })
 
     def __init__(self, fmt=None, datefmt=None, style='%'):

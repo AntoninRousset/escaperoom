@@ -13,7 +13,7 @@
 from . import asyncio, config, logging 
 from .node import Node
 
-logger = logging.getLogger('logic')
+logger = logging.getLogger('escaperoom.logic')
 
 class Logic(Node):
     def __init__(self):
@@ -44,7 +44,7 @@ class Logic(Node):
         self.puzzles[_id] = puzzle
         self.positions[_id] = pos
         self.create_task(self._puzzle_listening(puzzle))
-        logger.debug(f'{self}: puzzle {puzzle} added')
+        logger.debug(f'{self}: {puzzle} added')
 
 class Puzzle(Node):
 
@@ -68,7 +68,7 @@ class Puzzle(Node):
         self.game_flow = None
 
     def __str__(self):
-        return f'puzzle {self.name} [{self.state}]'
+        return f'puzzle "{self.name}" [{self.state}]'
 
     async def _game_flow(self):
         while True:

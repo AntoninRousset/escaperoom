@@ -22,7 +22,7 @@ from .. import asyncio, logging
 from ..game import Game
 from ..node import Node
 
-logger = logging.getLogger('server')
+logger = logging.getLogger('escaperoom.server')
 
 routes = web.RouteTableDef()
 interface_routes = web.RouteTableDef()
@@ -73,7 +73,7 @@ async def camera(request):
 
 class HTTPServer(Node):
 
-    #TODO what is the default port for internet?
+    #TODO can we use port 80?
     def __init__(self, host='127.0.0.1', port=8080, *, interface=False):
         self.app = web.Application()
         if interface:
@@ -92,5 +92,5 @@ class HTTPServer(Node):
         asyncio.run_until_complete(runner.setup())
         site = web.TCPSite(runner, host, port)
         asyncio.run_until_complete(site.start())
-        logger.info(f'Server on {site._host}:{site._port}')
+        logger.info(f'server on {site._host}:{site._port}')
 
