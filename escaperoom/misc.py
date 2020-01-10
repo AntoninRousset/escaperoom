@@ -12,6 +12,7 @@
 
 import aiohttp, json
 from aiortc import RTCPeerConnection, RTCSessionDescription
+from abc import ABC, abstractmethod
 
 from . import asyncio, logging 
 from .media import MediaPlayer
@@ -45,14 +46,16 @@ class Misc(Node):
     def add_display(self, display):
         self.display = display
 
-# Every msg on ws should be given to the camera so it can handle it
-# Abstract class
-class Camera(Node):
+class Camera(ABC, Node):
     def __init__(self, name):
         super().__init__()
         self.name = name
         self.connected = False 
         self.desc_changed = self.Condition()
+
+    @abstractmethod
+    async def handle_sdp(self, sdp, type):
+        pass
 
 class LocalCamera(Camera, MediaPlayer):
     def __init__(self, name, *args, **kwargs):
@@ -60,8 +63,19 @@ class LocalCamera(Camera, MediaPlayer):
         MediaPlayer.__init__(self, *args, **kwargs)
         self.pcs = set()
 
-    async def handle_offer(self, offer):
-        pc = self.create_peer_connection()
+    def _create_peer_connection(self):
+        pc = RTCPeerConnection()
+
+        @pc.on('iceconnectionchanged')
+        async def on_ice_connection_state_change():
+            if pc.iceConnectionState == 'failed':
+                await pc.close()
+                pcs.discard(pc)
+        return pc
+
+    async def handle_sdp(self, sdp, type):
+        offer = RTCSessionDescription(sdp, type)
+        pc = self._create_peer_connection()
         self.pcs.add(pc)
         await pc.setRemoteDescription(offer)
         for t in pc.getTransceivers():
@@ -71,20 +85,40 @@ class LocalCamera(Camera, MediaPlayer):
                 pc.addTrack(self.video)
         answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
-        return {'sdp' : pc.localDescription.sdp, 'type' : pc.localDescription.type} 
+        return {'sdp' : pc.localDescription.sdp, 'type' : pc.localDescription.type}
 
-    def create_peer_connection(self):
-        pc = RTCPeerConnection()
+class RemoteCamera(Camera):
+    def __init__(self, name, address, *, rename=None):
+        if rename is None:
+            rename = name
+        super().__init__(rename)
+        self.address = address
+        self.remote_name = name
+        
+    def _find_uid(self, cameras):
+        for uid, camera in cameras.items():
+            if camera['name'] == self.remote_name:
+                return uid
 
-        @pc.on('iceconnectionchanged')
-        async def on_ice_connection_state_change():
-            if pc.iceConnectionState == 'failed':
-                await pc.close()
-                pcs.discard(pc)
+    async def handle_sdp(self, sdp, type):
+        try:
+            async with aiohttp.ClientSession() as s:
+                address = self.address + '/cameras'
+                async with s.get(address) as r:
+                    data = await r.json()
+                    uid = self._find_uid(data['cameras'])
+                if uid is None:
+                    logger.warning(f'camera "{self.remote_name}" not found on {self.address}')
+                    raise RuntimeError()
+                address = self.address + f'/camera?id={uid}'
+                data = {'sdp' : sdp, 'type' : type}
+                async with s.post(address, data=json.dumps(data)) as r:
+                    return await r.json()
+        except aiohttp.ClientConnectionError as e:
+            logger.warning(f'cannot connect to camera on {self.address}')
+            raise e
 
-        return pc
-
-class Display(Node):
+class RemoteDisplay(Node):
     def __init__(self, address, game=None):
         super().__init__()
         self.address = address

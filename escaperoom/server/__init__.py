@@ -73,6 +73,7 @@ async def camera(request):
 
 class HTTPServer(Node):
 
+    #TODO what is the default port for internet?
     def __init__(self, host='127.0.0.1', port=8080, *, interface=False):
         self.app = web.Application()
         if interface:

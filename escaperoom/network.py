@@ -64,7 +64,7 @@ class SerialBus(Bus):
     async def broadcast(self, msg):
         return await self.send(0x0, msg)
 
-
+#TODO should connect to the HTTPServer via websocket
 class SocketBus(Bus):
 
     def __init__(self, host, port, *, bus_id, create_server=False):

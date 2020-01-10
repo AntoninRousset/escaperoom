@@ -36,6 +36,9 @@ ANSI = {
     'bright_white' : '\033[97m'
 }
 
+#TODO create a root logger for escaperoom only (to exclude external modules)
+# like aiohttp
+
 class ColoredFormatter(logging.Formatter):
 
     levelcolors = {
@@ -45,7 +48,7 @@ class ColoredFormatter(logging.Formatter):
             'DEBUG' : ANSI['bold']+ANSI['bright_blue']
         }
 
-    modulecolors = defaultdict(lambda: '', {
+    namecolor = defaultdict(lambda: '', {
             'logic' : ANSI['cyan'],
             'misc' : ANSI['magenta'],
             'network' : ANSI['yellow'],
@@ -60,6 +63,6 @@ class ColoredFormatter(logging.Formatter):
         record.resetcolor = ANSI['reset']
         record.levelcolor = self.levelcolors[record.levelname]
         record.levelname_pad = record.levelname.ljust(7)
-        record.modulecolor = self.modulecolors[record.name]
+        record.namecolor = self.namecolor[record.name]
         return super().format(record)
 
