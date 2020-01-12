@@ -26,7 +26,10 @@ async def camera_control(game, params, query):
 
 async def display_control(game, params):
     display = game.misc.display
-    return await display.set_msg(params['msg'])
+    if params['type'] == 'msg':
+        return await display.set_msg(params['msg'])
+    elif params['type'] == 'chronometer':
+        return await display.set_chronometer(params['running'], params['seconds'])
 
 async def game_control(game, params):
     if params['action'] == 'new_game':

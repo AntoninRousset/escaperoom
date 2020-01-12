@@ -122,19 +122,39 @@ class RemoteCamera(Camera):
 
 class Display(ABC, Node):
 
-    def __init__(self, name):
+    def __init__(self, name, game=None):
         super().__init__()
         self.name = name
+        if game is not None:
+            self.game = game
+            self.create_task(self._chronometer_listener())
 
     def __str__(self):
         return f'display "{self.name}"'
+
+    async def _chronometer_listener(self):
+        while True:
+            async with self.game.desc_changed:
+                runn = self.game.start_time is not None and self.game.end_time is None
+                seconds = self.game.chronometer.total_seconds()
+                self.create_task(self.set_chronometer(runn, seconds))
+                await self.game.desc_changed.wait()
+
+    @abstractmethod
+    async def set_chronometer(self, running, seconds):
+        pass
+
+    @abstractmethod
+    async def set_msg(self, msg):
+        pass
+
 
 class LocalDisplay(Display):
     
     EXEC_NAME = 'escaperoom-display'
 
     def __init__(self, name, game=None):
-        super().__init__(name)
+        super().__init__(name, game)
         from subprocess import Popen
         from asyncio.subprocess import PIPE
         try:
@@ -143,33 +163,9 @@ class LocalDisplay(Display):
         except FileNotFoundError:
             logger.error(f'{self}: could not find escaperoom-display')
             raise RuntimeError()
-        if game is not None:
-            self.game = game
-            self.create_task(self._chronometer_listener())
-
-    async def _chronometer_listener(self):
-        while True:
-            async with self.game.desc_changed:
-                data = {
-                        'running' : ( self.game.start_time is not None and
-                                      self.game.end_time is None ),
-                        'seconds' : self.game.chronometer.total_seconds()
-                        }
-                self.create_task(self._set_chronometer(data))
-                await self.game.desc_changed.wait()
-
-    async def _set_chronometer(self, data):
-        try:
-            msg = f'chronometer {int(data["running"])} {data["seconds"]}\n'
-            await self._write_to_process(msg.encode())
-        except Exception as e:
-            print(e)
-
-    async def set_msg(self, msg):
-        msg = f'msg {msg}\n'
-        await self._write_to_process(msg.encode())
 
     async def _write_to_process(self, data):
+        #TODO should not be called before display is ready
         try:
             self.ps.stdin.write(data)
             await self.ps.stdin.drain()
@@ -177,20 +173,39 @@ class LocalDisplay(Display):
             logger.error(f'{self} is dead: {e}')
             raise RuntimeError()
 
-#TODO
+    async def set_chronometer(self, running, seconds):
+        msg = f'chronometer {int(running)} {seconds}\n'
+        await self._write_to_process(msg.encode())
+
+    async def set_msg(self, msg):
+        msg = f'msg {msg}\n'
+        await self._write_to_process(msg.encode())
+
+#TODO? create a "Remote" class which defines the _send(data) method
 class RemoteDisplay(Display):
 
-    def __init__(self, name, address, game=None):
-        super().__init__()
+    def __init__(self, name, address, game=None, *, rename=None):
+        if rename is None:
+            rename = name
+        super().__init__(rename, game)
         self.address = address
-        self.sending = asyncio.Lock()
+        self.remote_name = name
 
-    async def send(self, data):
+    async def set_chronometer(self, running, seconds):
+        data = {'type' : 'chronometer', 'running' : running, 'seconds' : seconds}
+        await self._send(data)
+
+    async def set_msg(self, msg):
+        await self._send({'type' : 'msg', 'msg' : msg})
+
+    async def _send(self, data):
         try:
             async with aiohttp.ClientSession() as s:
-                async with s.post(self.address, data=json.dumps(data)) as r:
-                    return 'done'
+                address = self.address + f'/display?name={self.remote_name}'
+                async with s.post(address, data=json.dumps(data)) as r:
+                    return await r.json()
         except aiohttp.ClientConnectionError as e:
             logger.warning(f'cannot connect to display on {self.address}')
+            #TODO? retry with "sending" lock?
             raise e
 
