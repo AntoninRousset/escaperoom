@@ -14,7 +14,6 @@ from datetime import datetime, timedelta
 
 from . import asyncio, database
 from .logic import Logic
-from .misc import Misc 
 from .node import Node
 from .network import Network
 
@@ -39,7 +38,6 @@ class Game(Node):
         self.desc_changed = self.Condition()
         self.network = Network() 
         self.logic = Logic()
-        self.misc = Misc()
         self.games[name] = self
 
     def resume_game(self):

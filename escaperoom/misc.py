@@ -10,7 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import aiohttp, json
+import aiohttp, json, re
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from abc import ABC, abstractmethod
 
@@ -20,15 +20,20 @@ from .node import Node
 
 logger = logging.getLogger('escaperoom.misc')
 
-class Misc(Node):
-    def __init__(self):
+class Camera(ABC, Node):
+
+    cameras = dict()
+
+    def __init__(self, name):
         super().__init__()
-        self.cameras = dict()
+        self.name = name
+        self.connected = False 
+        self.desc_changed = self.Condition()
         self.cameras_changed = self.Condition()
-        self.display = None
+        self.add_camera(self)
 
     def __str__(self):
-        return 'misc'
+        return f'camera "{self.name}"'
 
     async def _camera_listening(self, camera):
         while True: 
@@ -38,33 +43,18 @@ class Misc(Node):
                 async with self.cameras_changed:
                     self.cameras_changed.notify_all()
 
-    def find_camera(self, *, id=None, name=None):
+    @classmethod
+    def find_camera(cls, *, id=None, name=None):
         if id is not None:
-            return id, self.cameras[id]
-        for id, camera in self.cameras.items():
-            if camera.name == name:
+            return id, cls.cameras[id]
+        for id, camera in cls.cameras.items():
+            if re.match(name, camera.name):
                 return id, camera
 
     def add_camera(self, camera):
         _id = hex(id(camera))
         self.cameras[_id] = camera 
         self.create_task(self._camera_listening(camera))
-        logger.debug(f'{self}: {camera} added')
-        return _id
-
-    #TODO multiple displays
-    def add_display(self, display):
-        self.display = display
-
-class Camera(ABC, Node):
-    def __init__(self, name):
-        super().__init__()
-        self.name = name
-        self.connected = False 
-        self.desc_changed = self.Condition()
-
-    def __str__(self):
-        return f'camera "{self.name}"'
 
     @abstractmethod
     async def handle_sdp(self, sdp, type):
@@ -116,11 +106,12 @@ class RemoteCamera(Camera):
                 data = {'sdp' : sdp, 'type' : type}
                 async with s.post(address, data=json.dumps(data)) as r:
                     return await r.json()
-        except aiohttp.ClientConnectionError as e:
-            logger.warning(f'cannot connect to camera on {self.address}')
-            raise e
+        except aiohttp.ClientError as e:
+            logger.warning(f'error while connecting to camera on {self.address}')
 
 class Display(ABC, Node):
+
+    displays = dict()
 
     def __init__(self, name, game=None):
         super().__init__()
@@ -128,6 +119,7 @@ class Display(ABC, Node):
         if game is not None:
             self.game = game
             self.create_task(self._chronometer_listener())
+        self.add_display(self)
 
     def __str__(self):
         return f'display "{self.name}"'
@@ -139,6 +131,19 @@ class Display(ABC, Node):
                 seconds = self.game.chronometer.total_seconds()
                 self.create_task(self.set_chronometer(runn, seconds))
                 await self.game.desc_changed.wait()
+
+    def add_display(self, display):
+        _id = hex(id(display))
+        self.displays[_id] = display
+
+    @classmethod
+    def find_display(cls, *, id=None, name=None):
+        for id, display in cls.displays.items():
+            if id is not None:
+                return id, cls.displays[id]
+            for id, display in cls.displays.items():
+                if re.match(name, display.name):
+                    return id, display
 
     @abstractmethod
     async def set_chronometer(self, running, seconds):
@@ -204,8 +209,7 @@ class RemoteDisplay(Display):
                 address = self.address + f'/display?name={self.remote_name}'
                 async with s.post(address, data=json.dumps(data)) as r:
                     return await r.json()
-        except aiohttp.ClientConnectionError as e:
-            logger.warning(f'cannot connect to display on {self.address}')
+        except aiohttp.ClientError as e:
+            logger.warning(f'error while connecting to camera on {self.address}')
             #TODO? retry with "sending" lock?
-            raise e
 

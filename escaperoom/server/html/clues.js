@@ -22,7 +22,7 @@ CluesBox = class CluesBox extends HTMLElement {
     var reponse, text;
     boundMethodCheck(this, CluesBox);
     text = this.parentNode.querySelector('input[type="text"]').value;
-    return reponse = (await fetch('/time/display', {
+    return reponse = (await fetch('/time/display?name=clues', {
       headers: {
         'Content-Type': 'application/json'
       },

@@ -10,22 +10,29 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from .. import asyncio
+from ..misc import Camera, Display
+
 async def control(game, params, service, query=None):
     if service == 'camera':
         return await camera_control(game, params, query)
     if service == 'display':
-        return await display_control(game, params)
+        return await display_control(game, params, query)
     if service == 'game':
         return await game_control(game, params)
     if service == 'puzzle':
         return await puzzle_control(game, params, query)
 
 async def camera_control(game, params, query):
-    _, camera = game.misc.find_camera(**query)
+    _, camera = Camera.find_camera(**query)
+    await asyncio.sleep(1)
+    print('camera')
     return await camera.handle_sdp(params['sdp'], params['type'])
 
-async def display_control(game, params):
-    display = game.misc.display
+async def display_control(game, params, query):
+    _, display = Display.find_display(**query)
+    await asyncio.sleep(1)
+    print('display')
     if params['type'] == 'msg':
         return await display.set_msg(params['msg'])
     elif params['type'] == 'chronometer':
