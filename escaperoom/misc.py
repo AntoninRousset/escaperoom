@@ -60,10 +60,15 @@ class Camera(ABC, Node):
     async def handle_sdp(self, sdp, type):
         pass
 
-class LocalCamera(Camera, MediaPlayer):
-    def __init__(self, name, *args, **kwargs):
-        Camera.__init__(self, name)
-        MediaPlayer.__init__(self, *args, **kwargs)
+class LocalCamera(Camera):
+    def __init__(self, name, *, v_file, v_format=None, v_options={}, a_file=None,
+                 a_format='alsa', a_options={}, a_effect=None, v_effect=None):
+        super().__init__(name)
+        self.v_player = MediaPlayer(v_file, v_format, v_options)
+        if a_file is None:
+            self.a_player = self.v_player
+        else:
+            self.a_player = MediaPlayer(a_file, a_format, a_options)
         self.pcs = set()
 
     def _create_peer_connection(self):
@@ -89,6 +94,15 @@ class LocalCamera(Camera, MediaPlayer):
         answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
         return {'sdp' : pc.localDescription.sdp, 'type' : pc.localDescription.type}
+
+    @property
+    def audio(self):
+        return self.v_player.audio
+        #return self.a_player.audio
+
+    @property
+    def video(self):
+        return self.v_player.video
 
 class RemoteCamera(Camera):
 

@@ -30,9 +30,11 @@ class CamerasList extends Container
 	add_item: (id, data) ->
 		item = @create_item(id)
 		item.onclick = (event) =>
-			stream = item.shadowRoot.querySelector('camera-video').srcObject
-			big_boy = document.querySelector('cameras-box').shadowRoot.getElementById('bigscreen')
-			big_boy.srcObject = stream
+			camera = item.shadowRoot.querySelector('camera-video')
+			bigscreen = document.querySelector('cameras-box').shadowRoot.getElementById('bigscreen')
+			bigscreen.srcObject = camera.video.srcObject
+			await bigscreen.play()
+
 		@appendChild(item)
 		item.shadowRoot.querySelector('camera-video').start(null, '?id='+id)
 
@@ -47,15 +49,15 @@ class CameraVideo extends HTMLElement
 			@pc.onicegatheringstatechange = (event) =>
 				if @pc.iceGatheringState is 'complete'
 					@send_offer()
-			@pc.ontrack = (event) => @got_tracks(event.streams)
+			@pc.ontrack = @got_tracks
 		catch error
 			@set_screen(error)
 		@video = @create_video()
-	
+
 	create_video: () ->
 		video = document.createElement('video')
-		video.setAttribute('autoplay', 'true')
 		video.setAttribute('muted', 'true')
+		video.setAttribute('autoplay', 'true')
 		video.textContent = @textContent
 		@textContent = null
 		@appendChild(video)
@@ -72,6 +74,7 @@ class CameraVideo extends HTMLElement
 			query_str = @query_str
 		@loc = @getAttribute('src')+query_str
 		@pc.addTransceiver('video', {direction: 'recvonly'})
+		@pc.addTransceiver('audio', {direction: 'recvonly'})
 
 	negotiate: () ->
 		offer = await @pc.createOffer()
@@ -91,8 +94,10 @@ class CameraVideo extends HTMLElement
 		})
 		@pc.setRemoteDescription(await response.json())
 
-	got_tracks: (streams) ->
-		@srcObject = streams[0]
-		@video.srcObject = @srcObject
+	got_tracks: (event) =>
+		if event.track.kind is 'audio'
+			@video.srcObject = event.streams[0]
+		else if event.track.kind is 'video'
+			@video.srcObject = event.streams[0]
 
 customElements.define('camera-video', CameraVideo)

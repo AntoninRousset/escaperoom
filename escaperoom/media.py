@@ -27,13 +27,13 @@ def effect_worker(loop, track_in, track_out, effect, quit_event):
 
 class MediaPlayer(aiom.MediaPlayer):
 
-    def __init__(self, file, format=None, options={}, audio_effet=None,
-                 video_effet=None):
+    def __init__(self, file, format=None, options={}, audio_effect=None,
+                 video_effect=None):
 
         super().__init__(file, format, options)
 
-        self.__audio_effect = audio_effet
-        self.__video_effect = video_effet
+        self.__audio_effect = audio_effect
+        self.__video_effect = video_effect
         self.__audio_with_effect = aiom.PlayerStreamTrack(self, kind='audio')
         self.__video_with_effect = aiom.PlayerStreamTrack(self, kind='video')
         self.__effect_audio_thread = None
@@ -49,7 +49,7 @@ class MediaPlayer(aiom.MediaPlayer):
             if self.__audio is None:
                 logger.error('container has not audio track')
                 raise RuntimeError()
-            self.__log_debug("Starting audio effect worker thread")
+            self.__log_debug('Starting audio effect worker thread')
             self.__effect_audio_thread_quit = threading.Event()
             args = (asyncio.get_event_loop(), self.__audio,
                     self.__audio_with_effect,
@@ -79,12 +79,14 @@ class MediaPlayer(aiom.MediaPlayer):
     def audio(self):
         if self.__audio_effect is None:
             return self.__audio
+        print('audio with effect!')
         return self.__audio_with_effect
 
     @property
     def video(self):
         if self.__video_effect is None:
             return self.__video
+        print('video with effect!')
         return self.__video_with_effect
 
     def _stop(self, track):
