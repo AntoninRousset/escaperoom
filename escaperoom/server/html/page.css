@@ -25,8 +25,21 @@
 }
 
 [disabled] {
-	color: gray;
+	color: lightgray;
 	cursor: default;
+}
+
+[disabled] select, [disabled] input {
+  border: 1px solid lightgray;
+  color: lightgray;
+}
+
+[disabled] select {
+  -moz-appearance:none;
+}
+
+[disabled] input[number] {
+  -moz-appearance:textfield;
 }
 
 .box, .screen, .section {

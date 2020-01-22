@@ -27,6 +27,7 @@
     font-size: 32pt;
 	font-weight: normal;
     text-align: center;
+    cursor: pointer;
 }
 
 puzzles-graph {

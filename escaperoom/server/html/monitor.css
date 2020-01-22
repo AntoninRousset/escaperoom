@@ -56,6 +56,7 @@ clues-box {
 
 .selectable:hover {
 	background: var(--activate-color);
+  cursor: pointer;
 }
 
 /** LOADER **/
