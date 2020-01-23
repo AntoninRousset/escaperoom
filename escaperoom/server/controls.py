@@ -26,13 +26,11 @@ async def control(game, params, service, query=None):
 async def camera_control(game, params, query):
     _, camera = Camera.find_camera(**query)
     await asyncio.sleep(1)
-    print('camera')
     return await camera.handle_sdp(params['sdp'], params['type'])
 
 async def display_control(game, params, query):
     _, display = Display.find_display(**query)
     await asyncio.sleep(1)
-    print('display')
     if params['type'] == 'msg':
         return await display.set_msg(params['msg'])
     elif params['type'] == 'chronometer':

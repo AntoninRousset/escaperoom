@@ -12,6 +12,7 @@
 
 import errno, importlib, logging, os, re, sys
 from argparse import ArgumentParser
+from contextlib import contextmanager
 from pathlib import Path
 
 from . import asyncio, config
@@ -27,6 +28,18 @@ def get_args():
     return parser.parse_args()
 
 def load_rooms(rooms_dir, rooms):
+    @contextmanager
+    def sibling_imports(module):
+        old_module = sys.modules.get(module.__name__)
+        sys.modules[module.__name__] = module
+        try:
+            yield
+        finally:
+            if old_module is None:
+                sys.modules.pop(module.__name__)
+            else:
+                sys.modules[module.__name__] = old_module
+
     loader_details = (
         importlib.machinery.SourceFileLoader,
         importlib.machinery.SOURCE_SUFFIXES
@@ -41,8 +54,8 @@ def load_rooms(rooms_dir, rooms):
         spec = room_finder.find_spec(name)
         room = importlib.util.module_from_spec(spec)
         logger.info(f'loading room: {name}')
-        sys.modules[room.__name__] = room 
-        spec.loader.exec_module(room)
+        with sibling_imports(room):
+            spec.loader.exec_module(room)
 
 def main():
     args = get_args()

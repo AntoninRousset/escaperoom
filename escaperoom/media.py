@@ -79,14 +79,12 @@ class MediaPlayer(aiom.MediaPlayer):
     def audio(self):
         if self.__audio_effect is None:
             return self.__audio
-        print('audio with effect!')
         return self.__audio_with_effect
 
     @property
     def video(self):
         if self.__video_effect is None:
             return self.__video
-        print('video with effect!')
         return self.__video_with_effect
 
     def _stop(self, track):
