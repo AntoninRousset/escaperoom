@@ -47,11 +47,12 @@ def load_rooms(rooms_dir, rooms):
     room_finder = importlib.machinery.FileFinder(str(rooms_dir), loader_details)
     for child in Path(rooms_dir).iterdir():
         name = child.stem
-        if name == '__pycache__' or not re.match(rooms, name):
+        spec = room_finder.find_spec(name)
+        if spec.loader is None:
+            logger.debug(f'skipping child "{name}" in {rooms_dir}')
             continue
         if name in rooms:
             raise Exception('duplicated room\'s names')
-        spec = room_finder.find_spec(name)
         room = importlib.util.module_from_spec(spec)
         logger.info(f'loading room: {name}')
         with sibling_imports(room):

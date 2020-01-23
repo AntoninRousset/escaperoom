@@ -12,10 +12,13 @@
 
 from .. import asyncio
 from ..misc import Camera, Display
+from ..network import Device
 
 async def control(game, params, service, query=None):
     if service == 'camera':
         return await camera_control(game, params, query)
+    if service == 'device':
+        return await device_control(game, params, query)
     if service == 'display':
         return await display_control(game, params, query)
     if service == 'game':
@@ -25,12 +28,20 @@ async def control(game, params, service, query=None):
 
 async def camera_control(game, params, query):
     _, camera = Camera.find_camera(**query)
-    await asyncio.sleep(1)
     return await camera.handle_sdp(params['sdp'], params['type'])
+
+async def device_control(game, params, query):
+    _, device = Device.find_device(**query)
+    if params['action'] == 'set_val':
+        try:
+            await device.set_value(params['name'], params['value'])
+        except (asyncio.TimeoutError, ConnectionError):
+            return {'result' : 'failed'}
+        finally:
+            return {'result' : 'success'}
 
 async def display_control(game, params, query):
     _, display = Display.find_display(**query)
-    await asyncio.sleep(1)
     if params['type'] == 'msg':
         return await display.set_msg(params['msg'])
     elif params['type'] == 'chronometer':

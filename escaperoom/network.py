@@ -226,6 +226,33 @@ class Network(Node):
 
 class Device(Node):
 
+    devices = dict()
+    devices_changed = asyncio.Condition()
+
+    @classmethod
+    def _add_device(cls, device):
+        _id = hex(id(device))
+        cls.devices[_id] = device
+        asyncio.create_task(cls._device_listening(device))
+
+    @classmethod
+    async def _device_listening(cls, device):
+        while device in cls.devices.values():
+            async with device.desc_changed:
+                await device.desc_changed.wait()
+                async with cls.devices_changed:
+                    cls.devices_changed.notify_all()
+    @classmethod
+    def find_device(cls, *, id=None, name=None, addr=None):
+        if id is not None:
+            return id, cls.devices[id]
+        for id, device in cls.devices.items():
+            if not device.disconnected() and device.addr[0] == addr[0]:
+                if device.addr[1] == addr[1] or device.add[1] == 0:
+                    return id, device
+            if device.name == name:
+                return id, device
+
     def __init__(self, name, *, addr=None, type='?'): 
         super().__init__()
         self.addr = addr
@@ -237,6 +264,7 @@ class Device(Node):
         self.msg_changed = self.Condition()
         self.attrs = dict()
         self.attrs_changed = self.Condition()
+        self._add_device(self)
 
     def __str__(self):
         if self.name is not None:

@@ -87,13 +87,16 @@ DeviceInfo = class DeviceInfo extends Subscriber {
   }
 
   select(id) {
-    return this.subscribe('?id=' + id);
+    this.subscribe('?id=' + id);
+    return console.log('subscribed');
   }
 
   update(datas) {
+    console.log('update');
     this.update_plugs(datas);
     this.attrs_list.read_items(datas.attrs);
-    return this.set_screen('info');
+    this.set_screen('info');
+    return console.log('done');
   }
 
 };
@@ -109,13 +112,39 @@ DeviceAttributes = class DeviceAttributes extends Container {
   add_item(id, data) {
     var item;
     item = this.create_item(id);
-    item.querySelector('input').onchange = this.set_value;
+    item.shadowRoot.querySelector('input').onchange = this.set_value;
     return this.appendChild(item);
   }
 
-  set_value(event) {
+  async set_value(event) {
+    var attr_name, device_info, loc, response;
     boundMethodCheck(this, DeviceAttributes);
-    return console.log(event);
+    event.target.disabled = true;
+    attr_name = event.target.parentNode.querySelector('slot[name="name"]').assignedNodes()[0].textContent;
+    device_info = document.querySelector('devices-box').shadowRoot.querySelector('device-info');
+    loc = device_info.loc;
+    return response = (await fetch(loc, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        action: 'set_val',
+        name: attr_name,
+        value: event.target.value
+      }),
+      method: 'POST'
+    }));
+  }
+
+  update_plug(slot, data, node) {
+    if (slot === 'value') {
+      node = node.shadowRoot.querySelector('input');
+      node.value = data[slot];
+      return node.disabled = false;
+    } else {
+      node = node.querySelector('[slot=' + slot + ']');
+      return node.textContent = data[slot];
+    }
   }
 
 };

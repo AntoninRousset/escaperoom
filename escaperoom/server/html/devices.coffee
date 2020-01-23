@@ -59,21 +59,49 @@ class DeviceInfo extends Subscriber
 	
 	select: (id) ->
 		@subscribe('?id='+id)
+		console.log('subscribed')
 
 	update: (datas) ->
+		console.log('update')
 		@update_plugs(datas)
 		@attrs_list.read_items(datas.attrs)
 		@set_screen('info')
+		console.log('done')
 
 customElements.define('device-info', DeviceInfo)
 
 class DeviceAttributes extends Container
 	add_item: (id, data) ->
 		item = @create_item(id)
-		item.querySelector('input').onchange = @set_value
+		item.shadowRoot.querySelector('input').onchange = @set_value
 		@appendChild(item)
 
 	set_value: (event) =>
-		console.log(event)
+		event.target.disabled = true
+		attr_name = event.target.parentNode.querySelector('slot[name="name"]').assignedNodes()[0].textContent
+		device_info = document.querySelector('devices-box').shadowRoot.querySelector('device-info')
+		loc = device_info.loc
+		response = await fetch(loc,  {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				action: 'set_val',
+				name: attr_name,
+				value: event.target.value
+			}),
+			method: 'POST'
+		})
+
+	update_plug: (slot, data, node) ->
+		if slot == 'value'
+			node = node.shadowRoot.querySelector('input')
+			node.value = data[slot]
+			node.disabled = false
+		else
+			node = node.querySelector('[slot='+slot+']')
+			node.textContent = data[slot]
+
+
 
 customElements.define('device-attributes', DeviceAttributes)
