@@ -70,6 +70,10 @@ customElements.define('device-info', DeviceInfo)
 class DeviceAttributes extends Container
 	add_item: (id, data) ->
 		item = @create_item(id)
+		item.querySelector('input').onchange = @set_value
 		@appendChild(item)
+
+	set_value: (event) =>
+		console.log(event)
 
 customElements.define('device-attributes', DeviceAttributes)

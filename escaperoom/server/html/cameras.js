@@ -88,8 +88,8 @@ CameraVideo = class CameraVideo extends HTMLElement {
   create_video() {
     var video;
     video = document.createElement('video');
-    video.setAttribute('muted', 'true');
-    video.setAttribute('autoplay', 'true');
+    video.muted = true;
+    video.autoplay = true;
     video.textContent = this.textContent;
     this.textContent = null;
     this.appendChild(video);
@@ -141,10 +141,13 @@ CameraVideo = class CameraVideo extends HTMLElement {
   got_tracks(event) {
     boundMethodCheck(this, CameraVideo);
     if (event.track.kind === 'audio') {
-      return this.video.srcObject = event.streams[0];
+      console.log('audio', event.track);
+      this.video.srcObject = event.streams[0];
     } else if (event.track.kind === 'video') {
-      return this.video.srcObject = event.streams[0];
+      console.log('video', event.track);
+      this.video.srcObject = event.streams[0];
     }
+    return console.log(event.streams[0].getTracks());
   }
 
 };

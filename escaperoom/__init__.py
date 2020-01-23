@@ -13,6 +13,8 @@
 import configparser, os.path
 from pathlib import Path
 
+print('GOOD ONE')
+
 #TODO All config should be red in config.py
 config = configparser.ConfigParser()
 ROOT = Path(os.path.dirname(__file__))
