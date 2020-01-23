@@ -167,7 +167,7 @@ class Display(ABC, Node):
         pass
 
 
-class LocalDisplay(Display):
+class LocalCluesDisplay(Display):
     
     EXEC_NAME = 'escaperoom-display'
 
@@ -199,8 +199,7 @@ class LocalDisplay(Display):
         msg = f'msg {msg}\n'
         await self._write_to_process(msg.encode())
 
-#TODO? create a "Remote" class which defines the _send(data) method
-class RemoteDisplay(Display):
+class RemoteCluesDisplay(Display):
 
     def __init__(self, name, address, game=None, *, rename=None):
         if rename is None:

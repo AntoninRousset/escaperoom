@@ -33,7 +33,7 @@ logging.config.fileConfig(config)
 
 from .game import Game
 from .logic import Puzzle
-from .misc import LocalCamera, RemoteCamera, LocalDisplay, RemoteDisplay
+from .misc import LocalCamera, RemoteCamera, LocalCluesDisplay, RemoteCluesDisplay
 from .network import SerialBus, SocketBus, LocalDevice, RemoteDevice, Attribute
 from .server import HTTPServer
 
