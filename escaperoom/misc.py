@@ -97,8 +97,7 @@ class LocalCamera(Camera):
 
     @property
     def audio(self):
-        return self.v_player.audio
-        #return self.a_player.audio
+        return self.a_player.audio
 
     @property
     def video(self):
