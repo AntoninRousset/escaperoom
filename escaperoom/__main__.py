@@ -41,6 +41,7 @@ def load_rooms(rooms_dir, rooms):
         spec = room_finder.find_spec(name)
         room = importlib.util.module_from_spec(spec)
         logger.info(f'loading room: {name}')
+        sys.modules[room.__name__] = room 
         spec.loader.exec_module(room)
 
 def main():
