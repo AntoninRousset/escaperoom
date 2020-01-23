@@ -10,7 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import errno, importlib.util, logging, os, re, sys
+import errno, importlib, logging, os, re, sys
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -27,19 +27,21 @@ def get_args():
     return parser.parse_args()
 
 def load_rooms(rooms_dir, rooms):
-    try:
-        os.remove(ROOT/'rooms')
-    except FileNotFoundError:
-        pass
-    os.symlink(rooms_dir, ROOT/'rooms', target_is_directory=True)
+    loader_details = (
+        importlib.machinery.SourceFileLoader,
+        importlib.machinery.SOURCE_SUFFIXES
+        )
+    room_finder = importlib.machinery.FileFinder(str(rooms_dir), loader_details)
     for child in Path(rooms_dir).iterdir():
         name = child.stem
         if name == '__pycache__' or not re.match(rooms, name):
             continue
         if name in rooms:
             raise Exception('duplicated room\'s names')
+        spec = room_finder.find_spec(name)
+        room = importlib.util.module_from_spec(spec)
         logger.info(f'loading room: {name}')
-        importlib.import_module(f'.rooms.{name}', 'escaperoom')
+        spec.loader.exec_module(room)
 
 def main():
     args = get_args()
