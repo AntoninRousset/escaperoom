@@ -10,7 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from ..misc import Camera, Display
+from ..misc import Camera
 
 #TODO use the locks for reading? to ensure there is corruption 
 
@@ -27,8 +27,6 @@ async def read(game, service, query=None):
         return await device_reader(game, query)
     if service == 'devices':
         return await devices_reader(game)
-    if service == 'displays':
-        return await displays_reader(game)
     if service == 'game':
         return await game_reader(game)
     if service == 'puzzle':
@@ -78,14 +76,6 @@ async def devices_reader(game):
                 'type' : device.type,
                 'n_attr' : device.n_attr
                 } for id, device in game.network.devices.items()
-            }
-    return {'devices' : devices}
-
-async def displays_reader(game):
-    displays = {
-            uid : {
-                'name' : display.name,
-                } for uid, display in Display.displays.items()
             }
     return {'devices' : devices}
 

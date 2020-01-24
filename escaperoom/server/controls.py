@@ -11,7 +11,7 @@
 '''
 
 from .. import asyncio
-from ..misc import Camera, Display
+from ..misc import Camera, CluesDisplay
 from ..network import Device
 
 async def control(game, params, service, query=None):
@@ -41,11 +41,12 @@ async def device_control(game, params, query):
             return {'result' : 'success'}
 
 async def display_control(game, params, query):
-    _, display = Display.find_display(**query)
-    if params['type'] == 'msg':
-        return await display.set_msg(params['msg'])
+    if params['type'] == 'clue':
+        for display in CluesDisplay.displays.values():
+            return await display.set_clue(params['text'])
     elif params['type'] == 'chronometer':
-        return await display.set_chronometer(params['running'], params['seconds'])
+        for display in CluesDisplay.displays.values():
+            return await display.set_chronometer(params['running'], params['seconds'])
 
 async def game_control(game, params):
     if params['action'] == 'new_game':

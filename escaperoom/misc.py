@@ -82,6 +82,9 @@ class LocalCamera(Camera):
         return pc
 
     async def handle_sdp(self, sdp, type):
+        prefered = 120 #vp8
+        #sdp = re.sub(f'm=video ([0-9]+) UDP\/TLS\/RTP\/SAVPF ([0-9 ]*)({prefered})[ ]*([0-9 ]*)', r'm=video \1 UDP/TLS/RTP/SAVPF \3 \2\4', sdp)
+        sdp = re.sub(f'm=video ([0-9]+) UDP\/TLS\/RTP\/SAVPF ([0-9 ]*)({prefered})[ ]*([0-9 ]*)', r'm=video \1 UDP/TLS/RTP/SAVPF \3', sdp)
         offer = RTCSessionDescription(sdp, type)
         pc = self._create_peer_connection()
         self.pcs.add(pc)
@@ -122,7 +125,7 @@ class RemoteCamera(Camera):
         except aiohttp.ClientError as e:
             logger.warning(f'error while connecting to camera on {self.address}')
 
-class Display(ABC, Node):
+class CluesDisplay(ABC, Node):
 
     displays = dict()
 
@@ -163,13 +166,13 @@ class Display(ABC, Node):
         pass
 
     @abstractmethod
-    async def set_msg(self, msg):
+    async def set_clue(self, msg):
         pass
 
 
-class LocalCluesDisplay(Display):
+class LocalCluesDisplay(CluesDisplay):
     
-    EXEC_NAME = 'escaperoom-display'
+    EXEC_NAME = 'escaperoom_cluesdisplay'
 
     def __init__(self, name, game=None):
         super().__init__(name, game)
@@ -183,10 +186,12 @@ class LocalCluesDisplay(Display):
             raise RuntimeError()
 
     async def _write_to_process(self, data):
-        #TODO should not be called before display is ready
         try:
             self.ps.stdin.write(data)
             await self.ps.stdin.drain()
+        except AttributeError:
+            await asyncio.sleep(1)
+            await self._write_to_process(data)
         except Exception as e:
             logger.error(f'{self} is dead: {e}')
             raise RuntimeError()
@@ -195,11 +200,11 @@ class LocalCluesDisplay(Display):
         msg = f'chronometer {int(running)} {seconds}\n'
         await self._write_to_process(msg.encode())
 
-    async def set_msg(self, msg):
-        msg = f'msg {msg}\n'
+    async def set_clue(self, msg):
+        msg = f'clue {msg}\n'
         await self._write_to_process(msg.encode())
 
-class RemoteCluesDisplay(Display):
+class RemoteCluesDisplay(CluesDisplay):
 
     def __init__(self, name, address, game=None, *, rename=None):
         if rename is None:

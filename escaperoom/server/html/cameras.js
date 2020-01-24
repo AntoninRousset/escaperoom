@@ -141,13 +141,10 @@ CameraVideo = class CameraVideo extends HTMLElement {
   got_tracks(event) {
     boundMethodCheck(this, CameraVideo);
     if (event.track.kind === 'audio') {
-      console.log('audio', event.track);
-      this.video.srcObject = event.streams[0];
+      return this.video.srcObject = event.streams[0];
     } else if (event.track.kind === 'video') {
-      console.log('video', event.track);
-      this.video.srcObject = event.streams[0];
+      return this.video.srcObject = event.streams[0];
     }
-    return console.log(event.streams[0].getTracks());
   }
 
 };

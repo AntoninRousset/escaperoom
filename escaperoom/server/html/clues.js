@@ -21,14 +21,14 @@ CluesBox = class CluesBox extends HTMLElement {
   async send_clue(event) {
     var reponse, text;
     boundMethodCheck(this, CluesBox);
-    text = this.parentNode.querySelector('input[type="text"]').value;
+    text = event.target.parentNode.querySelector('textarea').value;
     return reponse = (await fetch('/time/display?name=clues', {
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        type: 'msg',
-        msg: text
+        type: 'clue',
+        text: text
       }),
       method: 'POST'
     }));

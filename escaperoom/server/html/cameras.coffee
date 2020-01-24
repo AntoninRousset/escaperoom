@@ -96,11 +96,8 @@ class CameraVideo extends HTMLElement
 
 	got_tracks: (event) =>
 		if event.track.kind is 'audio'
-			console.log('audio', event.track)
 			@video.srcObject = event.streams[0]
 		else if event.track.kind is 'video'
-			console.log('video', event.track)
 			@video.srcObject = event.streams[0]
-		console.log(event.streams[0].getTracks())
 
 customElements.define('camera-video', CameraVideo)
