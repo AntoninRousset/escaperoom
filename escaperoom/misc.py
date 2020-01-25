@@ -200,8 +200,10 @@ class LocalCluesDisplay(CluesDisplay):
         msg = f'chronometer {int(running)} {seconds}\n'
         await self._write_to_process(msg.encode())
 
-    async def set_clue(self, msg):
-        msg = f'clue {msg}\n'
+    async def set_clue(self, clue):
+        clue = clue.replace('\n', '\\n')
+        msg = f'clue {clue}\n'
+        print(msg)
         await self._write_to_process(msg.encode())
 
 class RemoteCluesDisplay(CluesDisplay):
