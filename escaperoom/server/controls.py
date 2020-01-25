@@ -35,7 +35,9 @@ async def device_control(game, params, query):
     if params['action'] == 'set_val':
         try:
             await device.set_value(params['name'], params['value'])
-        except (asyncio.TimeoutError, ConnectionError):
+        #except (asyncio.TimeoutError, ConnectionError):
+        except Exception as e:
+            logger.warning('failed to set device value')
             return {'result' : 'failed'}
         finally:
             return {'result' : 'success'}

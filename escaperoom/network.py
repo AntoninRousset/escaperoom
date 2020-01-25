@@ -370,7 +370,11 @@ class LocalDevice(Device):
                 async with self.desc_changed:
                     await self.desc_changed.wait() # wait for reconnection
             else:
-                return await self.addr[0].send(0x42, msg)
+                return await self.addr[0].send(self.addr[1], msg)
+
+    async def set_value(self, name, value):
+        logger.warning('set_value not implemented for remote device')
+        raise RuntimeError
 
     def add_attr(self, attr):
         if attr.attr_id is None:
@@ -430,6 +434,19 @@ class RemoteDevice(Device):
             else:
                 await self.changed.wait()
 
+    async def set_value(self, name, value):
+        attr = self._find_attr(name=name)
+        if attr.type == 'bool':
+            if value == 'true':
+                value = '1'
+            elif value == 'false':
+                value = '0'
+        async with attr.desc_changed:
+            await self.send(f'set val {attr.attr_id} {value}')
+            while str(attr.value) != value:
+                await attr.desc_changed.wait()
+
+
     def add_attr(self, attr):
         super().add_attr(attr)
         self.create_task(self._attr_fetching(attr))
@@ -472,7 +489,6 @@ class RemoteDevice(Device):
                 async with attr.desc_changed:
                     attr.value = value
                     attr.desc_changed.notify_all()
-        print('done')
 
     async def send(self, msg):
         while True:
