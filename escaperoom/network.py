@@ -172,14 +172,21 @@ class Network(Node):
             if not device.disconnected() and device.addr[0] == addr[0]:
                 if device.addr[1] == addr[1] or device.add[1] == 0:
                     return id, device
+            print(device.name)
             if device.name == name:
                 return id, device
+        return None, None
 
     async def read_msg(self, sender, msg): 
         logger.debug(f'{self}: reading msg "{msg}"') 
         if re.match('\s*desc\s+\w+\s+\w+\s*', msg):
             name = msg.split()[1]
-            _, device = self.find_device(name=name, addr=sender)
+            print('a')
+            try:
+                _, device = self.find_device(name=name, addr=sender)
+            except Exception as e:
+                print(e)
+            print('asdf')
             if device is None:
                 logger.debug(f'{self}: no device with id 0x{sender[1]:02x}')
                 device = RemoteDevice(addr=sender, name=name)
