@@ -162,7 +162,10 @@ class Network(Node):
                     async with self.packet_changed:
                         self.packet = (addr, msg) 
                         self.packet_changed.notify_all()
-                        await self.read_msg(addr, msg)
+                        try:
+                            await self.read_msg(addr, msg)
+                        except Exception:
+                            logger.error(f'{self} processing msg: {msg}')
                 await bus.packet_changed.wait()
 
     def find_device(self, *, id=None, name=None, addr=None):
@@ -172,7 +175,6 @@ class Network(Node):
             if not device.disconnected() and device.addr[0] == addr[0]:
                 if device.addr[1] == addr[1] or device.add[1] == 0:
                     return id, device
-            print(device.name)
             if device.name == name:
                 return id, device
         return None, None
@@ -181,12 +183,7 @@ class Network(Node):
         logger.debug(f'{self}: reading msg "{msg}"') 
         if re.match('\s*desc\s+\w+\s+\w+\s*', msg):
             name = msg.split()[1]
-            print('a')
-            try:
-                _, device = self.find_device(name=name, addr=sender)
-            except Exception as e:
-                print(e)
-            print('asdf')
+            _, device = self.find_device(name=name, addr=sender)
             if device is None:
                 logger.debug(f'{self}: no device with id 0x{sender[1]:02x}')
                 device = RemoteDevice(addr=sender, name=name)
@@ -456,7 +453,7 @@ class RemoteDevice(Device):
             attr = self._find_attr(attr_id, name)
             if attr is None:
                 logger.debug(f'{self}: no attribute with id {attr_id}, creating one')
-                attr = Attribute(type, attr_id=attr_id, name=name)
+                attr = Attribute(name, type, attr_id=attr_id)
                 async with self.attrs_changed:
                     self.add_attr(attr)
                     self.attrs_changed.notify_all()
@@ -475,6 +472,7 @@ class RemoteDevice(Device):
                 async with attr.desc_changed:
                     attr.value = value
                     attr.desc_changed.notify_all()
+        print('done')
 
     async def send(self, msg):
         while True:
