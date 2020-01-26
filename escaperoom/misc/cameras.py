@@ -10,15 +10,10 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import aiohttp, json, re
-from aiortc import RTCPeerConnection, RTCSessionDescription
 from abc import ABC, abstractmethod
 
-from . import asyncio, logging 
+from . import logger, Node
 from .media import MediaPlayer
-from .node import Node 
-
-logger = logging.getLogger('escaperoom.misc')
 
 class Camera(ABC, Node):
 
@@ -124,111 +119,4 @@ class RemoteCamera(Camera):
                     return await r.json()
         except aiohttp.ClientError as e:
             logger.warning(f'error while connecting to camera on {self.address}')
-
-class CluesDisplay(ABC, Node):
-
-    displays = dict()
-
-    def __init__(self, name, game=None):
-        super().__init__()
-        self.name = name
-        if game is not None:
-            self.game = game
-            self.create_task(self._chronometer_listener())
-        self.add_display(self)
-
-    def __str__(self):
-        return f'display "{self.name}"'
-
-    async def _chronometer_listener(self):
-        while True:
-            async with self.game.desc_changed:
-                runn = self.game.start_time is not None and self.game.end_time is None
-                seconds = self.game.chronometer.total_seconds()
-                self.create_task(self.set_chronometer(runn, seconds))
-                await self.game.desc_changed.wait()
-
-    def add_display(self, display):
-        _id = hex(id(display))
-        self.displays[_id] = display
-
-    @classmethod
-    def find_display(cls, *, id=None, name=None):
-        for id, display in cls.displays.items():
-            if id is not None:
-                return id, cls.displays[id]
-            for id, display in cls.displays.items():
-                if re.match(name, display.name):
-                    return id, display
-
-    @abstractmethod
-    async def set_chronometer(self, running, seconds):
-        pass
-
-    @abstractmethod
-    async def set_clue(self, msg):
-        pass
-
-
-class LocalCluesDisplay(CluesDisplay):
-    
-    EXEC_NAME = 'escaperoom_cluesdisplay'
-
-    def __init__(self, name, game=None):
-        super().__init__(name, game)
-        from subprocess import Popen
-        from asyncio.subprocess import PIPE
-        try:
-            co = asyncio.create_subprocess_shell(self.EXEC_NAME, stdin=PIPE)
-            self.ps = asyncio.run_until_complete(co)
-        except FileNotFoundError:
-            logger.error(f'{self}: could not find escaperoom-display')
-            raise RuntimeError()
-
-    async def _write_to_process(self, data):
-        try:
-            self.ps.stdin.write(data)
-            await self.ps.stdin.drain()
-        except AttributeError:
-            await asyncio.sleep(1)
-            await self._write_to_process(data)
-        except Exception as e:
-            logger.error(f'{self} is dead: {e}')
-            raise RuntimeError()
-
-    async def set_chronometer(self, running, seconds):
-        msg = f'chronometer {int(running)} {seconds}\n'
-        await self._write_to_process(msg.encode())
-
-    async def set_clue(self, clue):
-        clue = clue.replace('\n', '\\n')
-        msg = f'clue {clue}\n'
-        print(msg)
-        await self._write_to_process(msg.encode())
-
-class RemoteCluesDisplay(CluesDisplay):
-
-    def __init__(self, name, address, game=None, *, rename=None):
-        if rename is None:
-            rename = name
-        super().__init__(rename, game)
-        self.address = address
-        self.remote_name = name
-
-    async def set_chronometer(self, running, seconds):
-        data = {'type' : 'chronometer', 'running' : running, 'seconds' : seconds}
-        await self._send(data)
-
-    async def set_msg(self, msg):
-        await self._send({'type' : 'msg', 'msg' : msg})
-
-    async def _send(self, data):
-        try:
-            async with aiohttp.ClientSession() as s:
-                address = self.address + f'/display?name={self.remote_name}'
-                async with s.post(address, data=json.dumps(data)) as r:
-                    return await r.json()
-        except aiohttp.ClientError as e:
-            logger.warning(f'error while connecting to camera on {self.address}')
-            #TODO? retry with "sending" lock?
 

@@ -11,10 +11,8 @@
 '''
 
 import aiortc.contrib.media as aiom
-from . import asyncio
-import logging, threading
-
-logger = logging.getLogger('misc')
+import threading
+from . import asyncio, logger
 
 def effect_worker(loop, track_in, track_out, effect, quit_event):
 
@@ -101,32 +99,3 @@ class MediaPlayer(aiom.MediaPlayer):
             self.__effect_video_thread.join()
             self.__effect_video_thread = None
 
-
-'''
-__old_init = PlayerStreamTrack.__init__
-def __init(self, *args, **kwargs):
-    __old_init(self, *args, **kwargs)
-    self.__frame = None
-    self.frame_changed = asyncio.Lock()
-
-__old_recv = PlayerStreamTrack.recv
-async def __recv(self): 
-    async with self.frame_changed:
-        if self.__frame is None:
-            frame = await __old_recv(self)
-        else:
-            frame = self.__frame
-            self.__frame = None
-    return frame
-
-async def __get_frame(self, rgb=True):
-    self.__frame = await __old_recv(self)
-    if rgb and not self.__frame.format.is_rgb:
-        self.__frame = self.__frame.to_rgb()
-    return self.__frame
-
-PlayerStreamTrack.__init__ = __init
-PlayerStreamTrack.recv = __recv
-PlayerStreamTrack.stop = lambda: None
-PlayerStreamTrack.get_frame = __get_frame
-'''
