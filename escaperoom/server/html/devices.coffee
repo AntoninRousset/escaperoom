@@ -71,12 +71,24 @@ class DeviceInfo extends Subscriber
 customElements.define('device-info', DeviceInfo)
 
 class DeviceAttributes extends Container
+	constructor: () ->
+		super()
+		@focus_input = null
+
 	add_item: (id, data) ->
 		item = @create_item(id)
-		item.shadowRoot.querySelector('input').onchange = @set_value
+		input = item.shadowRoot.querySelector('input')
+		input.onfocus = (event) =>
+			@focus_input = input
+		input.onchange = (event) =>
+			if not input.disabled
+				input.value = input.placeholder
+		input.onkeydown = (event) =>
+			if event.key == 'Enter'
+				@set_value(event)
 		@appendChild(item)
 
-	set_value: (event) =>
+	set_value: (event) ->
 		event.target.disabled = true
 		attr_name = event.target.parentNode.querySelector('slot[name="name"]').assignedNodes()[0].textContent
 		device_info = document.querySelector('devices-box').shadowRoot.querySelector('device-info')
@@ -95,9 +107,11 @@ class DeviceAttributes extends Container
 
 	update_plug: (slot, data, node) ->
 		if slot == 'value'
-			node = node.shadowRoot.querySelector('input')
-			node.value = data[slot]
-			node.disabled = false
+			input = node.shadowRoot.querySelector('input')
+			input.placeholder = data[slot]
+			if input is not @focus_input
+				input.disabled = false
+				input.value = input.placeholder
 		else
 			node = node.querySelector('[slot='+slot+']')
 			node.textContent = data[slot]
