@@ -12,10 +12,11 @@
 
 from abc import ABC
 
-from . import logger, Node 
+from . import Misc
 
-class Chronometer(ABC, Node):
-    pass
+class Chronometer(Misc):
+
+    _groups = dict()
 
 class LocalChronometer(Chronometer):
     pass

@@ -86,16 +86,13 @@ DeviceInfo = class DeviceInfo extends Subscriber {
   }
 
   select(id) {
-    this.subscribe('?id=' + id);
-    return console.log('subscribed');
+    return this.subscribe('?id=' + id);
   }
 
   update(datas) {
-    console.log('update');
     this.update_plugs(datas);
     this.attrs_list.read_items(datas.attrs);
-    this.set_screen('info');
-    return console.log('done');
+    return this.set_screen('info');
   }
 
 };
@@ -122,6 +119,9 @@ DeviceAttributes = class DeviceAttributes extends Container {
     };
     input.onkeydown = (event) => {
       if (event.key === 'Enter') {
+        event.target.disabled = true;
+        event.target.blur();
+        this.focus_input = null;
         return this.set_value(event);
       }
     };
@@ -130,7 +130,6 @@ DeviceAttributes = class DeviceAttributes extends Container {
 
   async set_value(event) {
     var attr_name, device_info, loc, response;
-    event.target.disabled = true;
     attr_name = event.target.parentNode.querySelector('slot[name="name"]').assignedNodes()[0].textContent;
     device_info = document.querySelector('devices-box').shadowRoot.querySelector('device-info');
     loc = device_info.loc;
@@ -152,7 +151,7 @@ DeviceAttributes = class DeviceAttributes extends Container {
     if (slot === 'value') {
       input = node.shadowRoot.querySelector('input');
       input.placeholder = data[slot];
-      if (input === !this.focus_input) {
+      if (!(input === this.focus_input)) {
         input.disabled = false;
         return input.value = input.placeholder;
       }

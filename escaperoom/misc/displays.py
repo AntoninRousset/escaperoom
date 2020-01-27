@@ -13,21 +13,23 @@
 import aiohttp, json, re
 from abc import ABC, abstractmethod
 
-from . import asyncio, logging 
+from . import asyncio
 from . import Node 
 
+class Display(Node):
+    pass
 
-class CluesDisplay(ABC, Node):
+class CluesDisplay(Display):
 
-    displays = dict()
+    _group = dict()
 
     def __init__(self, name, game=None):
-        super().__init__()
+        super().__init__(name)
         self.name = name
         if game is not None:
             self.game = game
             self.create_task(self._chronometer_listener())
-        self.add_display(self)
+        self._register()
 
     def __str__(self):
         return f'display "{self.name}"'
@@ -39,19 +41,6 @@ class CluesDisplay(ABC, Node):
                 seconds = self.game.chronometer.total_seconds()
                 self.create_task(self.set_chronometer(runn, seconds))
                 await self.game.desc_changed.wait()
-
-    def add_display(self, display):
-        _id = hex(id(display))
-        self.displays[_id] = display
-
-    @classmethod
-    def find_display(cls, *, id=None, name=None):
-        for id, display in cls.displays.items():
-            if id is not None:
-                return id, cls.displays[id]
-            for id, display in cls.displays.items():
-                if re.match(name, display.name):
-                    return id, display
 
     @abstractmethod
     async def set_chronometer(self, running, seconds):
@@ -68,16 +57,16 @@ class LocalCluesDisplay(CluesDisplay):
 
     def __init__(self, name, game=None):
         super().__init__(name, game)
-        asyncio.run_until_complete(self.start_display)
+        self.start_display()
 
-    async def start_display():
+    def start_display(self):
         from subprocess import Popen
         from asyncio.subprocess import PIPE
         try:
             co = asyncio.create_subprocess_shell(self.EXEC_NAME, stdin=PIPE)
             self.ps = asyncio.run_until_complete(co)
         except FileNotFoundError:
-            logger.error(f'{self}: could not find escaperoom-display')
+            self._log_error(f'{self}: could not find escaperoom-display')
             raise RuntimeError()
 
     async def _write_to_process(self, data):
@@ -88,7 +77,7 @@ class LocalCluesDisplay(CluesDisplay):
             await asyncio.sleep(1)
             await self._write_to_process(data)
         except Exception as e:
-            logger.error(f'{self} is dead: {e}')
+            self._log_error(f'{self} is dead: {e}')
             raise RuntimeError()
 
     async def set_chronometer(self, running, seconds):
@@ -124,6 +113,6 @@ class RemoteCluesDisplay(CluesDisplay):
                 async with s.post(address, data=json.dumps(data)) as r:
                     return await r.json()
         except aiohttp.ClientError as e:
-            logger.warning(f'error while connecting to camera on {self.address}')
+            self._log_warning(f'error while connecting to camera on {self.address}')
             #TODO? retry with "sending" lock?
 

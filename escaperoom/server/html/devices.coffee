@@ -59,14 +59,11 @@ class DeviceInfo extends Subscriber
 	
 	select: (id) ->
 		@subscribe('?id='+id)
-		console.log('subscribed')
 
 	update: (datas) ->
-		console.log('update')
 		@update_plugs(datas)
 		@attrs_list.read_items(datas.attrs)
 		@set_screen('info')
-		console.log('done')
 
 customElements.define('device-info', DeviceInfo)
 
@@ -85,11 +82,13 @@ class DeviceAttributes extends Container
 				input.value = input.placeholder
 		input.onkeydown = (event) =>
 			if event.key == 'Enter'
+				event.target.disabled = true
+				event.target.blur()
+				@focus_input = null
 				@set_value(event)
 		@appendChild(item)
 
 	set_value: (event) ->
-		event.target.disabled = true
 		attr_name = event.target.parentNode.querySelector('slot[name="name"]').assignedNodes()[0].textContent
 		device_info = document.querySelector('devices-box').shadowRoot.querySelector('device-info')
 		loc = device_info.loc
@@ -109,7 +108,7 @@ class DeviceAttributes extends Container
 		if slot == 'value'
 			input = node.shadowRoot.querySelector('input')
 			input.placeholder = data[slot]
-			if input is not @focus_input
+			if not (input is @focus_input)
 				input.disabled = false
 				input.value = input.placeholder
 		else

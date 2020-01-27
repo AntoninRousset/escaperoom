@@ -16,15 +16,14 @@ from .. import asyncio
 from ..node import Node
 
 
-logger = logging.getLogger('escaperoom.misc')
+logger = logging.getLogger('escaperoom.network')
 
-class Misc(Node):
+class Network(Node):   
 
     _logger = logger
 
 
-from .cameras import Camera, LocalCamera, RemoteCamera
-from .chronometers import Chronometer, LocalChronometer, RemoteChronometer
-from .displays import CluesDisplay, LocalCluesDisplay, RemoteCluesDisplay
-
+from .buses import Bus, SerialBus, SocketBus
+from .devices import Device, LocalDevice, RemoteDevice
+from .radars import SerialRadar
 

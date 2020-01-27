@@ -16,47 +16,18 @@ from .node import Node
 logger = logging.getLogger('escaperoom.logic')
 
 class Logic(Node):
-    def __init__(self):
-        super().__init__()
-        self.positions = dict()
-        self.puzzles = dict()
-        self.puzzles_changed = self.Condition()
+    
+    _logger = logger
 
-    def __str__(self):
-        return 'logic'
 
-    async def _puzzle_listening(self, puzzle):
-        while True:
-            async with puzzle.desc_changed:
-                await puzzle.desc_changed.wait()
-                async with self.puzzles_changed:
-                    self.puzzles_changed.notify_all()
+class Puzzle(Logic):
 
-    def find_puzzle(self, *, id=None, name=None):
-        if id is not None:
-            return id, self.puzzles[id]
-        for device in self.puzzles.values():
-            if device.name == name:
-                return id, device
-
-    def add_puzzle(self, puzzle, pos):
-        _id = hex(id(puzzle))
-        self.puzzles[_id] = puzzle
-        self.positions[_id] = pos
-        self.create_task(self._puzzle_listening(puzzle))
-        logger.debug(f'{self}: {puzzle} added')
-
-    def create_puzzle(self, pos, *args, **kwargs):
-        puzzle = Puzzle(*args, **kwargs)
-        self.add_puzzle(puzzle, pos)
-        return puzzle
-
-class Puzzle(Node):
+    _group = dict()
 
     def __init__(self, name, *, initial_state='inactive', description='',
                  head=lambda: None, tail=lambda: None, parents=[], conditions=[],
-                 predicate=lambda: True):
-        super().__init__()
+                 predicate=lambda: True, pos=None):
+        super().__init__(name)
         self.name = name
         self.initial_state = initial_state
         self._state = None
@@ -74,8 +45,12 @@ class Puzzle(Node):
         self.predicate = predicate
         self.game_flow = None
 
+        self.pos = pos
+
         {self.add_parent(parent) for parent in parents}
         {self.add_condition(condition) for condition in conditions}
+
+        self._register()
 
     def __str__(self):
         return f'puzzle "{self.name}" [{self.state}]'

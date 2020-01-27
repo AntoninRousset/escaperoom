@@ -13,18 +13,15 @@
 from datetime import datetime, timedelta
 
 from . import asyncio, database
-from .logic import Logic
+from .logic import Puzzle
 from .node import Node
-from .network import Network
 
 class Game(Node):
 
-    games = dict()
+    _group = dict()
 
     def __init__(self, name):
-        if name in self.games:
-            raise RuntimeError()
-        super().__init__()
+        super().__init__(name)
         self.name = name
         self.game_id = None
         self.default_options = {
@@ -36,9 +33,7 @@ class Game(Node):
         self.start_time = None
         self.end_time = None
         self.desc_changed = self.Condition()
-        self.network = Network() 
-        self.logic = Logic()
-        self.games[name] = self
+        self._register()
 
     def resume_game(self):
         pass #TODO read database to resume a game
@@ -46,21 +41,21 @@ class Game(Node):
     async def new_game(self, options):
         await self.stop_game()
         async with self.desc_changed:
-            await asyncio.gather(*{p.reset() for p in self.logic.puzzles.values()})
+            await asyncio.gather(*{p.reset() for p in Puzzle._group.values()})
             self.options = options
             await self.play()
             self.game_id = database.new_game(self.name, self.options)
             self.desc_changed.notify_all()
 
     async def pause(self):
-        await asyncio.gather(*{p.pause() for p in self.logic.puzzles.values()})
+        await asyncio.gather(*{p.pause() for p in Puzzle._group.values()})
 
     async def play(self):
-        await asyncio.gather(*{p.play() for p in self.logic.puzzles.values()})
+        await asyncio.gather(*{p.play() for p in Puzzle._group.values()})
 
     async def stop_game(self):
         async with self.desc_changed:
-            await asyncio.gather(*{p.stop() for p in self.logic.puzzles.values()})
+            await asyncio.gather(*{p.stop() for p in Puzzle._group.values()})
             self.game_id = None
             self.options = None
             self.start_time = None

@@ -29,19 +29,20 @@ interface_routes = web.RouteTableDef()
 
 @interface_routes.get('/')
 async def index(request):
-    return web.Response(text=f'available games are {Game.games.keys()}')
+    games_names = {game.name for game in Game.nodes()}
+    return web.Response(text=f'available games are {games_names}')
 
 @interface_routes.get('/{game_name}')
 async def monitor(request):
     game_name = request.match_info['game_name']
-    if game_name not in Game.games:
+    if game_name not in {game.name for game in Game.nodes()}:
         return ''
     context = {'game_name' : game_name}
     return aiohttp_jinja2.render_template('monitor.jinja2', request, context)
 
 @routes.get('/{game_name}/events')
 async def events(request):
-    game = Game.games[request.match_info['game_name']]
+    game = Game.find_node(name=request.match_info['game_name'])
     async with sse_response(request) as resp:
         async for event in events_generator.generator(game):
             await resp.send(json.dumps(event))
@@ -49,29 +50,21 @@ async def events(request):
 
 @routes.get('/{game_name}/{service}')
 async def reader(request):
-    game = Game.games[request.match_info['game_name']]
+    game = Game.find_node(name=request.match_info['game_name'])
     service = request.match_info['service']
     data = await readers.read(game, service, request.query)
     return web.Response(content_type='application/json', text=json.dumps(data))
 
 @routes.post('/{game_name}/{service}')
 async def puzzles(request):
-    game = Game.games[request.match_info['game_name']]
+    game = Game.find_node(name=request.match_info['game_name'])
     service = request.match_info['service']
     answer = await controls.control(game, await request.json(), service, request.query)
     return web.Response(content_type='application/json', text=json.dumps(answer))
 
-async def camera(request):
-    game_name = request.match_info['game_name']
-    game = games[game_name]
-    id = request.query['id']
-    camera = game.misc.cameras[id]
-    params = await request.json()
-    offer = RTCSessionDescription(sdp=params['sdp'], type=params['type'])
-    data = await camera.handle_offer(offer)
-    return web.Response(content_type='application/json', text=json.dumps(data))
-
 class HTTPServer(Node):
+
+    _group = dict()
 
     #TODO can we use port 80?
     def __init__(self, host='0.0.0.0', port=8080, *, interface=False):

@@ -10,13 +10,55 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import re
+from abc import ABC, abstractclassmethod
+from collections import defaultdict
+
 from . import asyncio
 
-#Abstract class
-class Node():
-    def __init__(self):
+class Node(ABC):
+
+    group_changed = asyncio.Event()
+
+    @property
+    @abstractclassmethod
+    def _group(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def nodes(cls):
+        return cls._group.values()
+
+    @classmethod
+    def find_node(cls, *, id=None, name=None):
+        if id is not None:
+            return cls._group[id]
+        if name is not None:
+            for node in cls._group.values():
+                if re.match(name, node.name):
+                    return node
+
+    def __new__(cls, *args, **kwargs):
+        existing_node = cls.find_node(name=kwargs.get('name'))
+        if existing_node is not None:
+            print(f'__new__ returns existing node: {existing_node}')
+            return existing_node
+        return super(Node, cls).__new__(cls)
+
+    def __init__(self, name):
+        self.name = name
+        self.id = hex(id(self))
         self.__tasks = set()
         self.changed = asyncio.Event()
+        self.create_task(self.__change_listener())
+
+    def __str__(self):
+        return f'node "{self.name}"'
+
+    def _register(self):
+        self._group[self.id] = self
+        self.group_changed.set()
+        self.group_changed.clear()
 
     def create_task(self, future):
         task = asyncio.create_task(future)
@@ -28,12 +70,30 @@ class Node():
         self.create_task(self.__condition_listener(cond))
         return cond
 
+    async def __change_listener(self):
+        while True:
+            await self.changed.wait()
+            self.group_changed.set()
+            self.group_changed.clear()
+
     async def __condition_listener(self, cond):
         while True:
             async with cond:
                 await cond.wait()
                 self.changed.set()
                 self.changed.clear()
+
+    def _log_debug(self, msg):
+        self._logger.debug(f'{self}: msg')
+
+    def _log_info(self, msg):
+        self._logger.info(f'{self}: msg')
+
+    def _log_warning(self, msg):
+        self._logger.warning(f'{self}: msg')
+
+    def _log_error(self, msg):
+        self._logger.error(f'{self}: msg')
 
     def kill(self):
         print('kill')

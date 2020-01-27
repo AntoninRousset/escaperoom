@@ -15,6 +15,7 @@ from collections import defaultdict
 
 from . import config
 
+
 ANSI = {
     'reset' : '\033[0m',
     'bold' : '\033[1m',
@@ -36,8 +37,6 @@ ANSI = {
     'bright_white' : '\033[97m'
 }
 
-#TODO create a root logger for escaperoom only (to exclude external modules)
-# like aiohttp
 
 class ColoredFormatter(logging.Formatter):
 
@@ -60,7 +59,6 @@ class ColoredFormatter(logging.Formatter):
         super().__init__(fmt=fmt, datefmt=datefmt, style=style)
 
     def format(self, record):
-        frame = logging.currentframe()
         record.resetcolor = ANSI['reset']
         record.levelcolor = self.levelcolors[record.levelname]
         record.levelname_pad = record.levelname.ljust(7)

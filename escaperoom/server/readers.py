@@ -10,7 +10,9 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from ..logic import Puzzle
 from ..misc import Camera
+from ..network import Device
 
 #TODO use the locks for reading? to ensure there is corruption 
 
@@ -37,9 +39,9 @@ async def read(game, service, query=None):
 
 async def cameras_reader(game):
     cameras = {
-            id : {
+            camera.id : {
                 'name' : camera.name
-                } for id, camera in Camera.cameras.items()
+                } for camera in Camera.nodes()
             }
     return {'cameras' : cameras}
 
@@ -51,7 +53,7 @@ async def chronometer_reader(game):
             }
 
 async def device_reader(game, query):
-    id, device = game.network.find_device(**query)
+    device = Device.find_node(**query)
     attrs = {
             id : {
                 'attr_id' : attr.attr_id, 'name' : attr.name,
@@ -60,7 +62,7 @@ async def device_reader(game, query):
                 } for id, attr in device.attrs.items()
             }
     return {
-            'id' : id,
+            'id' : device.id,
             'name' : device.name,
             'attrs' : attrs,
             'type' : device.type,
@@ -71,11 +73,11 @@ async def device_reader(game, query):
 
 async def devices_reader(game):
     devices = {
-            id : {
+            device.id : {
                 'name' : device.name,
                 'type' : device.type,
                 'n_attr' : device.n_attr
-                } for id, device in game.network.devices.items()
+                } for device in Device.nodes()
             }
     return {'devices' : devices}
 
@@ -90,10 +92,10 @@ async def game_reader(game):
                 }
 
 async def puzzle_reader(game, query):
-    id, puzzle = game.logic.find_puzzle(**query)
+    puzzle = Puzzle.find_node(**query)
     async with puzzle.desc_changed:
         return {
-                'id' : id,
+                'id' : puzzle.id,
                 'name' : puzzle.name,
                 'state' : puzzle.state,
                 'description' : puzzle.description
@@ -101,12 +103,12 @@ async def puzzle_reader(game, query):
 
 async def puzzles_reader(game):
     puzzles = {
-            id : {
+            puzzle.id : {
                 'name' : puzzle.name,
                 'state' : puzzle.state,
-                'col' : game.logic.positions[id][0],
-                'row' : game.logic.positions[id][1]
-                } for id, puzzle in game.logic.puzzles.items()
+                'col' : puzzle.pos[0],
+                'row' : puzzle.pos[1]
+                } for puzzle in Puzzle.nodes()
             }
     return {'puzzles' : puzzles}
 

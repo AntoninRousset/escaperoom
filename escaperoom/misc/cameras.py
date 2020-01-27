@@ -10,14 +10,14 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
-from . import logger, Node
+from . import Misc
 from .media import MediaPlayer
 
-class Camera(ABC, Node):
+class Camera(Misc):
 
-    cameras = dict()
+    _group = dict()
 
     def __init__(self, name):
         super().__init__()
@@ -25,7 +25,7 @@ class Camera(ABC, Node):
         self.connected = False 
         self.desc_changed = self.Condition()
         self.cameras_changed = self.Condition()
-        self.add_camera(self)
+        self.register()
 
     def __str__(self):
         return f'camera "{self.name}"'
@@ -34,28 +34,16 @@ class Camera(ABC, Node):
         while True: 
             async with camera.desc_changed:
                 await camera.desc_changed.wait()
-                logger.debug(f'{self}: {camera} changed its desc')
+                self._log_debug(f'{self}: {camera} changed its desc')
                 async with self.cameras_changed:
                     self.cameras_changed.notify_all()
-
-    @classmethod
-    def find_camera(cls, *, id=None, name=None):
-        if id is not None:
-            return id, cls.cameras[id]
-        for id, camera in cls.cameras.items():
-            if re.match(name, camera.name):
-                return id, camera
-
-    def add_camera(self, camera):
-        _id = hex(id(camera))
-        self.cameras[_id] = camera 
-        self.create_task(self._camera_listening(camera))
 
     @abstractmethod
     async def handle_sdp(self, sdp, type):
         pass
 
 class LocalCamera(Camera):
+
     def __init__(self, name, *, v_file, v_format=None, v_options={}, a_file=None,
                  a_format='alsa', a_options={}, a_effect=None, v_effect=None):
         super().__init__(name)
@@ -118,5 +106,5 @@ class RemoteCamera(Camera):
                 async with s.post(address, data=json.dumps(data)) as r:
                     return await r.json()
         except aiohttp.ClientError as e:
-            logger.warning(f'error while connecting to camera on {self.address}')
+            self._log_warning(f'error while connecting to camera on {self.address}')
 

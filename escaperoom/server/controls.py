@@ -11,6 +11,7 @@
 '''
 
 from .. import asyncio
+from ..logic import Puzzle
 from ..misc import Camera, CluesDisplay
 from ..network import Device
 
@@ -27,25 +28,24 @@ async def control(game, params, service, query=None):
         return await puzzle_control(game, params, query)
 
 async def camera_control(game, params, query):
-    _, camera = Camera.find_camera(**query)
+    camera = Camera.find_node(**query)
     return await camera.handle_sdp(params['sdp'], params['type'])
 
 async def device_control(game, params, query):
-    _, device = Device.find_device(**query)
+    device = Device.find_node(**query)
     if params['action'] == 'set_val':
         try:
             await device.set_value(params['name'], params['value'])
-        #except (asyncio.TimeoutError, ConnectionError):
         except Exception as e:
-            logger.warning('failed to set device value')
+            logger.warning(f'failed to set device value: {e}')
             return {'result' : 'failed'}
         finally:
             return {'result' : 'success'}
 
 async def display_control(game, params, query):
     if params['type'] == 'clue':
-        for display in CluesDisplay.displays.values():
-            return await display.set_clue(params['text'])
+        cluesdisplay = CluesDisplay.find_node(name='.*')
+        return await cluesdisplay.set_clue(params['text'])
     elif params['type'] == 'chronometer':
         for display in CluesDisplay.displays.values():
             return await display.set_chronometer(params['running'], params['seconds'])
@@ -59,7 +59,7 @@ async def game_control(game, params):
     return ''
 
 async def puzzle_control(game, params, query):
-    _, puzzle = game.logic.find_puzzle(**query)
+    puzzle = Puzzle.find_node(**query)
     if params['action'] == 'activate':
         async with puzzle.desc_changed:
             puzzle.force_active = True

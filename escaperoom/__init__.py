@@ -34,6 +34,6 @@ logging.config.fileConfig(config)
 from .game import Game
 from .logic import Puzzle
 from .misc import LocalCamera, RemoteCamera, LocalCluesDisplay, RemoteCluesDisplay
-from .network import SerialBus, SocketBus, LocalDevice, RemoteDevice, Attribute
+from .network import SerialBus, SocketBus, Device, LocalDevice, RemoteDevice, SerialRadar
 from .server import HTTPServer
 

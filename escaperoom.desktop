@@ -1,10 +1,19 @@
 [Desktop Entry]
-Version=1.0
-Name=ProgramName
-Comment=This is my comment
-Exec=/usr/share/MyApp/MyApp.py
-Icon=/usr/share/MyApp/MyApp.py
-Path=/usr/share/MyApp/
-Terminal=false
+Version=0.1a1
+Name=Escaperoom runner
+GenericName=Escaperoom
+Comment=Run your escaperoom
+Name[en_GB]=Escaperoom runner
+GenericName[en_GB]=Escaperoom
+Comment[en_GB]=Run your escaperoom
+Name[fr]=Lanceur d'escaperoom
+GenericName[fr]=Escaperoom
+Comment[fr]=Lancer votre escaperoom
+Exec=/usr/bin/escaperoom
+TryExec=/usr/bin/escaperoom
+Icon=escaperoom
+Terminal=true
 Type=Application
-Categories=Utility;Application;
+Categories=
+MimeType=
+Keywords=room;
