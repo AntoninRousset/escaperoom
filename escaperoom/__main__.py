@@ -10,6 +10,8 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from .media import codecs
+
 import errno, importlib, logging, os, re, sys
 from argparse import ArgumentParser
 from contextlib import contextmanager

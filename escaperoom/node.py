@@ -14,7 +14,10 @@ import re
 from abc import ABC, abstractclassmethod
 from collections import defaultdict
 
-from . import asyncio
+from . import asyncio, logging
+
+
+logger = logging.getLogger('escaperoom')
 
 class Node(ABC):
 
@@ -30,7 +33,7 @@ class Node(ABC):
         return cls._group.values()
 
     @classmethod
-    def find_node(cls, *, id=None, name=None):
+    def find_node(cls, name=None, *, id=None):
         if id is not None:
             return cls._group[id]
         if name is not None:
@@ -38,10 +41,10 @@ class Node(ABC):
                 if re.match(name, node.name):
                     return node
 
-    def __new__(cls, *args, **kwargs):
-        existing_node = cls.find_node(name=kwargs.get('name'))
+    def __new__(cls, name=None, *args, **kwargs):
+        existing_node = cls.find_node(name)
         if existing_node is not None:
-            print(f'__new__ returns existing node: {existing_node}')
+            logger.info(f'Node "{name}" already exist, returning the existing one')
             return existing_node
         return super(Node, cls).__new__(cls)
 

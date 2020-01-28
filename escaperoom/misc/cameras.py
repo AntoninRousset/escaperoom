@@ -10,22 +10,24 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import re
 from abc import abstractmethod
+from aiortc import RTCPeerConnection, RTCSessionDescription
 
 from . import Misc
-from .media import MediaPlayer
+from ..media import MediaPlayer
+
 
 class Camera(Misc):
 
     _group = dict()
 
     def __init__(self, name):
-        super().__init__()
-        self.name = name
+        super().__init__(name)
         self.connected = False 
         self.desc_changed = self.Condition()
         self.cameras_changed = self.Condition()
-        self.register()
+        self._register()
 
     def __str__(self):
         return f'camera "{self.name}"'
@@ -41,6 +43,7 @@ class Camera(Misc):
     @abstractmethod
     async def handle_sdp(self, sdp, type):
         pass
+
 
 class LocalCamera(Camera):
 
@@ -65,9 +68,14 @@ class LocalCamera(Camera):
         return pc
 
     async def handle_sdp(self, sdp, type):
-        prefered = 120 #vp8
-        #sdp = re.sub(f'm=video ([0-9]+) UDP\/TLS\/RTP\/SAVPF ([0-9 ]*)({prefered})[ ]*([0-9 ]*)', r'm=video \1 UDP/TLS/RTP/SAVPF \3 \2\4', sdp)
-        sdp = re.sub(f'm=video ([0-9]+) UDP\/TLS\/RTP\/SAVPF ([0-9 ]*)({prefered})[ ]*([0-9 ]*)', r'm=video \1 UDP/TLS/RTP/SAVPF \3', sdp)
+        #prefered = 120 #vp8
+        #prefered = 121 #vp9
+        prefered = '126 |109 ' #h264 and opus
+        #prefered = '97 |109 ' #h264 and opus
+        sdp = re.sub(f'm=(video|audio) ([0-9]+) UDP\/TLS\/RTP\/SAVPF ([0-9 ]*)({prefered})([0-9 ]*)', r'm=\1 \2 UDP/TLS/RTP/SAVPF \4', sdp)
+        sdp = re.sub(f'a=rtpmap:(?!{prefered})\d* \w+\/.*\n?', '', sdp)
+        sdp = re.sub(f'a=fmtp:(?!{prefered}).*\n?', '', sdp)
+        sdp = re.sub(f'a=rtcp-fb:(?!{prefered}).*\n?', '', sdp)
         offer = RTCSessionDescription(sdp, type)
         pc = self._create_peer_connection()
         self.pcs.add(pc)
@@ -88,6 +96,7 @@ class LocalCamera(Camera):
     @property
     def video(self):
         return self.v_player.video
+
 
 class RemoteCamera(Camera):
 

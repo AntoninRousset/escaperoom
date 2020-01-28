@@ -3,6 +3,7 @@
 
 .screen {
 	position: relative;
+	display: flex;
 }
 
 .panel {
@@ -50,4 +51,5 @@ camera-video video:hover {
 }
 
 #bigscreen {
+	flex: 1;
 }

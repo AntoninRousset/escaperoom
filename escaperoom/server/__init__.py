@@ -13,7 +13,6 @@
 import aiohttp_jinja2, jinja2, json
 from aiohttp import web
 from aiohttp_sse import sse_response
-from aiortc import RTCSessionDescription
 from os.path import dirname
 
 from . import controls, events_generator, readers
@@ -22,10 +21,16 @@ from .. import asyncio, logging
 from ..game import Game
 from ..node import Node
 
+ROOT = dirname(__file__)
+
 logger = logging.getLogger('escaperoom.server')
 
 routes = web.RouteTableDef()
 interface_routes = web.RouteTableDef()
+
+class Server(Node):
+
+    _logger = logger
 
 @interface_routes.get('/')
 async def index(request):
@@ -62,12 +67,13 @@ async def puzzles(request):
     answer = await controls.control(game, await request.json(), service, request.query)
     return web.Response(content_type='application/json', text=json.dumps(answer))
 
-class HTTPServer(Node):
+class HTTPServer(Server):
 
     _group = dict()
 
     #TODO can we use port 80?
     def __init__(self, host='0.0.0.0', port=8080, *, interface=False):
+        super().__init__(name=None)
         self.app = web.Application()
         if interface:
             self._activate_interface()
@@ -75,7 +81,6 @@ class HTTPServer(Node):
         self._start(host, port)
 
     def _activate_interface(self):
-        ROOT = dirname(__file__)
         self.app.router.add_static('/ressources', f'{ROOT}/html/', append_version=True)
         aiohttp_jinja2.setup(self.app, loader=jinja2.FileSystemLoader(f'{ROOT}/html/'))
         self.app.add_routes(interface_routes)
@@ -85,5 +90,5 @@ class HTTPServer(Node):
         asyncio.run_until_complete(runner.setup())
         site = web.TCPSite(runner, host, port)
         asyncio.run_until_complete(site.start())
-        logger.info(f'server on {site._host}:{site._port}')
+        self._log_info(f'server on {site._host}:{site._port}')
 
