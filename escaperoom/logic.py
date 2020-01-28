@@ -60,10 +60,17 @@ class Puzzle(Logic):
             async with self.desc_changed:
                 while self.state == 'inactive' or self.paused:
                     await self.desc_changed.wait()
-                await asyncio.ensure_finished(self.head())
+                try:
+                    await asyncio.ensure_finished(self.head())
+                except Exception as e:
+                    self._log_error(f'head error: {e}')
                 while self.state == 'active' or self.paused:
+                    print('active')
                     await self.desc_changed.wait()
-                await asyncio.ensure_finished(self.tail())
+                try:
+                    await asyncio.ensure_finished(self.tail())
+                except Exception as e:
+                    self._log_error(f'tail error: {e}')
                 while self.state == 'completed' or self.paused:
                     await self.desc_changed.wait()
 
@@ -82,8 +89,7 @@ class Puzzle(Logic):
                 await self.check_conds()
                 await cond.changed.wait()
             else:
-                async with self.desc_changed:
-                    await self.desc_changed.wait()
+                await self.changed.wait()
 
     def add_parent(self, parent):
         self.parents.add(parent)

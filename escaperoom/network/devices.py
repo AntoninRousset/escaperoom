@@ -237,15 +237,26 @@ class RemoteDevice(Device):
                 await self.changed.wait()
 
     async def set_value(self, name, value):
-        attr = self._find_attr(name=name)
-        if attr.type == 'bool':
-            if value == 'true':
-                value = '1'
-            elif value == 'false':
-                value = '0'
+        async def get_sane_attr(name):
+            while True:
+                attr = self._find_attr(name=name)
+                if attr is not None:
+                    break
+                await asyncio.sleep(1)
+            while attr.type is None or attr.value is None:
+                await asyncio.sleep(1)
+            return attr
+
+        attr = await asyncio.wait_for(get_sane_attr(name), timeout=30)
+        msg_value = str(value)
+        if attr.type == 'bool': #Not good
+            if value == 'True' or value == 'true':
+                msg_value = '1'
+            elif value == 'False' or value == 'false':
+                msg_value = '0'
         async with attr.desc_changed:
-            await self.send(f'set val {attr.attr_id} {value}')
-            while str(attr.value) != value:
+            await self.send(f'set val {attr.attr_id} {msg_value}')
+            while str(attr.value) != str(value):
                 await attr.desc_changed.wait()
 
     def add_attr(self, attr):

@@ -12,7 +12,7 @@
 
 import logging, re
 
-from . import asyncio, RemoteDevice
+from . import asyncio, Device, RemoteDevice
 
 logger = logging.getLogger('escaperoom.network')
 
@@ -26,7 +26,7 @@ class SerialRadar():
         self.packet_changed = asyncio.Condition()
         self.buses = dict()
         self.buses_changed = asyncio.Condition()
-        self.devices = dict()
+        self.devices = Device._group
         self.devices_changed = asyncio.Condition()
 
     def __str__(self):
@@ -103,12 +103,6 @@ class SerialRadar():
         asyncio.create_task(self._device_radar(bus))
         asyncio.create_task(self._bus_listening(bus))
         logger.debug(f'{self}: {bus} added')
-
-    def add_device(self, device):
-        _id = hex(id(device))
-        self.devices[_id] = device
-        asyncio.create_task(self._device_listening(device))
-        logger.debug(f'{self}: {device} added')
 
     def create_device(self, *args, **kwargs):
         device = RemoteDevice(*args, **kwargs)

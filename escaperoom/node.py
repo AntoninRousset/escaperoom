@@ -87,16 +87,16 @@ class Node(ABC):
                 self.changed.clear()
 
     def _log_debug(self, msg):
-        self._logger.debug(f'{self}: msg')
+        self._logger.debug(f'{self}: {msg}')
 
     def _log_info(self, msg):
-        self._logger.info(f'{self}: msg')
+        self._logger.info(f'{self}: {msg}')
 
     def _log_warning(self, msg):
-        self._logger.warning(f'{self}: msg')
+        self._logger.warning(f'{self}: {msg}')
 
     def _log_error(self, msg):
-        self._logger.error(f'{self}: msg')
+        self._logger.error(f'{self}: {msg}')
 
     def kill(self):
         print('kill')
