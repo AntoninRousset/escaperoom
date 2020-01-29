@@ -1,4 +1,5 @@
 [Desktop Entry]
+Type=Application
 Name=Escaperoom
 GenericName=Escaperoom runner
 Comment=Run your escaperoom
@@ -6,4 +7,3 @@ Exec=escaperoom
 TryExec=escaperoom
 Icon=escaperoom
 Terminal=true
-Type=Application
