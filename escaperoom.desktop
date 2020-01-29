@@ -1,18 +1,9 @@
 [Desktop Entry]
-Name=Escaperoom runner
-GenericName=Escaperoom
+Name=Escaperoom
+GenericName=Escaperoom runner
 Comment=Run your escaperoom
-Name[en_GB]=Escaperoom runner
-GenericName[en_GB]=Escaperoom
-Comment[en_GB]=Run your escaperoom
-Name[fr]=Lanceur d'escaperoom
-GenericName[fr]=Escaperoom
-Comment[fr]=Lancer votre escaperoom
-Exec=/usr/bin/escaperoom
-TryExec=/usr/bin/escaperoom
+Exec=escaperoom
+TryExec=escaperoom
 Icon=escaperoom
 Terminal=true
 Type=Application
-Categories=
-MimeType=
-Keywords=room;
