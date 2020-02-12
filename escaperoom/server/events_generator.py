@@ -11,8 +11,10 @@
 '''
  
 from .. import asyncio
+from ..game import Game
 from ..logic import Puzzle
 from ..network import Device
+from ..misc import Chronometer
 
 class SharedQueue(asyncio.Queue, asyncio.Condition):
     def __init__(self):
@@ -45,16 +47,17 @@ async def generator():
 
 async def game_events(events_queue):
     while True:
-        #await game.changed.wait()
-        await asyncio.sleep(3600)
-        await events_queue.put({'type' : 'update', 'loc' : f'/game'})
+        async with Game.changed:
+            await Game.changed.wait()
+            await events_queue.put({'type' : 'update', 'loc' : f'/game'})
 
 async def chronometer_events(events_queue):
+    chronometer = Chronometer.find_node('__main')
     while True:
-        #await game.changed.wait()
-        await asyncio.sleep(3600)
-        await events_queue.put({'type' : 'update',
-                                'loc' : f'/chronometer'})
+        async with chronometer.changed:
+            await chronometer.changed.wait()
+            await events_queue.put({'type' : 'update',
+                                    'loc' : f'/chronometer'})
 
 async def puzzles_events(events_queue):
     puzzle_events = dict()
@@ -62,7 +65,7 @@ async def puzzles_events(events_queue):
         for puzzle in Puzzle.nodes():
             id = puzzle.id
             if id not in puzzle_events:
-                t = puzzle.create_task(_puzzle_events(id, events_queue))
+                t = asyncio.create_task(_puzzle_events(puzzle, events_queue))
                 puzzle_events[id] = t
         for id, t in puzzle_events.items():
             if t.done():
@@ -70,11 +73,13 @@ async def puzzles_events(events_queue):
         await Puzzle.group_changed.wait()
         await events_queue.put({'type' : 'update', 'loc' : f'/puzzles'})
 
-async def _puzzle_events(id, events_queue):
-    while True:
-        await Puzzle.find_node(id=id).changed.wait()
-        await events_queue.put({'type' : 'update',
-                                'loc' : f'/puzzle?id={id}'})
+async def _puzzle_events(puzzle, events_queue):
+    while puzzle in Puzzle.nodes():
+        async with puzzle.changed:
+            await puzzle.changed.wait()
+            await events_queue.put({'type' : 'update',
+                                    'loc' : f'/puzzle?id={puzzle.id}'})
+            await events_queue.put({'type' : 'update', 'loc' : f'/puzzles'})
 
 async def devices_events(events_queue):
     device_events = dict()

@@ -23,7 +23,7 @@ class Chronometer(Misc):
     def __init__(self, name='__main'):
         super().__init__(name)
         if self._first_init:
-            self.start_time = None
+            self.start_time = None #TODO list of plays and pauses
             self.end_time = None
 
     def start(self):
@@ -42,8 +42,7 @@ class Chronometer(Misc):
         else:
             raise RuntimeError()
 
-    @property
-    def running(self):
-        return self.start_time is None and self.end_time is not None
+    def is_running(self):
+        return self.start_time is not None and self.end_time is None
 
 

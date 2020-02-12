@@ -13,7 +13,9 @@
 from abc import ABC
 
 from . import asyncio, database
+from .misc import Chronometer
 
+from datetime import datetime, timedelta
 
 class Game(ABC):
 
@@ -24,3 +26,17 @@ class Game(ABC):
             'timeout_enabled' : True,
             'timeout' : '01:00:00'
         }
+    changed = asyncio.Condition()
+    _chronometer = Chronometer('__game')
+
+    @classmethod
+    async def start(cls, options):
+        cls._chronometer.start()
+
+    @classmethod
+    async def stop(cls, options):
+        cls._chronometer.stop()
+
+    @classmethod
+    def is_running(cls):
+        return cls._chronometer.is_running()

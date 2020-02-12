@@ -11,6 +11,7 @@
 '''
 
 from .. import asyncio
+from ..game import Game
 from ..logic import Puzzle
 from ..misc import Camera, CluesDisplay
 from ..network import Device
@@ -50,12 +51,16 @@ async def cluesdisplay_control(params, query):
         for display in CluesDisplay.displays.values():
             return await display.set_chronometer(params['running'], params['seconds'])
 
-async def game_control(game, params):
+async def game_control(params):
     if params['action'] == 'new_game':
         options = params['options']
-        await game.new_game(options)
+        async with Game.changed:
+            await Game.start(options)
+            Game.changed.notify_all()
     elif params['action'] == 'stop_game':
-        await game.stop_game()
+        async with Game.changed:
+            await Game.stop(options)
+            Game.changed.notify_all()
     return ''
 
 async def puzzle_control(params, query):

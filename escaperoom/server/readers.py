@@ -46,9 +46,9 @@ async def cameras_reader():
     return {'cameras' : cameras}
 
 async def chronometer_reader():
-    chronometer = Chronometer.find_node('.*')
+    chronometer = Chronometer.find_node('__main')
     return {
-            'running' : chronometer.running,
+            'running' : chronometer.is_running(),
             'time' : chronometer.elapsed().total_seconds()*1000
             }
 
@@ -80,12 +80,12 @@ async def devices_reader():
             }
     return {'devices' : devices}
 
-async def game_reader(): #TODO
+async def game_reader():
     return {
-            'running' : True,
+            'running' : Game.is_running(),
             'name' : Game.name,
-            #'start_time' : datetime_to_string(game.start_time),
-            #'end_time' : datetime_to_string(game.end_time),
+            'start_time' : datetime_to_string(Game._chronometer.start_time),
+            'end_time' : datetime_to_string(Game._chronometer.end_time),
             'default_options' : Game.default_options
             }
 
@@ -103,8 +103,8 @@ async def puzzles_reader():
             puzzle.id : {
                 'name' : puzzle.name,
                 'state' : puzzle.state,
-                'col' : puzzle.pos[0],
-                'row' : puzzle.pos[1]
+                'row' : puzzle.pos[0],
+                'col' : puzzle.pos[1],
                 } for puzzle in Puzzle.nodes()
             }
     return {'puzzles' : puzzles}
