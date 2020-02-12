@@ -3,12 +3,6 @@ from setuptools import Extension, setup
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-ccodecs = Extension(
-    'ccodecs', 
-    sources=['./escaperoom/media/ccodecsmodules.c'],
-    libraries=["avcodec", "avutil"]
-)
-
 setup(
     name='escaperoom',
     version='0.1a1',
@@ -19,7 +13,6 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/AntoninRousset/escaperoom',
     packages=['escaperoom'],
-    ext_modules = [ccodecs],
     include_package_data=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
