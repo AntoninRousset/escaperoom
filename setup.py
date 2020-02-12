@@ -1,9 +1,9 @@
-from setuptools import Extension, setup
+import setuptools
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-setup(
+setuptools.setup(
     name='escaperoom',
     version='0.1a1',
     license='GPL-3',
@@ -36,4 +36,3 @@ setup(
         ]
     }
 )
-
