@@ -10,34 +10,34 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from ..game import Game
 from ..logic import Puzzle
-from ..misc import Camera
+from ..misc import Camera, Chronometer
 from ..network import Device
 
-#TODO use the locks for reading? to ensure there is corruption 
 
 def datetime_to_string(datetime):
     if datetime is not None:
         return datetime.strftime('%H:%M')
 
-async def read(game, service, query=None):
+async def read(service, query=None):
     if service == 'cameras':
-        return await cameras_reader(game)
+        return await cameras_reader()
     if service == 'chronometer':
-        return await chronometer_reader(game)
+        return await chronometer_reader()
     if service == 'device':
-        return await device_reader(game, query)
+        return await device_reader(query)
     if service == 'devices':
-        return await devices_reader(game)
+        return await devices_reader()
     if service == 'game':
-        return await game_reader(game)
+        return await game_reader()
     if service == 'puzzle':
-        return await puzzle_reader(game, query)
+        return await puzzle_reader(query)
     if service == 'puzzles':
-        return await puzzles_reader(game)
+        return await puzzles_reader()
     raise KeyError(service)
 
-async def cameras_reader(game):
+async def cameras_reader():
     cameras = {
             camera.id : {
                 'name' : camera.name
@@ -45,33 +45,32 @@ async def cameras_reader(game):
             }
     return {'cameras' : cameras}
 
-async def chronometer_reader(game):
-    running = game.start_time is not None and game.end_time is None
+async def chronometer_reader():
+    chronometer = Chronometer.find_node('.*')
     return {
-            'running' : running,
-            'time' : game.chronometer.total_seconds()*1000
+            'running' : chronometer.running,
+            'time' : chronometer.elapsed().total_seconds()*1000
             }
 
-async def device_reader(game, query):
+async def device_reader(query):
     device = Device.find_node(**query)
     attrs = {
-            id : {
-                'attr_id' : attr.attr_id, 'name' : attr.name,
+            attr_id : {
+                'attr_id' : attr_id,
+                'name' : attr.name,
                 'type' : attr.type,
                 'value' : attr.value
-                } for id, attr in device.attrs.items()
+                } for attr_id, attr in zip(range(device.n_attr), device._attrs)
             }
     return {
             'id' : device.id,
             'name' : device.name,
             'attrs' : attrs,
             'type' : device.type,
-            'addr' : None if device.disconnected() else device.addr[1],
-            'msg' : device.msg,
-            'state' : 'offline' if device.disconnected() else 'online'
+            'addr' : str(device.addr),
             }
 
-async def devices_reader(game):
+async def devices_reader():
     devices = {
             device.id : {
                 'name' : device.name,
@@ -81,27 +80,25 @@ async def devices_reader(game):
             }
     return {'devices' : devices}
 
-async def game_reader(game):
-    async with game.desc_changed:
-        return {
-                'running' : game.running,
-                'name' : game.name,
-                'start_time' : datetime_to_string(game.start_time),
-                'end_time' : datetime_to_string(game.end_time),
-                'default_options' : game.default_options
-                }
+async def game_reader(): #TODO
+    return {
+            'running' : True,
+            'name' : Game.name,
+            #'start_time' : datetime_to_string(game.start_time),
+            #'end_time' : datetime_to_string(game.end_time),
+            'default_options' : Game.default_options
+            }
 
-async def puzzle_reader(game, query):
+async def puzzle_reader(query):
     puzzle = Puzzle.find_node(**query)
-    async with puzzle.desc_changed:
-        return {
-                'id' : puzzle.id,
-                'name' : puzzle.name,
-                'state' : puzzle.state,
-                'description' : puzzle.description
-                }
+    return {
+            'id' : puzzle.id,
+            'name' : puzzle.name,
+            'state' : puzzle.state,
+            'description' : puzzle.desc
+            }
 
-async def puzzles_reader(game):
+async def puzzles_reader():
     puzzles = {
             puzzle.id : {
                 'name' : puzzle.name,

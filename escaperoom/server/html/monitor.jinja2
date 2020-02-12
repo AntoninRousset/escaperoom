@@ -3,7 +3,7 @@
 	<head>
 		<meta charset='utf-8'>
 		<meta name='viewport' content='width=device-width, initial-scale=1'>
-		<title>Escape room - {{game_name}}</title>
+		<title>Escape room</title>
 		<link rel='stylesheet' type='text/css' href='ressources/monitor.css'>
 		<link rel='stylesheet' type='text/css' href='ressources/page.css'>
 		<script src='ressources/game.js' type='module'></script>
@@ -14,13 +14,13 @@
 		<script src='ressources/chronometer.js' type='module'></script>
 	</head>
 	<body>
-		<game-box class='box' src='/{{game_name}}/game'>
+		<game-box class='box' src='/game'>
 			<template>
 				<link rel='stylesheet' type='text/css' href='ressources/game.css'>
 				<div class='screen' name='game'>
 					<div class='section scroll-y'>
 						<p id='game-name'><slot name='name'></slot></p>
-						<chronometer-dial class='time-dial' id='game-chronometer' src='/{{game_name}}/chronometer'>
+						<chronometer-dial class='time-dial' id='game-chronometer' src='/chronometer'>
 						</chronometer-dial>
 						<div id='game-start-end'>
 							<div id='game-start'>
@@ -34,7 +34,7 @@
 							liste des problèmes
 						</game-issues>
 					</div>
-					<game-menu class='section scroll-y' src='{{game_name}}/game'>
+					<game-menu class='section scroll-y' src='/game'>
 						<fieldset id='game-options'>
 							<legend>Options de la partie</legend>
 							<div class='game-option'>
@@ -74,20 +74,20 @@
 						</div>
 					</game-menu>
 				</div>
-				<puzzles-box class='screen' name='puzzles' src='/{{game_name}}/puzzles'>
+				<puzzles-box class='screen' name='puzzles' src='/puzzles'>
 					<template>
 						<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
 						<div class='screen' name='graph'>
 							<div class='section dark' name='graph'>
 								<div class='selectable' id='puzzles-menu'>
-									<chronometer-dial class='time-dial' id='puzzles-chronometer' src='/{{game_name}}/chronometer'>
+									<chronometer-dial class='time-dial' id='puzzles-chronometer' src='/chronometer'>
 									</chronometer-dial>
 								</div>
 								<puzzles-graph class='scroll-y'> 
 									<div id='graph-offset'></div>
 								</puzzles-graph>
 							</div>
-							<puzzle-info class='section scroll-y' src='/{{game_name}}/puzzle'>
+							<puzzle-info class='section scroll-y' src='/puzzle'>
 								<template>
 									<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
 									<div class='screen' name='info'>
@@ -131,14 +131,14 @@
 				<div class='screen' name='error'>Error</div>
 			</template>
 		</game-box>
-		<cameras-box class='box' src='/{{game_name}}/cameras'>
+		<cameras-box class='box' src='/cameras'>
 			<template>
 				<link rel='stylesheet' type='text/css' href='ressources/cameras.css'>
 				<div class='screen dark' name='main'>
 					<cameras-list class='panel scroll-x'>
 						<template class='item'>
 							<link rel='stylesheet' type='text/css' href='ressources/cameras.css'>
-							<camera-video src='/{{game_name}}/camera'>
+							<camera-video src='/camera'>
 								no video
 							</camera-video>
 						</template>
@@ -152,7 +152,7 @@
 				<div class='screen dark' name='error'>Error</div>
 			</template>
 		</cameras-box>
-		<devices-box class='box' src='/{{game_name}}/devices'>
+		<devices-box class='box' src='/devices'>
 			<template>
 				<link rel='stylesheet' type='text/css' href='ressources/devices.css'>
 				<div class='screen' name='main'>
@@ -163,7 +163,7 @@
 							<slot name='name'>name</slot>
 						</template>
 					</devices-list>
-					<device-info class='section scroll-y' src="/{{game_name}}/device">
+					<device-info class='section scroll-y' src="/device">
 						<template>
 							<link rel='stylesheet' type='text/css' href='ressources/devices.css'>
 							<div class='screen' name='info'>
@@ -198,7 +198,7 @@
 				<div class='screen' name='error'>Error</div>
 			</template>
 		</devices-box>
-		<clues-box class='box' src='/{{game_name}}/clues'>
+		<clues-box class='box' src='/clues'>
 			<textarea value='clue'></textarea>
 			<button>Envoyer</button>
 			<ul>

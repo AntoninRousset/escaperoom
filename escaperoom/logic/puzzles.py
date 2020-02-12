@@ -23,6 +23,9 @@ class Puzzle(BoolLogic):
             self._parents = set()
             self._conditions = set()
             self.actions = set()
+            self.heads = set()
+            self.tails = set()
+            self._active = asyncio.Event()
             self.force_active = False
             self._satisfied = asyncio.Event()
             self.force_satisfied = False
@@ -31,8 +34,9 @@ class Puzzle(BoolLogic):
         self.add_parents(parents)
         self.add_conditions(conditions)
         self.actions.update(actions)
+        self.heads.update(heads)
+        self.heads.update(tails)
         self.pos = pos
-        self._active = asyncio.Event()
 
     def __str__(self):
         state = 'done' if self else ('active' if self.active else 'inactive')
@@ -94,7 +98,7 @@ class Puzzle(BoolLogic):
                 return await head()
             except Exception as e:
                 self._log_warning(f'failed to run head: {e}')
-        await asyncio.gather(*(_run_head(head) for head in set(self.heads)))
+        await asyncio.gather(*(_run_head(head) for head in self.heads))
 
     async def _run_tails(self):
         async def _run_tail(tail):
@@ -102,7 +106,7 @@ class Puzzle(BoolLogic):
                 return await tail()
             except Exception as e:
                 self._log_warning(f'failed to run tail: {e}')
-        await asyncio.gather(*(_run_tail(tail) for tail in set(self.tails)))
+        await asyncio.gather(*(_run_tail(tail) for tail in self.tails))
 
     def add_parents(self, parents: Logic):
         for parent in parents:
@@ -123,6 +127,12 @@ class Puzzle(BoolLogic):
     @property
     def satisfied(self) -> bool:
         return True if self.force_satisfied else self._satisfied.is_set()
+
+    @property
+    def state(self) -> str:
+        if self.active and self.satisfied: return 'completed'
+        elif self.active: return 'active'
+        else: return 'inactive'
 
 '''
 class Puzzle(Logic):

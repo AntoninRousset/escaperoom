@@ -24,7 +24,7 @@ _devices = {
                 0: {
                     'name' : 'state',
                     'type' : 'bool',
-                    'value' : 'False'
+                    'value' : '0'
                     }
                 }
             },
@@ -33,7 +33,7 @@ _devices = {
                 0: {
                     'name' : 'light_state',
                     'type' : 'bool',
-                    'value' : 'False'
+                    'value' : '0'
                     }
                 }
             },
@@ -42,7 +42,7 @@ _devices = {
                 0: {
                     'name' : 'light_state',
                     'type' : 'bool',
-                    'value' : 'False'
+                    'value' : '0'
                     }
                 }
             },
@@ -51,7 +51,7 @@ _devices = {
                 0: {
                     'name' : 'light_state',
                     'type' : 'bool',
-                    'value' : 'False'
+                    'value' : '0'
                     }
                 }
             },
@@ -60,7 +60,7 @@ _devices = {
                 0: {
                     'name' : 'light_state',
                     'type' : 'bool',
-                    'value' : 'False'
+                    'value' : '0'
                     }
                 }
             }

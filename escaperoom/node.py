@@ -18,7 +18,6 @@ from . import asyncio, logging
 
 logger = logging.getLogger('escaperoom')
 
-
 class Node(ABC):
 
     class Group(dict):
