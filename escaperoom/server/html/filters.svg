@@ -1,0 +1,224 @@
+<svg version="1.1"
+     baseProfile="full"
+     width="800" height="600"
+     xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+
+    <!-- node circle gradient -->
+    <linearGradient id="node_circle_gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="20%" style="stop-color: #f6f4e6; stop-opacity: 1" />
+      <stop offset="80%" style="stop-color: #e1e0d7; stop-opacity: 1" />
+    </linearGradient>
+
+    <!-- node circle filter -->
+    <filter
+       style="color-interpolation-filters:sRGB;"
+       id="node_circle_filter"
+       x="-20%"
+       y="-20%"
+       width="140%"
+       height="140%" >
+
+      <!-- highlight line -->
+      <feFlood
+         flood-opacity="0.7"
+         flood-color="#ffffff"
+         result="highlight" />
+      <feComposite
+         in="highlight"
+         in2="SourceGraphic"
+         operator="out"
+         result="highlight" />
+      <feOffset
+         dx="0"
+         dy="2"
+         result="highlight" />
+      <feComposite
+         in="highlight"
+         in2="SourceGraphic"
+         operator="in"
+         result="highlight" />
+      <feComposite
+         in="highlight"
+         in2="SourceGraphic"
+         operator="lighter"
+         result="compo" />
+
+      <!-- shadow -->
+      <feFlood
+         flood-opacity="0.4"
+         flood-color="#000000"
+         result="shadow" />
+      <feComposite
+         in="shadow"
+         in2="SourceGraphic"
+         operator="in"
+         result="shadow" />
+      <feGaussianBlur
+         in="shadow"
+         stdDeviation="8"
+         result="shadow"
+         />
+      <feOffset
+         dx="0"
+         dy="0"
+         result="shadow" />
+      <feComposite
+         in="compo"
+         in2="shadow"
+         operator="over"
+         result="compo" />
+
+    </filter>
+
+    <!-- node img filter -->
+    <filter
+       style="color-interpolation-filters:sRGB;"
+       id="node_img_filter">
+
+      <!-- shadow -->
+      <feFlood
+         flood-opacity="0.5"
+         flood-color="#000000"
+         result="shadow" />
+      <feComposite
+         in="shadow"
+         in2="SourceGraphic"
+         operator="out"
+         result="shadow" />
+      <feGaussianBlur
+         in="shadow"
+         stdDeviation="2"
+         result="shadow"
+         />
+      <feOffset
+         dx="0"
+         dy="0"
+         result="shadow" />
+      <feComposite
+         in="shadow"
+         in2="SourceGraphic"
+         operator="atop"
+         result="compo" />
+
+      <!-- highlight line -->
+      <feFlood
+         flood-opacity="0.6"
+         flood-color="#ffffff"
+         result="highlight" />
+      <feComposite
+         in="highlight"
+         in2="SourceGraphic"
+         operator="in"
+         result="highlight" />
+      <feOffset
+         dx="0"
+         dy="1"
+         result="highlight" />
+      <feComposite
+         in="highlight"
+         in2="SourceGraphic"
+         operator="out"
+         result="highlight" />
+      <feComposite
+         in="highlight"
+         in2="compo"
+         operator="over"
+         result="compo" />
+
+    </filter>
+
+  </defs>
+
+  <rect width="100%" height="100%" fill="#0f4c75" />
+
+  <!-- Bases -->
+
+  <g>
+    <circle cx="100" cy="100" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="80" y="80" width="40" height="40" href="icons/base_cross.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <g>
+    <circle cx="200" cy="100" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="180" y="80" width="40" height="40" href="icons/base_triangle.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <g>
+    <circle cx="300" cy="100" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="280" y="80" width="40" height="40" href="icons/base_hexagon.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <g>
+    <circle cx="400" cy="100" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="380" y="80" width="40" height="40" href="icons/base_star.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <!-- code enter time potion uv -->
+
+  <g>
+    <circle cx="100" cy="200" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="80" y="180" width="40" height="40" href="icons/code.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <g>
+    <circle cx="200" cy="200" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="180" y="180" width="40" height="40" href="icons/enter.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <g>
+    <circle cx="300" cy="200" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="280" y="180" width="40" height="40" href="icons/time.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <g>
+    <circle cx="400" cy="200" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="380" y="180" width="40" height="40" href="icons/potion.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <g>
+    <circle cx="500" cy="200" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="480" y="180" width="40" height="40" href="icons/uv.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <!-- fuses -->
+
+  <g>
+    <circle cx="100" cy="300" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="80" y="280" width="40" height="40" href="icons/fuse1.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <g>
+    <circle cx="200" cy="300" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="180" y="280" width="40" height="40" href="icons/fuse2.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <g>
+    <circle cx="300" cy="300" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="280" y="280" width="40" height="40" href="icons/fuse3.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <!-- jacks -->
+
+  <g>
+    <circle cx="100" cy="400" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="80" y="380" width="40" height="40" href="icons/jack1.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <g>
+    <circle cx="200" cy="400" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="180" y="380" width="40" height="40" href="icons/jack2.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <g>
+    <circle cx="300" cy="400" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="280" y="380" width="40" height="40" href="icons/jack3.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+  <g>
+    <circle cx="400" cy="400" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
+    <image x="380" y="380" width="40" height="40" href="icons/jack4.svg#icon" filter="url(#node_img_filter)" /> 
+  </g>
+
+</svg>

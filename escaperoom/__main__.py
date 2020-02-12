@@ -21,11 +21,13 @@ ROOT = Path(os.path.dirname(__file__))
 
 logger = logging.getLogger('escaperoom')
 
+
 def get_args():
     parser = ArgumentParser(description='EscapeRoom server')
     parser.add_argument('--rooms', type=str, default='.*',
                         help='Regex of the rooms to load')
     return parser.parse_args()
+
 
 def load_rooms(rooms_dir, rooms):
     @contextmanager
@@ -44,7 +46,8 @@ def load_rooms(rooms_dir, rooms):
         importlib.machinery.SourceFileLoader,
         importlib.machinery.SOURCE_SUFFIXES
         )
-    room_finder = importlib.machinery.FileFinder(str(rooms_dir), loader_details)
+    room_finder = importlib.machinery.FileFinder(str(rooms_dir),
+                                                 loader_details)
     for child in Path(rooms_dir).iterdir():
         name = child.stem
         spec = room_finder.find_spec(name)
@@ -58,10 +61,12 @@ def load_rooms(rooms_dir, rooms):
         with sibling_imports(room):
             spec.loader.exec_module(room)
 
+
 def main():
     args = get_args()
     load_rooms(Path(config['DEFAULT']['rooms_dir']).expanduser(), args.rooms)
     asyncio.get_event_loop().run_forever()
+
 
 if __name__ == '__main__':
     main()
