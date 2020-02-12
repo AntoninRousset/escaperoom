@@ -20,14 +20,13 @@ from ..media import MediaPlayer
 
 class Camera(Misc):
 
-    _group = dict()
+    _group = Misc.Group()
 
     def __init__(self, name):
         super().__init__(name)
         self.connected = False 
         self.desc_changed = self.Condition()
         self.cameras_changed = self.Condition()
-        self._register()
 
     def __str__(self):
         return f'camera "{self.name}"'

@@ -10,8 +10,25 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from abc import ABC, abstractmethod
+
 from .. import asyncio, logging
+from ..node import Node
 
-logger = logging.getLogger('escaperoom')
+logger = logging.getLogger('escaperoom.logic')
 
-from .player import MediaPlayer
+class Logic(Node):
+    
+    _logger = logger
+
+
+class BoolLogic(Logic, ABC):
+
+    @abstractmethod
+    def __bool__(self):
+        pass
+
+
+from .actions import Action, action
+from .conditions import Condition, condition
+from .puzzles import Puzzle

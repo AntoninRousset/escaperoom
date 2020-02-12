@@ -16,7 +16,7 @@ from . import Misc
 
 class Chronometer(Misc):
 
-    _groups = dict()
+    _groups = Misc.Group()
 
 class LocalChronometer(Chronometer):
     pass
