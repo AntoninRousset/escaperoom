@@ -18,7 +18,6 @@ from . import asyncio, Network
 class Device(Network):
 
     _group = dict()
-
     devices_changed = asyncio.Condition()
 
     class Attribute():
@@ -27,38 +26,27 @@ class Device(Network):
             super().__init__()
             self.attr_id = attr_id
             self.name = name
-            self.type = type 
-            self.value = value 
+            self.type = type
+            self.value = value
             self.desc_changed = asyncio.Condition()
 
         def __str__(self):
-            if self.name is not None:
-                return f'attribute "{self.name}"'
-            elif self.attr_id is not None:
-                return f'attribute [{self.attr_id}]'
-            else:
-                return 'attribute'
+            name = f'"{self.name}"' if self.name is not None else '???'
+            attr_id = self.attr_id if self.attr_id is not None else '?'
+            return f'attribute {name} [{attr_id}]'
 
         @property
         def value(self):
             if self._value is None:
                 return None
-            if self.type == 'int':
-                return int(self._value)
-            if self.type == 'float':
-                return float(self._value)
-            if self.type == 'bool':
-                return bool(float(self._value))
-            if self.type == 'str':
-                return str(self._value)
-            return self._value
+            return {'int': int, 'float': float, 'str': str,
+                    'bool': (lambda x: bool(float(x)))}(self._value)
 
         @value.setter
         def value(self, value):
             self._value = value
 
-
-    def __init__(self, name, *, addr=None, type='?'): 
+    def __init__(self, name, *, addr=None, type='?'):
         super().__init__(name)
         self.addr = addr
         self.type = type
@@ -86,7 +74,7 @@ class Device(Network):
                     self.attrs_changed.notify_all()
 
     def add_attr(self, attr):
-        _id = hex(id(attr)) 
+        _id = hex(id(attr))
         self.attrs[_id] = attr
         self.create_task(self._attr_listening(attr))
         self._log_debug(f'{self}: {attr} added')
@@ -129,10 +117,10 @@ class LocalDevice(Device):
         self.create_task(self._bus_listening(bus))
 
     async def _attr_listening(self, attr):
-        while attr in self.attrs.values(): 
+        while attr in self.attrs.values():
             attr_name, attr_type = attr.name, attr.type
             attr_value = attr.value
-            async with attr.desc_changed: 
+            async with attr.desc_changed:
                 await attr.desc_changed.wait()
                 if attr.name != attr_name or attr.type != attr_type:
                     await self.send(f'attr {attr.attr_id} {attr.name} {attr.type}')
@@ -154,13 +142,13 @@ class LocalDevice(Device):
             self.msg = msg
             self.msg_changed.notify_all()
         words = msg.split()
-        if re.match('\s*get\s+desc\s*', msg):
+        if re.match(r'\s*get\s+desc\s*', msg):
             await self.send(f'desc {self.name} {self.n_attr}')
-        elif re.match('\s*get\s+attr\s+\d+\s*', msg):
+        elif re.match(r'\s*get\s+attr\s+\d+\s*', msg):
             attr = self._find_attr(int(words[2]))
             if attr is not None:
                 await self.send(f'attr {attr.attr_id} {attr.name} {attr.type}')
-        elif re.match('\s*get\s+val\s+\d+\s*', msg):
+        elif re.match(r'\s*get\s+val\s+\d+\s*', msg):
             attr = self._find_attr(int(words[2]))
             if attr is not None:
                 await self.send(f'val {attr.attr_id} {attr.value}')
@@ -169,7 +157,8 @@ class LocalDevice(Device):
         while True:
             if self.disconnected():
                 async with self.desc_changed:
-                    await self.desc_changed.wait() # wait for reconnection
+                    # wait for reconnection
+                    await self.desc_changed.wait()
             else:
                 return await self.addr[0].send(self.addr[1], msg)
 
@@ -198,7 +187,7 @@ class RemoteDevice(Device):
     async def _desc_fetching(self):
         while True:
             if (self.name is None or self.n_attr is None) and not self.disconnected():
-                self._log_debug(f'{self}: incomplete desc') 
+                self._log_debug(f'{self}: incomplete desc')
                 await self.send(f'get desc')
                 await asyncio.sleep(5)
             else:
@@ -210,7 +199,7 @@ class RemoteDevice(Device):
                 await self.changed.wait()
             else:
                 if len(self.attrs) < self.n_attr:
-                    self._log_debug(f'{self}: fetching attrs') 
+                    self._log_debug(f'{self}: fetching attrs')
                     attr_ids = set(range(self.n_attr)) - self.attrs_ids
                     cs = {self.send(f'get attr {a_id}') for a_id in attr_ids}
                     await asyncio.gather(*cs)
@@ -218,7 +207,7 @@ class RemoteDevice(Device):
                 elif len(self.attrs) > self.n_attr:
                     attr_ids = self.attr_ids - set(range(self.n_attr))
                     self._log_debug(f'{self}: too many attrs, removing {attr_ids}') 
-                    for attr_id in attr_ids: 
+                    for attr_id in attr_ids:
                         self.remove_attr(attr_id)
                 else:
                     await self.changed.wait()
@@ -249,7 +238,8 @@ class RemoteDevice(Device):
 
         attr = await asyncio.wait_for(get_sane_attr(name), timeout=30)
         msg_value = str(value)
-        if attr.type == 'bool': #Not good
+        # Not good
+        if attr.type == 'bool':
             if value == 'True' or value == 'true':
                 msg_value = '1'
             elif value == 'False' or value == 'false':
@@ -269,14 +259,14 @@ class RemoteDevice(Device):
             self.msg_changed.notify_all()
         words = msg.split()
         self._log_debug(f'{self}: reading message: {msg}')
-        if re.match('\s*desc\s+\w*\s+\d+\s*', msg):
+        if re.match(r'\s*desc\s+\w*\s+\d+\s*', msg):
             async with self.desc_changed:
                 self._log_debug(f'{self}: setting desc from msg')
                 name, n_attr = words[1], int(words[2]) 
                 if self.name != name or self.n_attr != n_attr:
                     self.desc_changed.notify_all()
                 self.name, self.n_attr = name, n_attr 
-        elif re.match('\s*attr\s+\d+\s+\w+\s+\w+\s*', msg):
+        elif re.match(r'\s*attr\s+\d+\s+\w+\s+\w+\s*', msg):
             self._log_debug(f'{self}: setting attribute\'s desc')
             attr_id, name, type = int(words[1]), words[2], words[3]
             attr = self._find_attr(attr_id, name)
@@ -290,7 +280,7 @@ class RemoteDevice(Device):
                 async with attr.desc_changed:
                     attr.desc_changed.notify_all()
                     attr.attr_id, attr.name, attr.type = attr_id, name, type
-        elif re.match('\s*val\s+\d+\s+\w+\s*', msg):
+        elif re.match(r'\s*val\s+\d+\s+\w+\s*', msg):
             self._log_debug(f'{self}: setting attribute\'s value')
             attr_id, value = int(words[1]), words[2]
             attr = self._find_attr(attr_id)
@@ -306,7 +296,8 @@ class RemoteDevice(Device):
         while True:
             if self.disconnected():
                 async with self.desc_changed:
-                    await self.desc_changed.wait() # wait for reconnection
+                    # wait for reconnection
+                    await self.desc_changed.wait()
             else:
                 return await self.addr[0].send(self.addr[1], msg)
 
@@ -314,4 +305,3 @@ class RemoteDevice(Device):
         if self.addr is None:
             return True
         return False
-

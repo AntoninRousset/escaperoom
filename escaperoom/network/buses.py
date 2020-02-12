@@ -17,6 +17,7 @@ from . import asyncio
 
 logger = logging.getLogger('escaperoom.network')
 
+
 class Bus():
 
     def __init__(self):
@@ -24,6 +25,7 @@ class Bus():
         self.desc_changed = asyncio.Condition()
         self.packet = None
         self.packet_changed = asyncio.Condition()
+
 
 class SerialBus(Bus):
 
@@ -64,7 +66,7 @@ class SerialBus(Bus):
         return await self.send(0x0, msg)
 
 
-#TODO should connect to the HTTPServer via websocket
+# TODO should connect to the HTTPServer via websocket
 class SocketBus(Bus):
 
     def __init__(self, host, port, *, bus_id, create_server=False):
@@ -93,7 +95,8 @@ class SocketBus(Bus):
     def _connect(self, host, port):
         while self.disconnected():
             try:
-                self._reader, self._writer = yield from asyncio.open_connection(host, port)
+                self._reader, self._writer = \
+                    yield from asyncio.open_connection(host, port)
             except ConnectionRefusedError:
                 logger.warning(f'{self}: connection refused')
                 #await asyncio.wait(5)
@@ -130,4 +133,3 @@ class SocketBus(Bus):
         if self._reader is None or self._writer is None:
             return True
         return False
-

@@ -10,13 +10,14 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from . import asyncio, config, logging 
+from . import asyncio, logging
 from .node import Node
 
 logger = logging.getLogger('escaperoom.logic')
 
+
 class Logic(Node):
-    
+
     _logger = logger
 
 
@@ -25,8 +26,9 @@ class Puzzle(Logic):
     _group = dict()
 
     def __init__(self, name, *, initial_state='inactive', description='',
-                 head=lambda: None, tail=lambda: None, parents=[], conditions=[],
-                 predicate=lambda: True, pos=None):
+                 head=lambda: None, tail=lambda: None, parents=None,
+                 conditions=None, predicate=lambda: True, pos=None):
+
         super().__init__(name)
         self.name = name
         self.initial_state = initial_state
@@ -47,7 +49,10 @@ class Puzzle(Logic):
 
         self.pos = pos
 
+        parents = parents or []
         {self.add_parent(parent) for parent in parents}
+
+        conditions = conditions or []
         {self.add_condition(condition) for condition in conditions}
 
         self._register()
@@ -77,7 +82,7 @@ class Puzzle(Logic):
     async def _parent_listening(self, parent):
         while True:
             async with parent.desc_changed:
-                if self.state == 'inactive' and parent.state is 'completed':
+                if self.state == 'inactive' and parent.state == 'completed':
                     async with self.desc_changed:
                         self._state = 'active'
                         self.desc_changed.notify_all()
@@ -104,7 +109,7 @@ class Puzzle(Logic):
             if not self.predicate():
                 return
         except Exception as e:
-            return loggger.debug(f'{self}: predicate error: {e}')
+            return logger.debug(f'{self}: predicate error: {e}')
         async with self.desc_changed:
             self._state = 'completed'
             self.desc_changed.notify_all()
@@ -142,4 +147,3 @@ class Puzzle(Logic):
         if self.force_active and self._state == 'inactive':
             return 'active'
         return self._state
-

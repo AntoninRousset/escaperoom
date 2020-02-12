@@ -12,12 +12,12 @@
 
 import re
 from abc import ABC, abstractclassmethod
-from collections import defaultdict
 
 from . import asyncio, logging
 
 
 logger = logging.getLogger('escaperoom')
+
 
 class Node(ABC):
 
@@ -100,4 +100,3 @@ class Node(ABC):
 
     def kill(self):
         print('kill')
-
