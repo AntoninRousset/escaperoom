@@ -54,14 +54,18 @@ async def chronometer_reader():
 
 async def device_reader(query):
     device = Device.find_node(**query)
-    attrs = {
-            attr_id : {
-                'attr_id' : attr_id,
-                'name' : attr.name,
-                'type' : attr.type,
-                'value' : attr.value
-                } for attr_id, attr in zip(range(device.n_attr), device._attrs)
-            }
+    attrs = None if device._attrs is None else dict()
+    if device._attrs is None:
+        attrs = None
+    else:
+        attrs = {
+                attr_id : {
+                    'attr_id' : attr_id,
+                    'name' : attr.name,
+                    'type' : attr.type,
+                    'value' : attr.value
+                    } for attr_id, attr in zip(range(device.n_attr), device._attrs)
+                }
     return {
             'id' : device.id,
             'name' : device.name,

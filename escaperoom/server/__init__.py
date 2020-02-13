@@ -66,7 +66,13 @@ class HTTPServer(Server):
         if interface:
             self._activate_interface()
         self.app.add_routes(routes)
+        runner = web.AppRunner(self.app)
+        asyncio.run_until_complete(runner.setup())
+        self.site = web.TCPSite(runner, host, port)
         self._start(host, port)
+
+    def __str__(self):
+        return f'server on {self.site._host}:{self.site._port}'
 
     def _activate_interface(self):
         self.app.router.add_static('/ressources', f'{ROOT}/html/', append_version=True)
@@ -74,9 +80,6 @@ class HTTPServer(Server):
         self.app.add_routes(interface_routes)
 
     def _start(self, host, port):
-        runner = web.AppRunner(self.app)
-        asyncio.run_until_complete(runner.setup())
-        site = web.TCPSite(runner, host, port)
-        asyncio.run_until_complete(site.start())
-        self._log_info(f'server on {site._host}:{site._port}')
+        asyncio.run_until_complete(self.site.start())
+        self._log_info(f'started')
 

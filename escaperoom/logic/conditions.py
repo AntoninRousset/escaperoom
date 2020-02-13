@@ -55,7 +55,7 @@ class Condition(BoolLogic):
                 self._failed.clear()
             except Exception as e:
                 self._log_warning(f'failed to check condition: {e}')
-                self.msg = 'Error'
+                self.msg = '_Error'
                 self._failed.set()
             else:
                 if not self.satisfied and self.msg is None:

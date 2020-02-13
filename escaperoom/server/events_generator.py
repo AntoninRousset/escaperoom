@@ -97,8 +97,10 @@ async def devices_events(events_queue):
                                 'loc' : f'/devices'})
 
 async def _device_events(device, events_queue):
-    while True:
-        await device.changed.wait()
-        await events_queue.put({'type' : 'update',
-                                'loc' : f'/device?id={device.id}'})
+    while device in Device.nodes():
+        async with device.changed:
+            await device.changed.wait()
+            await events_queue.put({'type' : 'update',
+                                    'loc' : f'/device?id={device.id}'})
 
+            await events_queue.put({'type' : 'update', 'loc' : f'/devices'})

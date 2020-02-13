@@ -181,8 +181,12 @@ class SerialDevice(Device):
                     if attr._value is None:
                         cos.add(self._send(f'get val {attr_id}'))
                 if cos:
+                    self._log_debug(f'incomplete attrs') 
                     await asyncio.gather(*cos)
-                    await asyncio.wait_for(self._reset.wait(), timeout=5)
+                    try:
+                        await asyncio.wait_for(self._reset.wait(), timeout=5)
+                    except TimeoutError:
+                        pass
                 else:
                     async with self.changed:
                         await self.changed.wait()
@@ -206,21 +210,23 @@ class SerialDevice(Device):
                     self._set_n_attr(n_attr)
                     self.changed.notify_all()
         elif re.match('\s*attr\s+\d+\s+\w+\s+\w+\s*', msg):
-            self._log_debug(f'setting attribute from msg')
-            attr_id, name, type = int(words[1]), words[2], words[3]
-            attr = self._attrs[attr_id]
-            if attr.name != name or attr.type != type:
-                async with self.changed:
-                    attr.name, attr.type = name, type
-                    self.changed.notify_all()
+            if self._attrs is not None:
+                self._log_debug(f'setting attribute from msg')
+                attr_id, name, type = int(words[1]), words[2], words[3]
+                attr = self._attrs[attr_id]
+                if attr.name != name or attr.type != type:
+                    async with self.changed:
+                        attr.name, attr.type = name, type
+                        self.changed.notify_all()
         elif re.match('\s*val\s+\d+\s+\w+\s*', msg):
-            self._log_debug(f'setting attribute\'s value from msg')
-            attr_id, value = int(words[1]), words[2]
-            attr = self._attrs[attr_id]
-            if attr._value != value:
-                async with self.changed:
-                    attr.value = value
-                    self.changed.notify_all()
+            if self._attrs is not None:
+                self._log_debug(f'setting attribute\'s value from msg')
+                attr_id, value = int(words[1]), words[2]
+                attr = self._attrs[attr_id]
+                if attr._value != value:
+                    async with self.changed:
+                        attr.value = value
+                        self.changed.notify_all()
 
     async def _send(self, msg):
         while self.addr is None:
@@ -254,27 +260,32 @@ class SerialDevice(Device):
             _, attr = await self._find_attr(name)
         except KeyError:
             self._log_warning(f'cannot get value: {e}')
+            raise
         while attr.value is None:
             async with self.changed:
                 await self.changed.wait()
         return attr.value
 
     async def set_value(self, name, value):
+        async def wait_value(attr, value):
+            while attr._value != value:
+                await self.changed.wait()
         try:
             attr_id, attr = await self._find_attr(name)
-        except KeyError as e:
-            self._log_warning(f'cannot set value: {e}')
-            raise
-        else:
             async with self.changed:
                 value = self._value_for_msg(attr.type, value)
                 await self._send(f'set val {attr_id} {value}')
-                while attr._value != value:
-                    await self.changed.wait()
+                await asyncio.wait_for(wait_value(attr, value), timeout=20)
+        except KeyError as e:
+            self._log_warning(f'cannot set value: {e}')
+            raise
+        except TimeoutError: 
+            self._log_warning(f'cannot set value: the attribute did not change')
+            raise
 
     async def reset(self):
-        await self.set_value('reboot', True)
         async with self.changed:
+            await self._send(f'reset')
             self._attrs = None
             self._reset.set()
             self._reset.clear()

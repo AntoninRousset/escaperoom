@@ -119,7 +119,7 @@ _devices_defaults = {
 _devices = deepcopy(_devices_defaults)
 
 COMPUTER_SEND_DELAY = 0
-ARDUINO_SEND_DELAY = 0
+ARDUINO_SEND_DELAY = 5
 
 async def listen():
     while True:
@@ -179,10 +179,3 @@ async def _events_creator():
 
 asyncio.create_task(_events_creator())
 
-'''
-Remarks:
-- We should avoid for an arduino to ping_back twice at once, i.e. when it has
-  received a second ping from the computer while he was trying to answer to the
-  first one. This could be generalised to any question-like packet from the
-  computer, although it may need some work on the arduino's side...
-'''
