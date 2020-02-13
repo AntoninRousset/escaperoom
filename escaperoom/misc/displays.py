@@ -13,15 +13,14 @@
 import aiohttp, json, re
 from abc import ABC, abstractmethod
 
-from . import asyncio
-from . import Node 
+from . import asyncio, Misc
 
-class Display(Node):
+class Display(Misc):
     pass
 
 class CluesDisplay(Display):
 
-    _group = dict()
+    _group = Display.Group()
 
     def __init__(self, name, game=None):
         super().__init__(name)

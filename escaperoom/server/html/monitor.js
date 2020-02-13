@@ -183,6 +183,7 @@ export var Subscriber = (function() {
   event_handler = function(event) {
     var data, j, len, results, subscriber;
     data = JSON.parse(event.data);
+    console.log(data);
     results = [];
     for (j = 0, len = subscribers.length; j < len; j++) {
       subscriber = subscribers[j];

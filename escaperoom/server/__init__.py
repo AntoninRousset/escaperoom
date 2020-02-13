@@ -18,7 +18,6 @@ from os.path import dirname
 from . import controls, events_generator, readers
 
 from .. import asyncio, logging
-from ..game import Game
 from ..node import Node
 
 ROOT = dirname(__file__)
@@ -33,38 +32,27 @@ class Server(Node):
     _logger = logger
 
 @interface_routes.get('/')
-async def index(request):
-    games_names = {game.name for game in Game.nodes()}
-    return web.Response(text=f'available games are {games_names}')
-
-@interface_routes.get('/{game_name}')
 async def monitor(request):
-    game_name = request.match_info['game_name']
-    if game_name not in {game.name for game in Game.nodes()}:
-        return ''
-    context = {'game_name' : game_name}
+    context = {'game_name' : ''}
     return aiohttp_jinja2.render_template('monitor.jinja2', request, context)
 
-@routes.get('/{game_name}/events')
+@routes.get('/events')
 async def events(request):
-    game = Game.find_node(name=request.match_info['game_name'])
     async with sse_response(request) as resp:
-        async for event in events_generator.generator(game):
+        async for event in events_generator.generator():
             await resp.send(json.dumps(event))
     return resp
 
-@routes.get('/{game_name}/{service}')
+@routes.get('/{service}')
 async def reader(request):
-    game = Game.find_node(name=request.match_info['game_name'])
     service = request.match_info['service']
-    data = await readers.read(game, service, request.query)
+    data = await readers.read(service, request.query)
     return web.Response(content_type='application/json', text=json.dumps(data))
 
-@routes.post('/{game_name}/{service}')
+@routes.post('/{service}')
 async def puzzles(request):
-    game = Game.find_node(name=request.match_info['game_name'])
     service = request.match_info['service']
-    answer = await controls.control(game, await request.json(), service, request.query)
+    answer = await controls.control(await request.json(), service, request.query)
     return web.Response(content_type='application/json', text=json.dumps(answer))
 
 class HTTPServer(Server):

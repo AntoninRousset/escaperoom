@@ -11,27 +11,28 @@
 '''
 
 from .. import asyncio
+from ..game import Game
 from ..logic import Puzzle
 from ..misc import Camera, CluesDisplay
 from ..network import Device
 
-async def control(game, params, service, query=None):
+async def control(params, service, query=None):
     if service == 'camera':
-        return await camera_control(game, params, query)
+        return await camera_control(params, query)
     if service == 'device':
-        return await device_control(game, params, query)
+        return await device_control(params, query)
     if service == 'display':
-        return await display_control(game, params, query)
+        return await display_control(params, query)
     if service == 'game':
-        return await game_control(game, params)
+        return await game_control(params)
     if service == 'puzzle':
-        return await puzzle_control(game, params, query)
+        return await puzzle_control(params, query)
 
-async def camera_control(game, params, query):
+async def camera_control(params, query):
     camera = Camera.find_node(**query)
     return await camera.handle_sdp(params['sdp'], params['type'])
 
-async def device_control(game, params, query):
+async def device_control(params, query):
     device = Device.find_node(**query)
     if params['action'] == 'set_val':
         try:
@@ -42,7 +43,7 @@ async def device_control(game, params, query):
         finally:
             return {'result' : 'success'}
 
-async def display_control(game, params, query):
+async def cluesdisplay_control(params, query):
     if params['type'] == 'clue':
         cluesdisplay = CluesDisplay.find_node(name='.*')
         return await cluesdisplay.set_clue(params['text'])
@@ -50,27 +51,31 @@ async def display_control(game, params, query):
         for display in CluesDisplay.displays.values():
             return await display.set_chronometer(params['running'], params['seconds'])
 
-async def game_control(game, params):
+async def game_control(params):
     if params['action'] == 'new_game':
         options = params['options']
-        await game.new_game(options)
+        async with Game.changed:
+            await Game.start(options)
+            Game.changed.notify_all()
     elif params['action'] == 'stop_game':
-        await game.stop_game()
+        async with Game.changed:
+            await Game.stop(options)
+            Game.changed.notify_all()
     return ''
 
-async def puzzle_control(game, params, query):
+async def puzzle_control(params, query):
     puzzle = Puzzle.find_node(**query)
     if params['action'] == 'activate':
-        async with puzzle.desc_changed:
+        async with puzzle.changed:
             puzzle.force_active = True
-            puzzle.desc_changed.notify_all()
+            puzzle.changed.notify_all()
     elif params['action'] == 'complete':
-        async with puzzle.desc_changed:
+        async with puzzle.changed:
             puzzle.force_completed = True
-            puzzle.desc_changed.notify_all()
+            puzzle.changed.notify_all()
     elif params['action'] == 'restore':
-        async with puzzle.desc_changed:
+        async with puzzle.changed:
             puzzle.force_active = False
             puzzle.force_completed = False
-            puzzle.desc_changed.notify_all()
+            puzzle.changed.notify_all()
 

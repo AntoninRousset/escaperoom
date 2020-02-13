@@ -24,7 +24,7 @@ class Misc(Node):
 
 
 from .cameras import Camera, LocalCamera, RemoteCamera
-from .chronometers import Chronometer, LocalChronometer, RemoteChronometer
+from .chronometers import Chronometer
 from .displays import CluesDisplay, LocalCluesDisplay, RemoteCluesDisplay
 
 

@@ -18,15 +18,13 @@ from . import asyncio, logging
 
 logger = logging.getLogger('escaperoom')
 
-
 class Node(ABC):
 
-    group_changed = asyncio.Event()
+    class Group(dict):
+        pass
 
-    @property
-    @abstractclassmethod
-    def _group(cls):
-        raise NotImplementedError
+    _logger = logger
+    group_changed = asyncio.Event()
 
     @classmethod
     def nodes(cls):
@@ -34,34 +32,40 @@ class Node(ABC):
 
     @classmethod
     def find_node(cls, name=None, *, id=None):
-        if id is not None:
+        if id:
             return cls._group[id]
-        if name is not None:
+        if name:
             for node in cls._group.values():
-                if re.match(name, node.name):
+                if node.name and re.match(name, node.name):
                     return node
 
     def __new__(cls, name=None, *args, **kwargs):
         existing_node = cls.find_node(name)
         if existing_node is not None:
-            logger.info(f'Node "{name}" already exist, returning the existing one')
+            cls._logger.debug(f'Node "{name}" already exist, returning existing one')
+            existing_node._first_init = False
             return existing_node
         return super(Node, cls).__new__(cls)
 
     def __init__(self, name):
         self.name = name
+        try:
+            return self._first_init
+        except AttributeError:
+            self._first_init = True
         self.id = hex(id(self))
+        self.changed = asyncio.Condition()
         self.__tasks = set()
-        self.changed = asyncio.Event()
         self.create_task(self.__change_listener())
+        self.__register()
 
-    def __str__(self):
-        return f'node "{self.name}"'
-
-    def _register(self):
+    def __register(self):
         self._group[self.id] = self
         self.group_changed.set()
         self.group_changed.clear()
+
+    def __str__(self):
+        return f'node "{self.name}"'
 
     def create_task(self, future):
         task = asyncio.create_task(future)
@@ -98,5 +102,3 @@ class Node(ABC):
     def _log_error(self, msg):
         self._logger.error(f'{self}: {msg}')
 
-    def kill(self):
-        print('kill')

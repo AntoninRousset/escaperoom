@@ -10,10 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import importlib
-import logging
-import os
-import sys
+import errno, importlib, logging, os, re, sys
 from argparse import ArgumentParser
 from contextlib import contextmanager
 from pathlib import Path
@@ -54,7 +51,7 @@ def load_rooms(rooms_dir, rooms):
     for child in Path(rooms_dir).iterdir():
         name = child.stem
         spec = room_finder.find_spec(name)
-        if spec.loader is None:
+        if spec is None or spec.loader is None:
             logger.debug(f'skipping child "{name}" in {rooms_dir}')
             continue
         if name in rooms:

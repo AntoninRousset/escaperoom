@@ -10,19 +10,20 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import logging
-import PJON_daemon_client as pac
+from . import config
+if config['DEFAULT'].getboolean('test'):
+    from . import serial_test as serial
+else:
+    import PJON_daemon_client as serial
 
-from . import asyncio
+from . import asyncio, Network
 
-logger = logging.getLogger('escaperoom.network')
+class Bus(Network):
 
+    _group = Network.Group()
 
-class Bus():
-
-    def __init__(self):
-        super().__init__()
-        self.desc_changed = asyncio.Condition()
+    def __init__(self, name=None):
+        super().__init__(name)
         self.packet = None
         self.packet_changed = asyncio.Condition()
 
@@ -34,39 +35,49 @@ class SerialBus(Bus):
         self.path = path
         asyncio.create_task(self._listener())
         self.sending = asyncio.Condition()
+        self._connected = asyncio.Event()
 
     def __str__(self):
-        return f'serial [{self.path}]'
+        return f'serialbus'
 
     async def _listener(self):
         while True:
             try:
-                async for packet in pac.listen():
-                    if isinstance(packet, pac.proto.PacketIngoingMessage):
-                        device_id = packet.src
-                        msg = packet.data.decode('ascii')
-                        packet = (device_id, str(msg)[:-1])
+                async for packet in serial.listen():
+                    if isinstance(packet, serial.proto.PacketIngoingMessage):
+                        packet = packet.src, str(packet.data.decode('ascii'))[:-1]
                         async with self.packet_changed:
                             self.packet = packet
                             self.packet_changed.notify_all()
-                        logger.debug(f'{self} received packet for {device_id}')
+                        self._log_debug(f'received packet for {packet[0]}')
             except ConnectionRefusedError:
-                logger.warning(f'{self}: disconnected')
-                await asyncio.sleep(5)
+                self._set_connected(False)
+                await asyncio.sleep(0)
+            else:
+                self._set_connected(True)
+
+    def _set_connected(self, state: bool):
+        if state:
+            if not self._connected.is_set():
+                self._log_info('connected')
+            self._connected.set()
+        else:
+            if self._connected.is_set():
+                self._log_warning('disconnected')
+            self._connected.clear()
 
     async def send(self, dest, msg):
         async with self.sending:
-            result = await pac.send(dest, (msg).encode('ascii') + b'\0')
-            if result is pac.proto.OutgoingResult.SUCCESS:
-                logger.debug(f'{self}: msg sent to 0x{dest:02x}: {msg}')
+            result = await serial.send(dest, (msg).encode('ascii') + b'\0')
+            if result is serial.proto.OutgoingResult.SUCCESS:
+                self._log_debug(f'msg sent to 0x{dest:02x}: {msg}')
             else:
-                logger.error(f'{self}: failed to send: {msg}')
+                self._log_error(f'failed to send: {msg}')
 
     async def broadcast(self, msg):
         return await self.send(0x0, msg)
 
 
-# TODO should connect to the HTTPServer via websocket
 class SocketBus(Bus):
 
     def __init__(self, host, port, *, bus_id, create_server=False):
@@ -95,8 +106,7 @@ class SocketBus(Bus):
     def _connect(self, host, port):
         while self.disconnected():
             try:
-                self._reader, self._writer = \
-                    yield from asyncio.open_connection(host, port)
+                self._reader, self._writer = yield from asyncio.open_connection(host, port)
             except ConnectionRefusedError:
                 logger.warning(f'{self}: connection refused')
                 #await asyncio.wait(5)
@@ -133,3 +143,4 @@ class SocketBus(Bus):
         if self._reader is None or self._writer is None:
             return True
         return False
+

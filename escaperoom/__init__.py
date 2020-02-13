@@ -24,16 +24,16 @@ for path in config['DEFAULT']['escaperoom_dir'], config['DEFAULT']['rooms_dir']:
     except FileExistsError:
         pass
 
-config.read(Path(config['DEFAULT'].get('conf_file')).expanduser())
+config.read(Path(config['DEFAULT']['conf_file']).expanduser())
 
 from .logging import ColoredFormatter
 
 import logging.config
-logging.config.fileConfig(config)
+logging.config.fileConfig(config) #TODO per room logging
 
 from .game import Game
-from .logic import Puzzle
-from .misc import LocalCamera, RemoteCamera, LocalCluesDisplay, RemoteCluesDisplay
-from .network import SerialBus, SocketBus, Device, LocalDevice, RemoteDevice, SerialRadar
+from .logic import Action, action, Condition, condition, Puzzle
+from .misc import LocalCamera, RemoteCamera, LocalCluesDisplay, RemoteCluesDisplay, Chronometer
+from .network import SerialBus, SocketBus, Device, SerialDevice
 from .server import HTTPServer
 

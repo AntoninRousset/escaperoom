@@ -36,4 +36,3 @@ setuptools.setup(
         ]
     }
 )
-

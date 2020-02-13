@@ -10,9 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import logging
-
-from .. import asyncio
+from .. import asyncio, config, logging
 from ..node import Node
 
 
@@ -24,6 +22,5 @@ class Network(Node):
 
 
 from .buses import Bus, SerialBus, SocketBus
-from .devices import Device, LocalDevice, RemoteDevice
-from .radars import SerialRadar
+from .devices import Device, Device, SerialDevice
 
