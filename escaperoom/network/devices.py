@@ -28,7 +28,7 @@ class Device(Network):
             self._value = value 
 
         def __str__(self):
-            if self.name is not None and value is not None:
+            if self.name is not None and self.value is not None:
                 return f'attribute "{self.name}" [{self.value}]'
             return 'attribute'
 
@@ -164,7 +164,8 @@ class SerialDevice(Device):
                 await self._send(f'get desc')
                 await asyncio.sleep(5)
             else:
-                await self.changed.wait()
+                async with self.changed:
+                    await self.changed.wait()
 
     async def _attrs_fetching(self):
         while True:
@@ -231,25 +232,46 @@ class SerialDevice(Device):
         while repeat:
             repeat = False
             async with self.changed:
-                for attr in self._attrs:
-                    if attr.name == name: return attr
+                while self._attrs is None:
+                    await self.changed.wait()
+                for attr_id, attr in zip(range(self.n_attr), self._attrs):
+                    if attr.name == name: return attr_id, attr
                     elif attr.name is None: repeat = True
-                self.changed.wait()
-        raise KeyError()
+                await self.changed.wait()
+        raise KeyError(f'Key error {name}')
+
+    def _value_for_msg(self, type, value):
+        value = str(value)
+        if type == 'bool':
+            if re.match('((T|t)rue|(O|o)n|(Y|y)es)', value): return '1'
+            elif re.match('((F|f)alse|(O|o)ff|(N|n)o)', value): return '0' 
+            else: return value
+        return value
 
     async def get_value(self, name):
-        attr = await self._find_attr(name)
+        _, attr = await self._find_attr(name)
         while attr.value is None:
             async with self.changed:
                 self.changed.wait()
             return attr.value
 
     async def set_value(self, name, value):
-        attr = await self._find_attr(name)
+        try:
+            attr_id, attr = await self._find_attr(name)
+        except KeyError:
+            self._log_warning(f'cannot set value of non-existent attribute "{name}"')
+        else:
+            async with self.changed:
+                value = self._value_for_msg(attr.type, value)
+                await self._send(f'set val {attr_id} {value}')
+                while attr._value != value:
+                    await self.changed.wait()
+
+    async def reset(self):
+        await self.set_value('reboot', True)
         async with self.changed:
-            await self._send(f'set val {attr.attr_id} {attr.to_str(value)}')
-            while attr.value != value:
-                await attr.changed.wait()
+            self._attrs = None
+            self.changed.notify_all()
 
     @property
     def n_attr(self):

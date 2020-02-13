@@ -87,7 +87,7 @@ async def devices_events(events_queue):
         for device in Device.nodes():
             id = device.id
             if id not in device_events:
-                t = asyncio.create_task(_device_events(id, events_queue))
+                t = asyncio.create_task(_device_events(device, events_queue))
                 device_events[id] = t
         for id, t in device_events.items():
             if t.done():
@@ -96,9 +96,9 @@ async def devices_events(events_queue):
         await events_queue.put({'type' : 'update',
                                 'loc' : f'/devices'})
 
-async def _device_events(id, events_queue):
+async def _device_events(device, events_queue):
     while True:
-        await Device.find_node(id=id).changed.wait()
+        await device.changed.wait()
         await events_queue.put({'type' : 'update',
-                                'loc' : f'/device?id={id}'})
+                                'loc' : f'/device?id={device.id}'})
 

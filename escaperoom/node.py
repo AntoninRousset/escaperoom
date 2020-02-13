@@ -56,7 +56,6 @@ class Node(ABC):
         self.id = hex(id(self))
         self.changed = asyncio.Condition()
         self.__tasks = set()
-        self.create_task(self.__change_listener())
         self.__register()
 
     def __register(self):
@@ -76,12 +75,6 @@ class Node(ABC):
         cond = asyncio.Condition()
         self.create_task(self.__condition_listener(cond))
         return cond
-
-    async def __change_listener(self):
-        while True:
-            await self.changed.wait()
-            self.group_changed.set()
-            self.group_changed.clear()
 
     async def __condition_listener(self, cond):
         while True:

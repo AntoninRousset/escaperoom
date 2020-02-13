@@ -13,15 +13,21 @@
 import random, re
 from PJON_daemon_client import proto
 from math import floor
+from copy import deepcopy
 
 from . import asyncio
 
 _packets = asyncio.Queue()
 
-_devices = {
+_devices_defaults = {
         1 : {'name' : 'lights_uv',
             'attrs' : {
-                0: {
+                0 : {
+                    'name' : 'reboot',
+                    'type' : 'bool',
+                    'value' : '0'
+                },
+                1 : {
                     'name' : 'state',
                     'type' : 'bool',
                     'value' : '0'
@@ -30,7 +36,12 @@ _devices = {
             },
         2 : {'name' : 'base_cross',
             'attrs' : {
-                0: {
+                0 : {
+                    'name' : 'reboot',
+                    'type' : 'bool',
+                    'value' : '0'
+                },
+                1 : {
                     'name' : 'light_state',
                     'type' : 'bool',
                     'value' : '0'
@@ -39,7 +50,12 @@ _devices = {
             },
         3 : {'name' : 'base_hexagon',
             'attrs' : {
-                0: {
+                0 : {
+                    'name' : 'reboot',
+                    'type' : 'bool',
+                    'value' : '0'
+                },
+                1 : {
                     'name' : 'light_state',
                     'type' : 'bool',
                     'value' : '0'
@@ -48,7 +64,12 @@ _devices = {
             },
         4 : {'name' : 'base_triangle',
             'attrs' : {
-                0: {
+                0 : {
+                    'name' : 'reboot',
+                    'type' : 'bool',
+                    'value' : '0'
+                },
+                1 : {
                     'name' : 'light_state',
                     'type' : 'bool',
                     'value' : '0'
@@ -57,7 +78,12 @@ _devices = {
             },
         5 : {'name' : 'base_star',
             'attrs' : {
-                0: {
+                0 : {
+                    'name' : 'reboot',
+                    'type' : 'bool',
+                    'value' : '0'
+                },
+                1 : {
                     'name' : 'light_state',
                     'type' : 'bool',
                     'value' : '0'
@@ -65,6 +91,8 @@ _devices = {
                 }
             }
         }
+
+_devices = deepcopy(_devices_defaults)
 
 COMPUTER_SEND_DELAY = 0
 ARDUINO_SEND_DELAY = 0
@@ -101,6 +129,14 @@ async def _device_answer(dest, msg):
     if re.match('\s*get\s+val\s+\d+\s*', msg):
         attr_id = int(msg.split()[2])
         attr = attrs[attr_id]
+        return await _new_packet(dest, f'val {attr_id} {attr["value"]}') 
+    if re.match('\s*set\s+val\s+\d+\s+\w+\s*', msg):
+        attr_id = int(msg.split()[2])
+        attr = attrs[attr_id]
+        attr['value'] = msg.split()[3]
+        if attr['name'] == 'reboot' and float(attr['value']):
+            for id in _devices_defaults.keys():
+                _devices[id] = deepcopy(_devices_defaults[id])
         return await _new_packet(dest, f'val {attr_id} {attr["value"]}') 
 
 async def _new_packet(src, msg, *, random_wait=True):

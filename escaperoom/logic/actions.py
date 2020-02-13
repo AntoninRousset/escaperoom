@@ -21,28 +21,35 @@ class Action(Logic):
         super().__init__(name)
         if self._first_init:
             self._running = asyncio.Lock()
-            self.failed = asyncio.Event()
+            self._failed = asyncio.Event()
         self.desc = desc
         self.func = func
 
     def __str__(self):
-        state = 'running' if self.running else 'not running'
+        if self.running: state = 'running'
+        elif self.failed: state = 'failed'
+        else: state = 'not running'
         return f'action "{self.name}" [{state}]'
 
     async def __call__(self, *args, **kwargs):
-        async with self._running:
-            try:
+        try:
+            async with self._running:
                 if asyncio.iscoroutinefunction(self.func):
-                    return await self.func()
+                    await self.func(*args, **kwargs)
                 else:
-                    return self.func()
-            except Exception as e:
-                self._log_warning(f'failed : {e}')
-                self.failed.set()
+                    self.func(*args, **kwargs)
+                self._failed.clear()
+        except Exception as e:
+            self._failed.set()
+            self._log_warning(f'failed : {e}')
 
     @property
     def running(self):
         return self._running.locked()
+
+    @property
+    def failed(self):
+        return self._failed.is_set()
 
 
 def action(name=None, *args, **kwargs):
@@ -50,6 +57,6 @@ def action(name=None, *args, **kwargs):
         a = Action.find_node(name)
         if a is not None and a.func != func:
             a._log_warning('creating action with same name but different func')
-        return Action(name, *args, **kwargs)
+        return Action(name, func, *args, **kwargs)
     return decorator
 
