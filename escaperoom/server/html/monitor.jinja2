@@ -95,18 +95,23 @@
 										<div id='puzzle-state'><slot name='state'></slot></div>
 										<p id='puzzle-description'><slot name='description'></slot></p>
 										<h2>Conditions</h2>
-										<puzzle-conditions>
-											<template class='item'>
+										<conditions-list>
+											<template class='item clickable'>
 												<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
-												<div class='screen' name='conditions'>
-													<details>
-														<summary></summary>
-													</details>
+												<div>
+													condition
 												</div>
-												<div class='screen' name='empty'>No conditions</div>
 											</template>
-										</puzzle-conditions>
+										</conditions-list>
 										<h2>Actions</h2>
+										<actions-list>
+											<template class='item clickable'>
+												<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
+												<div>
+													action	
+												</div>
+											</template>
+										</actions-list>
 										<p>Un puzzle s'active lorsqu'un de ces parents est complété.</p>
 										<p>Un puzzle est complété lorsque, actif, toutes ses conditions sont satisfaites.</p>
 										<div id='puzzle-controls'>

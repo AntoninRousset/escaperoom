@@ -137,88 +137,88 @@
 
   <g>
     <circle cx="100" cy="100" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="80" y="80" width="40" height="40" href="icons/base_cross.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="80" y="80" width="40" height="40" href="/ressources/icons/base_cross.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <g>
     <circle cx="200" cy="100" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="180" y="80" width="40" height="40" href="icons/base_triangle.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="180" y="80" width="40" height="40" href="/ressources/icons/base_triangle.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <g>
     <circle cx="300" cy="100" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="280" y="80" width="40" height="40" href="icons/base_hexagon.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="280" y="80" width="40" height="40" href="/ressources/icons/base_hexagon.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <g>
     <circle cx="400" cy="100" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="380" y="80" width="40" height="40" href="icons/base_star.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="380" y="80" width="40" height="40" href="/ressources/icons/base_star.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <!-- code enter time potion uv -->
 
   <g>
     <circle cx="100" cy="200" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="80" y="180" width="40" height="40" href="icons/code.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="80" y="180" width="40" height="40" href="/ressources/icons/code.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <g>
     <circle cx="200" cy="200" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="180" y="180" width="40" height="40" href="icons/enter.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="180" y="180" width="40" height="40" href="/ressources/icons/enter.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <g>
     <circle cx="300" cy="200" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="280" y="180" width="40" height="40" href="icons/time.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="280" y="180" width="40" height="40" href="/ressources/icons/time.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <g>
     <circle cx="400" cy="200" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="380" y="180" width="40" height="40" href="icons/potion.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="380" y="180" width="40" height="40" href="/ressources/icons/potion.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <g>
     <circle cx="500" cy="200" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="480" y="180" width="40" height="40" href="icons/uv.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="480" y="180" width="40" height="40" href="/ressources/icons/uv.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <!-- fuses -->
 
   <g>
     <circle cx="100" cy="300" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="80" y="280" width="40" height="40" href="icons/fuse1.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="80" y="280" width="40" height="40" href="/ressources/icons/fuse1.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <g>
     <circle cx="200" cy="300" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="180" y="280" width="40" height="40" href="icons/fuse2.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="180" y="280" width="40" height="40" href="/ressources/icons/fuse2.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <g>
     <circle cx="300" cy="300" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="280" y="280" width="40" height="40" href="icons/fuse3.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="280" y="280" width="40" height="40" href="/ressources/icons/fuse3.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <!-- jacks -->
 
   <g>
     <circle cx="100" cy="400" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="80" y="380" width="40" height="40" href="icons/jack1.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="80" y="380" width="40" height="40" href="/ressources/icons/jack1.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <g>
     <circle cx="200" cy="400" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="180" y="380" width="40" height="40" href="icons/jack2.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="180" y="380" width="40" height="40" href="/ressources/icons/jack2.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <g>
     <circle cx="300" cy="400" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="280" y="380" width="40" height="40" href="icons/jack3.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="280" y="380" width="40" height="40" href="/ressources/icons/jack3.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
   <g>
     <circle cx="400" cy="400" r="35" fill="url(#node_circle_gradient)" style="filter: url(#node_circle_filter)" />
-    <image x="380" y="380" width="40" height="40" href="icons/jack4.svg#icon" filter="url(#node_img_filter)" /> 
+    <image x="380" y="380" width="40" height="40" href="/ressources/icons/jack4.svg#icon" filter="url(#node_img_filter)" /> 
   </g>
 
 </svg>

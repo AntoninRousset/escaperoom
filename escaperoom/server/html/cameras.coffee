@@ -1,6 +1,7 @@
 import {Subscriber, Container} from './monitor.js'
 import {is_empty} from './monitor.js'
 
+
 class CamerasBox extends Subscriber
 	constructor: () ->
 		super()
@@ -23,6 +24,7 @@ class CamerasBox extends Subscriber
 
 customElements.define('cameras-box', CamerasBox)
 
+
 class CamerasList extends Container
 	constructor: () ->
 		super()
@@ -39,6 +41,7 @@ class CamerasList extends Container
 		item.shadowRoot.querySelector('camera-video').start(null, '?id='+id)
 
 customElements.define('cameras-list', CamerasList)
+
 
 class CameraVideo extends HTMLElement
 	constructor: () ->

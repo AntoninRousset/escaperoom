@@ -1,6 +1,7 @@
 import {Subscriber, Container} from './monitor.js'
 import {is_empty} from './monitor.js'
 
+
 class DevicesBox extends Subscriber
 	constructor: () ->
 		super()
@@ -17,6 +18,7 @@ class DevicesBox extends Subscriber
 			@set_screen('main')
 
 customElements.define('devices-box', DevicesBox)
+
 
 class DevicesList extends Container
 	add_item: (id, data) ->
@@ -50,6 +52,7 @@ class DevicesList extends Container
 
 customElements.define('devices-list', DevicesList)
 
+
 class DeviceInfo extends Subscriber
 	constructor: () ->
 		super()
@@ -66,6 +69,7 @@ class DeviceInfo extends Subscriber
 		@set_screen('info')
 
 customElements.define('device-info', DeviceInfo)
+
 
 class DeviceAttributes extends Container
 	constructor: () ->
@@ -114,7 +118,5 @@ class DeviceAttributes extends Container
 		else
 			node = node.querySelector('[slot='+slot+']')
 			node.textContent = data[slot]
-
-
 
 customElements.define('device-attributes', DeviceAttributes)

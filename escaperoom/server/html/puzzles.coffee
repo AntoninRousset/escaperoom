@@ -1,6 +1,7 @@
 import {Subscriber, Container} from './monitor.js'
 import {is_empty} from './monitor.js'
 
+
 class PuzzlesBox extends Subscriber
 	constructor: () ->
 		super()
@@ -18,8 +19,8 @@ class PuzzlesBox extends Subscriber
 
 customElements.define('puzzles-box', PuzzlesBox)
 
-svgns = 'http://www.w3.org/2000/svg'
 
+svgns = 'http://www.w3.org/2000/svg'
 class PuzzlesGraph extends Container
 	constructor: () ->
 		super()
@@ -48,6 +49,7 @@ class PuzzlesGraph extends Container
 		item.setAttributeNS(null, 'style', 'fill: '+colors[data['state']]+';')
 
 customElements.define('puzzles-graph', PuzzlesGraph)
+
 
 class PuzzleInfo extends Subscriber
 	constructor: () ->
@@ -110,3 +112,14 @@ class PuzzleInfo extends Subscriber
 		})
 
 customElements.define('puzzle-info', PuzzleInfo)
+
+
+class ConditionsList extends Templated
+	constructor: () ->
+		super()
+
+	add_item: (id, data) ->
+		item = @create_item(id)
+		@appendChild(item)
+
+customElements.define('conditions-list', ConditionsList)

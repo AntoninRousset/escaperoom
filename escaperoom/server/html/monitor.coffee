@@ -48,6 +48,7 @@ class Templated extends HTMLElement
 	get_screen: (node=this) ->
 		@shadowRoot.querySelector('.screen:not([hidden])')
 
+
 export class Subscriber extends Templated
 	event_source = null
 	subscribers = []
@@ -102,6 +103,7 @@ export class Subscriber extends Templated
 
 	update: (datas) ->
 		@update_plugs(datas)
+
 
 export class Container extends Templated
 	constructor: () ->
