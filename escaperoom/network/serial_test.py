@@ -20,13 +20,14 @@ from . import asyncio
 _packets = asyncio.Queue()
 
 _devices_defaults = {
-        1 : {'name' : 'lights_uv',
+        1 : {
+            'name' : 'lights_uv',
             'attrs' : {
                 0 : {
                     'name' : 'reboot',
                     'type' : 'bool',
                     'value' : '0'
-                },
+                    },
                 1 : {
                     'name' : 'state',
                     'type' : 'bool',
@@ -34,42 +35,60 @@ _devices_defaults = {
                     }
                 }
             },
-        2 : {'name' : 'base_cross',
+        2 : {
+            'name' : 'base_cross',
             'attrs' : {
                 0 : {
                     'name' : 'reboot',
                     'type' : 'bool',
                     'value' : '0'
-                },
+                    },
                 1 : {
+                    'name' : 'hall_state',
+                    'type' : 'bool',
+                    'value' : '0'
+                    },
+                2 : {
                     'name' : 'light_state',
                     'type' : 'bool',
                     'value' : '0'
                     }
                 }
             },
-        3 : {'name' : 'base_hexagon',
+        3 : {
+            'name' : 'base_hexagon',
             'attrs' : {
                 0 : {
                     'name' : 'reboot',
                     'type' : 'bool',
                     'value' : '0'
-                },
+                    },
                 1 : {
+                    'name' : 'hall_state',
+                    'type' : 'bool',
+                    'value' : '0'
+                    },
+                2 : {
                     'name' : 'light_state',
                     'type' : 'bool',
                     'value' : '0'
                     }
                 }
             },
-        4 : {'name' : 'base_triangle',
+        4 : {
+            'name' : 'base_triangle',
             'attrs' : {
                 0 : {
                     'name' : 'reboot',
                     'type' : 'bool',
                     'value' : '0'
-                },
+                    },
                 1 : {
+                    'name' : 'hall_state',
+                    'type' : 'bool',
+                    'value' : '0'
+                    },
+                2 : {
                     'name' : 'light_state',
                     'type' : 'bool',
                     'value' : '0'
@@ -82,15 +101,20 @@ _devices_defaults = {
                     'name' : 'reboot',
                     'type' : 'bool',
                     'value' : '0'
-                },
+                    },
                 1 : {
+                    'name' : 'hall_state',
+                    'type' : 'bool',
+                    'value' : '0'
+                    },
+                2 : {
                     'name' : 'light_state',
                     'type' : 'bool',
                     'value' : '0'
                     }
                 }
             }
-        }
+    }
 
 _devices = deepcopy(_devices_defaults)
 
@@ -149,10 +173,11 @@ async def _new_packet(src, msg, *, random_wait=True):
 
 async def _events_creator():
     while True:
-        await asyncio.sleep(2)
-        await _new_packet(2, f'val 0 {random.randint(0, 100)}')
+        await asyncio.sleep(5)
+        _devices[2]['attrs'][1]['value'] = '1'
+        await _new_packet(2, 'val 1 1')
 
-#asyncio.create_task(_events_creator())
+asyncio.create_task(_events_creator())
 
 '''
 Remarks:

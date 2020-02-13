@@ -18,20 +18,23 @@ class Condition(BoolLogic):
     _group = BoolLogic.Group()
 
     def __init__(self, name=None, func=lambda: False, *, desc=None, parents=set(),
-                 listens=set(), on_change=lambda s: None):
+                 listens=set(), on_true=lambda: asyncio.sleep(0),
+                 on_false=lambda: asyncio.sleep(0)):
         super().__init__(name)
         if self._first_init:
             self._listens = set()
             self._parents = set()
             self._checking = asyncio.Lock()
             self._satisfied = asyncio.Event()
+            self._failed = asyncio.Event()
             self.force_satisfied = False
             self.msg = None
         self.func = func
         self.desc = desc
         self.add_parents(parents)
         self.add_listens(listens)
-        self.on_change = on_change
+        self.on_true = on_true
+        self.on_false = on_false
 
     def __str__(self):
         state = 'satisfied' if self.satisfied else 'unsatisfied'
@@ -49,27 +52,27 @@ class Condition(BoolLogic):
                     self.msg = await self.func()
                 else:
                     self.msg = self.func()
-                self.failed.clear()
+                self._failed.clear()
             except Exception as e:
                 self._log_warning(f'failed to check condition: {e}')
                 self.msg = 'Error'
-                self.failed.set()
-            finally:
-                if not self.satisfied.is_set() and self.msg is None:
+                self._failed.set()
+            else:
+                if not self.satisfied and self.msg is None:
                     async with self.changed:
-                        self.satisfied.set()
+                        self._satisfied.set()
                         self.changed.notify_all()
-                    await self.on_change(True)
-                elif self.satisfied.is_set() and self.msg is not None:
+                    await self.on_true()
+                elif self.satisfied and self.msg is not None:
                     async with self.changed:
-                        self.satisfied.clear()
+                        self._satisfied.clear()
                         self.changed.notify_all()
-                    await self.on_change(False)
+                    await self.on_false()
 
     async def __listening(self, listen: Node):
         while listen in self._listens:
+            await self._check()
             async with listen.changed:
-                await self._check()
                 await listen.changed.wait()
     
     def add_parents(self, parents: BoolLogic):
@@ -92,10 +95,14 @@ class Condition(BoolLogic):
     def satisfied(self):
         return True if self.force_satisfied else self._satisfied.is_set()
 
+    @property
+    def failed(self):
+        return self._failed.is_set()
+
 
 def condition(name, *args, **kwargs):
     def decorator(func):
         c = Condition.find_node(name)
-        return Condition(name, *args, **kwargs)
+        return Condition(name, func, *args, **kwargs)
     return decorator
 

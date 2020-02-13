@@ -55,8 +55,6 @@ class Action(Logic):
 def action(name=None, *args, **kwargs):
     def decorator(func):
         a = Action.find_node(name)
-        if a is not None and a.func != func:
-            a._log_warning('creating action with same name but different func')
         return Action(name, func, *args, **kwargs)
     return decorator
 

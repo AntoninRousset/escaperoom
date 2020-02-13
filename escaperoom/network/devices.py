@@ -152,6 +152,7 @@ class SerialDevice(Device):
     def __init__(self, name, *, addr=None, type='unknown'):
         super().__init__(name, type=type)
         if self._first_init:
+            self._reset = asyncio.Event()
             self.create_task(self._desc_fetching())
             self.create_task(self._attrs_fetching())
         self.addr = addr
@@ -162,7 +163,7 @@ class SerialDevice(Device):
                  self.addr is not None):
                 self._log_debug(f'incomplete desc') 
                 await self._send(f'get desc')
-                await asyncio.sleep(5)
+                await asyncio.wait_for(self._reset.wait(), timeout=5)
             else:
                 async with self.changed:
                     await self.changed.wait()
@@ -181,7 +182,7 @@ class SerialDevice(Device):
                         cos.add(self._send(f'get val {attr_id}'))
                 if cos:
                     await asyncio.gather(*cos)
-                    await asyncio.sleep(5)
+                    await asyncio.wait_for(self._reset.wait(), timeout=5)
                 else:
                     async with self.changed:
                         await self.changed.wait()
@@ -238,7 +239,7 @@ class SerialDevice(Device):
                     if attr.name == name: return attr_id, attr
                     elif attr.name is None: repeat = True
                 await self.changed.wait()
-        raise KeyError(f'Key error {name}')
+        raise KeyError(f'Non existent attribute "{name}"')
 
     def _value_for_msg(self, type, value):
         value = str(value)
@@ -249,17 +250,21 @@ class SerialDevice(Device):
         return value
 
     async def get_value(self, name):
-        _, attr = await self._find_attr(name)
+        try:
+            _, attr = await self._find_attr(name)
+        except KeyError:
+            self._log_warning(f'cannot get value: {e}')
         while attr.value is None:
             async with self.changed:
-                self.changed.wait()
-            return attr.value
+                await self.changed.wait()
+        return attr.value
 
     async def set_value(self, name, value):
         try:
             attr_id, attr = await self._find_attr(name)
-        except KeyError:
-            self._log_warning(f'cannot set value of non-existent attribute "{name}"')
+        except KeyError as e:
+            self._log_warning(f'cannot set value: {e}')
+            raise
         else:
             async with self.changed:
                 value = self._value_for_msg(attr.type, value)
@@ -271,6 +276,8 @@ class SerialDevice(Device):
         await self.set_value('reboot', True)
         async with self.changed:
             self._attrs = None
+            self._reset.set()
+            self._reset.clear()
             self.changed.notify_all()
 
     @property
