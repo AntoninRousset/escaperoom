@@ -50,11 +50,10 @@ class SerialBus(Bus):
                             self.packet = packet
                             self.packet_changed.notify_all()
                         self._log_debug(f'received packet for {packet[0]}')
+                    self._set_connected(True)
             except ConnectionRefusedError:
                 self._set_connected(False)
                 await asyncio.sleep(0)
-            else:
-                self._set_connected(True)
 
     def _set_connected(self, state: bool):
         if state:

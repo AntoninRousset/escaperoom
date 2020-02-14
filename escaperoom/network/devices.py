@@ -55,7 +55,7 @@ class Device(Network):
         super().__init__(name)
         if self._first_init:
             self._attrs = None
-            self.sane = asyncio.Event()
+            self._connected = asyncio.Event()
         self.type = type
 
     def __str__(self):
@@ -92,11 +92,8 @@ class SerialDevice(Device):
     async def _device_radar(cls, bus):
         def lost_device():
             for device in cls.nodes():
-                try:
-                    if device.addr is None:
-                        return True
-                except AttributeError:
-                    pass
+                if not device._connected.is_set():
+                    return True
         async def safe_broadcast(bus):
             try:
                 await bus.broadcast('get desc')
@@ -104,7 +101,7 @@ class SerialDevice(Device):
                 cls._logger.warning(f'cannot broadcast on {bus}: {e}')
         while True:
             if cls.discover or lost_device():
-                await asyncio.gather(*(safe_broadcast(bus) for bus in cls._buses))
+                await asyncio.gather(*(safe_broadcast(b) for b in cls._buses))
                 await asyncio.sleep(5)
             else:
                 await cls.group_changed.wait()
@@ -113,33 +110,44 @@ class SerialDevice(Device):
     async def _bus_listening(cls, bus):
         while bus in cls._buses:
             async with bus.packet_changed:
-                if bus.packet is not None:
-                    device_id, msg = bus.packet
-                    addr = SerialDevice.Addr(bus, device_id)
-                    cls._logger.debug(f'reading msg "{msg}"')
-                    if re.match('\s*desc\s+\w+\s+\w+\s*', msg):
-                        name = msg.split()[1]
-                        device = Device.find_node(name)
-                        if device is None:
-                            cls._logger.debug(f'no device "{name}"')
-                            if cls.discover:
-                                cls._logger.debug(f'creating device "{name}"')
-                                SerialDevice(name, addr=addr)
-                        elif isinstance(device, SerialDevice):
-                            async with device.changed:
-                                device.addr = addr
-                                device.changed.notify_all()
-                    device = cls._find_device(addr)
-                    if device is None:
-                        if cls.discover:
-                            cls._logger.warning(f'could not find device for {addr}')
-                    else:
-                        try:
-                            await device._read_msg(msg)
-                        except Exception as e:
-                            cls._logger.warning(f'{device}: failed to read msg '
-                                                f'"{msg}": {e}')
+                try:
+                    if bus.packet is not None:
+                        await cls._read_packet(bus)
+                except Exception as e:
+                    cls._logger.warning(f'could not read packet: {e}')
                 await bus.packet_changed.wait()
+
+    @classmethod
+    async def _read_packet(cls, bus):
+        device_id, msg = bus.packet
+        addr = SerialDevice.Addr(bus, device_id)
+        cls._logger.debug(f'reading packet "{bus.packet}" from {bus}')
+        if re.match('\s*desc\s+\w+\s+\w+\s*', msg):
+            name = msg.split()[1]
+            device = Device.find_node(name)
+            if device is None:
+                cls._logger.debug(f'no device "{name}"')
+                if cls.discover:
+                    cls._logger.debug(f'creating device "{name}"')
+                    device = SerialDevice(name)
+                    device.addr = addr
+            elif isinstance(device, SerialDevice):
+                async with device.changed:
+                    if device.addr != addr:
+                        cls._logger.debug(f'device "{name}" found, addressing')
+                        device.addr = addr
+                        device._connected.set()
+                        device.changed.notify_all()
+        device = cls._find_device(addr)
+        if device is None:
+            if cls.discover:
+                cls._logger.warning(f'could not find device for {addr}')
+        else:
+            try:
+                await device._read_msg(msg)
+            except Exception as e:
+                cls._logger.warning(f'{device}: failed to read msg '
+                                    f'"{msg}": {e}')
 
     @classmethod
     def add_bus(cls, bus):
@@ -149,28 +157,28 @@ class SerialDevice(Device):
             cls._buses.add(bus)
         cls._logger.debug(f'{bus} added')
 
-    def __init__(self, name, *, addr=None, type='unknown'):
+    def __init__(self, name, *, type='unknown'):
         super().__init__(name, type=type)
         if self._first_init:
             self._reset = asyncio.Event()
             self.create_task(self._desc_fetching())
             self.create_task(self._attrs_fetching())
-        self.addr = addr
+            self.addr = None
 
     async def _desc_fetching(self):
         while True:
-            if ((self.name is None or self._attrs is None) and
-                 self.addr is not None):
+            if self.name is None or self._attrs is None:
                 self._log_debug(f'incomplete desc') 
                 await self._send(f'get desc')
-                await asyncio.wait_for(self._reset.wait(), timeout=5)
+                await asyncio.wait({asyncio.sleep(5), self._reset.wait()},
+                                   return_when=asyncio.FIRST_COMPLETED)
             else:
                 async with self.changed:
                     await self.changed.wait()
 
     async def _attrs_fetching(self):
         while True:
-            if self.n_attr is None or self.addr is None:
+            if self.n_attr is None:
                 async with self.changed:
                     await self.changed.wait()
             else:
@@ -183,10 +191,8 @@ class SerialDevice(Device):
                 if cos:
                     self._log_debug(f'incomplete attrs') 
                     await asyncio.gather(*cos)
-                    try:
-                        await asyncio.wait_for(self._reset.wait(), timeout=5)
-                    except TimeoutError:
-                        pass
+                    await asyncio.wait({asyncio.sleep(5), self._reset.wait()},
+                                       return_when=asyncio.FIRST_COMPLETED)
                 else:
                     async with self.changed:
                         await self.changed.wait()
@@ -229,9 +235,7 @@ class SerialDevice(Device):
                         self.changed.notify_all()
 
     async def _send(self, msg):
-        while self.addr is None:
-            async with self.changed:
-                await self.changed.wait()
+        await self._connected.wait()
         return await self.addr.bus.send(self.addr.device_id, msg)
 
     async def _find_attr(self, name):
@@ -284,8 +288,8 @@ class SerialDevice(Device):
             raise
 
     async def reset(self):
+        await self._send(f'reboot')
         async with self.changed:
-            await self._send(f'reset')
             self._attrs = None
             self._reset.set()
             self._reset.clear()

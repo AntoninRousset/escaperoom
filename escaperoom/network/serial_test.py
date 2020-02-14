@@ -24,11 +24,6 @@ _devices_defaults = {
             'name' : 'lights_uv',
             'attrs' : {
                 0 : {
-                    'name' : 'reboot',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                1 : {
                     'name' : 'state',
                     'type' : 'bool',
                     'value' : '0'
@@ -39,16 +34,11 @@ _devices_defaults = {
             'name' : 'base_cross',
             'attrs' : {
                 0 : {
-                    'name' : 'reboot',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                1 : {
                     'name' : 'hall_state',
                     'type' : 'bool',
                     'value' : '0'
                     },
-                2 : {
+                1 : {
                     'name' : 'light_state',
                     'type' : 'bool',
                     'value' : '0'
@@ -59,16 +49,11 @@ _devices_defaults = {
             'name' : 'base_hexagon',
             'attrs' : {
                 0 : {
-                    'name' : 'reboot',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                1 : {
                     'name' : 'hall_state',
                     'type' : 'bool',
                     'value' : '0'
                     },
-                2 : {
+                1 : {
                     'name' : 'light_state',
                     'type' : 'bool',
                     'value' : '0'
@@ -79,16 +64,11 @@ _devices_defaults = {
             'name' : 'base_triangle',
             'attrs' : {
                 0 : {
-                    'name' : 'reboot',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                1 : {
                     'name' : 'hall_state',
                     'type' : 'bool',
                     'value' : '0'
                     },
-                2 : {
+                1 : {
                     'name' : 'light_state',
                     'type' : 'bool',
                     'value' : '0'
@@ -98,16 +78,11 @@ _devices_defaults = {
         5 : {'name' : 'base_star',
             'attrs' : {
                 0 : {
-                    'name' : 'reboot',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                1 : {
                     'name' : 'hall_state',
                     'type' : 'bool',
                     'value' : '0'
                     },
-                2 : {
+                1 : {
                     'name' : 'light_state',
                     'type' : 'bool',
                     'value' : '0'
@@ -119,16 +94,20 @@ _devices_defaults = {
 _devices = deepcopy(_devices_defaults)
 
 COMPUTER_SEND_DELAY = 0
-ARDUINO_SEND_DELAY = 5
+ARDUINO_SEND_DELAY = 0
 
 async def listen():
     while True:
-        packet = await _packets.get()
+        try:
+            packet = _packets.get_nowait()
+        except asyncio.QueueEmpty:
+            packet = await _packets.get()
         yield packet
         await asyncio.sleep(0)
 
 async def send(dest, msg):
     delay = random.randint(0, COMPUTER_SEND_DELAY) #TODO Poison distribution
+    delay = COMPUTER_SEND_DELAY
     msg = msg.decode('ascii')[:-1]
     await asyncio.sleep(delay)
     if dest == 0:
@@ -158,10 +137,10 @@ async def _device_answer(dest, msg):
         attr_id = int(msg.split()[2])
         attr = attrs[attr_id]
         attr['value'] = msg.split()[3]
-        if attr['name'] == 'reboot' and float(attr['value']):
-            for id in _devices_defaults.keys():
-                _devices[id] = deepcopy(_devices_defaults[id])
         return await _new_packet(dest, f'val {attr_id} {attr["value"]}') 
+    if re.match('\s*reboot\s*', msg):
+        for id in _devices_defaults.keys():
+            _devices[id] = deepcopy(_devices_defaults[id])
 
 async def _new_packet(src, msg, *, random_wait=True):
     async def wait_and_pack(delay):
@@ -177,5 +156,5 @@ async def _events_creator():
         _devices[2]['attrs'][1]['value'] = '1'
         await _new_packet(2, 'val 1 1')
 
-asyncio.create_task(_events_creator())
+#asyncio.create_task(_events_creator())
 
