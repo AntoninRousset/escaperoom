@@ -11,7 +11,7 @@
 '''
 
 from ..game import Game
-from ..logic import Puzzle
+from ..logic import Condition as Puzzle
 from ..misc import Camera, Chronometer
 from ..network import Device
 

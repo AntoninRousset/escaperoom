@@ -13,12 +13,12 @@
 import logging
 
 from .. import asyncio
-from ..node import Node
+from ..registered import Registered
 
 
 logger = logging.getLogger('escaperoom.misc')
 
-class Misc(Node):
+class Misc(Registered):
 
     _logger = logger
 

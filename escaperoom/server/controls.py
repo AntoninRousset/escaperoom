@@ -12,7 +12,7 @@
 
 from .. import asyncio
 from ..game import Game
-from ..logic import Puzzle
+from ..logic import Condition as Puzzle
 from ..misc import Camera, CluesDisplay
 from ..network import Device
 

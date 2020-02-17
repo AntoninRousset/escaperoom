@@ -17,8 +17,6 @@ from . import asyncio, Network
 
 class Device(Network):
 
-    _group = Network.Group()
-
     class Attribute():
 
         def __init__(self, name=None, type=None, value=None):
@@ -53,20 +51,19 @@ class Device(Network):
 
     def __init__(self, name, *, type='unknown'): 
         super().__init__(name)
-        if self._first_init:
-            self._attrs = None
-            self._connected = asyncio.Event()
+        self._attrs = None
+        self._connected = asyncio.Event()
         self.type = type
+        self._register(Device)
 
     def __str__(self):
-        return 'device' if self.name is None else f'device "{self.name}"'
+        return f'device "{self.name}"'
 
 
 class SerialDevice(Device):
 
     discover = False
     _buses = set()
-    buses_changed = asyncio.Event()
 
     class Addr():
 
@@ -80,7 +77,7 @@ class SerialDevice(Device):
 
     @classmethod
     def _find_device(cls, addr):
-        for device in cls.nodes():
+        for device in cls.entries():
             try:
                 if (device.addr.bus == addr.bus and
                     device.addr.device_id == addr.device_id):
@@ -91,7 +88,7 @@ class SerialDevice(Device):
     @classmethod
     async def _device_radar(cls, bus):
         def lost_device():
-            for device in cls.nodes():
+            for device in cls.entries():
                 if not device._connected.is_set():
                     return True
         async def safe_broadcast(bus):
@@ -104,7 +101,7 @@ class SerialDevice(Device):
                 await asyncio.gather(*(safe_broadcast(b) for b in cls._buses))
                 await asyncio.sleep(5)
             else:
-                await cls.group_changed.wait()
+                await cls.group_changed().wait()
 
     @classmethod
     async def _bus_listening(cls, bus):
@@ -124,7 +121,7 @@ class SerialDevice(Device):
         cls._logger.debug(f'reading packet "{bus.packet}" from {bus}')
         if re.match('\s*desc\s+\w+\s+\w+\s*', msg):
             name = msg.split()[1]
-            device = Device.find_node(name)
+            device = Device.find_entry(name)
             if device is None:
                 cls._logger.debug(f'no device "{name}"')
                 if cls.discover:
@@ -159,11 +156,11 @@ class SerialDevice(Device):
 
     def __init__(self, name, *, type='unknown'):
         super().__init__(name, type=type)
-        if self._first_init:
-            self._reset = asyncio.Event()
-            self.create_task(self._desc_fetching())
-            self.create_task(self._attrs_fetching())
-            self.addr = None
+        self._reset = asyncio.Event()
+        asyncio.create_task(self._desc_fetching())
+        asyncio.create_task(self._attrs_fetching())
+        self.addr = None
+        self._register(SerialDevice)
 
     async def _desc_fetching(self):
         while True:

@@ -11,12 +11,12 @@
 '''
 
 from .. import asyncio, config, logging
-from ..node import Node
+from ..registered import Registered
 
 
 logger = logging.getLogger('escaperoom.network')
 
-class Network(Node):   
+class Network(Registered):   
 
     _logger = logger
 

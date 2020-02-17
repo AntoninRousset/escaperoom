@@ -20,12 +20,11 @@ from . import asyncio, Network
 
 class Bus(Network):
 
-    _group = Network.Group()
-
     def __init__(self, name=None):
         super().__init__(name)
         self.packet = None
         self.packet_changed = asyncio.Condition()
+        self._register(Bus)
 
 
 class SerialBus(Bus):

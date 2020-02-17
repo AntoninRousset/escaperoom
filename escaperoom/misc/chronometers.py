@@ -18,13 +18,10 @@ from . import Misc
 
 class Chronometer(Misc):
 
-    _group = Misc.Group()
-
     def __init__(self, name='__main'):
         super().__init__(name)
-        if self._first_init:
-            self.start_time = None #TODO list of plays and pauses
-            self.end_time = None
+        self.start_time = None #TODO list of plays and pauses
+        self.end_time = None
 
     def start(self):
         self.start_time = datetime.today()

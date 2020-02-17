@@ -14,19 +14,17 @@ import re
 from abc import abstractmethod
 from aiortc import RTCPeerConnection, RTCSessionDescription
 
-from . import Misc
+from . import asyncio, Misc
 from ..media import MediaPlayer
 
 
 class Camera(Misc):
 
-    _group = Misc.Group()
-
     def __init__(self, name):
         super().__init__(name)
         self.connected = False 
-        self.desc_changed = self.Condition()
-        self.cameras_changed = self.Condition()
+        self.desc_changed = asyncio.Condition()
+        self.cameras_changed = asyncio.Condition()
 
     def __str__(self):
         return f'camera "{self.name}"'

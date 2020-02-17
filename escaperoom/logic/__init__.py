@@ -13,14 +13,17 @@
 from abc import ABC, abstractmethod
 
 from .. import asyncio, logging
-from ..node import Node
+from ..registered import Registered
+
 
 logger = logging.getLogger('escaperoom.logic')
 
-class Logic(Node):
+class Logic(Registered):
     
     _logger = logger
 
+    def __init__(self, name):
+        super().__init__(name)
 
 class BoolLogic(Logic, ABC):
 
@@ -31,4 +34,3 @@ class BoolLogic(Logic, ABC):
 
 from .actions import Action, action
 from .conditions import Condition, condition
-from .puzzles import Puzzle

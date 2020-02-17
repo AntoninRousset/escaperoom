@@ -18,7 +18,7 @@ from os.path import dirname
 from . import controls, events_generator, readers
 
 from .. import asyncio, logging
-from ..node import Node
+from ..registered import Registered
 
 ROOT = dirname(__file__)
 
@@ -27,7 +27,7 @@ logger = logging.getLogger('escaperoom.server')
 routes = web.RouteTableDef()
 interface_routes = web.RouteTableDef()
 
-class Server(Node):
+class Server(Registered):
 
     _logger = logger
 

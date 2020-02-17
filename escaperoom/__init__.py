@@ -32,7 +32,7 @@ import logging.config
 logging.config.fileConfig(config) #TODO per room logging
 
 from .game import Game
-from .logic import Action, action, Condition, condition, Puzzle
+from .logic import Action, action, Condition, condition
 from .misc import LocalCamera, RemoteCamera, LocalCluesDisplay, RemoteCluesDisplay, Chronometer
 from .network import SerialBus, SocketBus, Device, SerialDevice
 from .server import HTTPServer

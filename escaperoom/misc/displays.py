@@ -20,8 +20,6 @@ class Display(Misc):
 
 class CluesDisplay(Display):
 
-    _group = Display.Group()
-
     def __init__(self, name, game=None):
         super().__init__(name)
         self.name = name

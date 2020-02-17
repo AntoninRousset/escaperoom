@@ -15,15 +15,13 @@ from . import asyncio, Logic
 
 class Action(Logic):
 
-    _group = Logic.Group()
-
     def __init__(self, name=None, func=lambda: None, *, desc=None):
         super().__init__(name)
-        if self._first_init:
-            self._running = asyncio.Lock()
-            self._failed = asyncio.Event()
+        self._running = asyncio.Lock()
+        self._failed = asyncio.Event()
         self.desc = desc
         self.func = func
+        self._register(Action)
 
     def __str__(self):
         if self.running: state = 'running'
@@ -32,16 +30,17 @@ class Action(Logic):
         return f'action "{self.name}" [{state}]'
 
     async def __call__(self, *args, **kwargs):
-        try:
-            async with self._running:
+        async with self._running:
+            try:
                 if asyncio.iscoroutinefunction(self.func):
                     await self.func(*args, **kwargs)
                 else:
                     self.func(*args, **kwargs)
+            except Exception as e:
+                self._failed.set()
+                self._log_warning(f'failed : {e}')
+            else:
                 self._failed.clear()
-        except Exception as e:
-            self._failed.set()
-            self._log_warning(f'failed : {e}')
 
     @property
     def running(self):
@@ -54,7 +53,8 @@ class Action(Logic):
 
 def action(name=None, *args, **kwargs):
     def decorator(func):
-        a = Action.find_node(name)
+        a = Action.find_entry(name)
+        if a is not None: return a
         return Action(name, func, *args, **kwargs)
     return decorator
 
