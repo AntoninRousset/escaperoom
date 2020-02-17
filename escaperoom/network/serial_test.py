@@ -151,10 +151,16 @@ async def _new_packet(src, msg, *, random_wait=True):
     return await wait_and_pack(delay)
 
 async def _events_creator():
-    while True:
-        await asyncio.sleep(5)
-        _devices[2]['attrs'][1]['value'] = '1'
-        await _new_packet(2, 'val 1 1')
+    await asyncio.sleep(3)
+    for i in range(2, 5):
+        _devices[i]['attrs'][0]['value'] = '1'
+        await _new_packet(i, 'val 0 1')
+    await asyncio.sleep(2)
+    _devices[4]['attrs'][0]['value'] = '0'
+    await _new_packet(4, 'val 0 0')
+    for i in range(4, 6):
+        _devices[i]['attrs'][0]['value'] = '1'
+        await _new_packet(i, 'val 0 1')
 
-#asyncio.create_task(_events_creator())
+asyncio.create_task(_events_creator())
 

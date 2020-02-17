@@ -42,7 +42,7 @@ class Node(ABC):
     def __new__(cls, name=None, *args, **kwargs):
         existing_node = cls.find_node(name)
         if existing_node is not None:
-            cls._logger.debug(f'Node "{name}" already exist, returning existing one')
+            Node._logger.debug(f'Node "{name}" already exist, returning existing one')
             existing_node._first_init = False
             return existing_node
         return super(Node, cls).__new__(cls)

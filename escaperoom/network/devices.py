@@ -238,17 +238,17 @@ class SerialDevice(Device):
         await self._connected.wait()
         return await self.addr.bus.send(self.addr.device_id, msg)
 
-    async def _find_attr(self, name):
+    async def _find_attr(self, name, *, wait):
         repeat = True
         while repeat:
             repeat = False
-            async with self.changed:
-                while self._attrs is None:
-                    await self.changed.wait()
-                for attr_id, attr in zip(range(self.n_attr), self._attrs):
-                    if attr.name == name: return attr_id, attr
-                    elif attr.name is None: repeat = True
+            while self._attrs is None and wait:
                 await self.changed.wait()
+            for attr_id, attr in zip(range(self.n_attr), self._attrs):
+                if attr.name == name: return attr_id, attr
+                elif attr.name is None: repeat = True and wait
+            if not wait: break
+            await self.changed.wait()
         raise KeyError(f'Non existent attribute "{name}"')
 
     def _value_for_msg(self, type, value):
@@ -261,13 +261,11 @@ class SerialDevice(Device):
 
     async def get_value(self, name):
         try:
-            _, attr = await self._find_attr(name)
-        except KeyError:
+            _, attr = await self._find_attr(name, wait=False)
+            if attr.value is None: raise KeyError('attribute not ready')
+        except KeyError as e:
             self._log_warning(f'cannot get value: {e}')
             raise
-        while attr.value is None:
-            async with self.changed:
-                await self.changed.wait()
         return attr.value
 
     async def set_value(self, name, value):
@@ -275,8 +273,8 @@ class SerialDevice(Device):
             while attr._value != value:
                 await self.changed.wait()
         try:
-            attr_id, attr = await self._find_attr(name)
             async with self.changed:
+                attr_id, attr = await self._find_attr(name, wait=True)
                 value = self._value_for_msg(attr.type, value)
                 await self._send(f'set val {attr_id} {value}')
                 await asyncio.wait_for(wait_value(attr, value), timeout=20)

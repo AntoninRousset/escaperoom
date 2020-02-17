@@ -11,6 +11,8 @@
 '''
 
 from . import asyncio, BoolLogic, Condition, Logic, Node
+from ..logging import ANSI
+from ..logging import ANSI
 
 class Puzzle(BoolLogic):
 
@@ -45,15 +47,46 @@ class Puzzle(BoolLogic):
     def __bool__(self):
         return self.active and self.satisfied
 
-    def __parents_check(self):
-        for parent in self._parents:
-            if parent: return True
-        return False
+    async def __parents_check(self):
+        def check():
+            if not self._parents: return True
+            for parent in self._parents:
+                if parent: return True
+            return False
+        if check():
+            self._log_debug(f'parents are {ANSI["bold"]}{ANSI["green"]} good')
+            if self.active:
+                async with self.changed:
+                    self._active.clear()
+                    self.changed.notfy_all()
+                self._log_debug(f'lose active')
+        else:
+            self._log_debug(f'parents are {ANSI["bold"]}{ANSI["red"]} bad')
+            if not self.active:
+                async with self.changed:
+                    self._active.set()
+                    self.changed.notify_all()
+                self._log_debug(f'get active')
 
-    def __conditions_check(self):
-        for condition in self._conditions:
-            if not condition: return False
-        return True
+    async def __conditions_check(self):
+        def check():
+            for condition in self._conditions:
+                if not condition: return False
+            return True
+        if check():
+            self._log_debug(f'conditions are {ANSI["bold"]}{ANSI["green"]} good')
+            if self.active:
+                async with self.changed:
+                    self._satisfied.clear()
+                    self.changed.notify_all()
+                self._log_debug(f'lose satisfied')
+        else:
+            self._log_debug(f'conditions are {ANSI["bold"]}{ANSI["red"]} bad')
+            if not self.active:
+                async with self.changed:
+                    self._active.set()
+                    self.changed.notify_all()
+                self._log_debug(f'get satisfied')
 
     async def __flow(self):
         while True:
@@ -72,25 +105,14 @@ class Puzzle(BoolLogic):
     async def __parent_listening(self, parent: Node):
         while parent in self._parents:
             async with parent.changed:
-                if self.active and not self.__parents_check():
-                    async with self.changed:
-                        self._active.clear()
-                        self.changed.notify_all()
-                elif not self.active and self.__parents_check():
-                    async with self.changed:
-                        self._active.set()
-                        self.changed.notify_all()
                 await parent.changed.wait()
+                await self.__parents_check()
 
     async def __condition_listening(self, condition: Condition):
         while condition in self._conditions:
             async with condition.changed:
-                if not self.satisfied and self.__conditions_check():
-                    async with self.changed:
-                        self._satisfied.set()
-                        self.changed.notify_all()
-                    await asyncio.gather(*(self._tail(t) for t in set(self.tails)))
                 await condition.changed.wait()
+                await self.__conditions_check()
 
     async def _run_heads(self):
         async def _run_head(head):
@@ -113,12 +135,14 @@ class Puzzle(BoolLogic):
             if parent not in self._parents:
                 self._parents.add(parent)
                 asyncio.create_task(self.__parent_listening(parent))
+        asyncio.create_task(self.__parents_check())
 
     def add_conditions(self, conditions: Logic):
         for condition in conditions:
             if condition not in self._conditions:
                 self._conditions.add(condition)
                 asyncio.create_task(self.__condition_listening(condition))
+        asyncio.create_task(self.__conditions_check())
 
     @property
     def active(self) -> bool:
