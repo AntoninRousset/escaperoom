@@ -65,6 +65,8 @@ class DeviceInfo extends Subscriber
 
 	update: (datas) ->
 		@update_plugs(datas)
+		if not datas.attrs?
+			datas.attrs = {}
 		@attrs_list.read_items(datas.attrs)
 		@set_screen('info')
 

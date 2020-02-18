@@ -26,7 +26,7 @@ class CluesDisplay(Display):
         if game is not None:
             self.game = game
             self.create_task(self._chronometer_listener())
-        self._register()
+        self._register(CluesDisplay)
 
     def __str__(self):
         return f'display "{self.name}"'
@@ -84,7 +84,6 @@ class LocalCluesDisplay(CluesDisplay):
     async def set_clue(self, clue):
         clue = clue.replace('\n', '\\n')
         msg = f'clue {clue}\n'
-        print(msg)
         await self._write_to_process(msg.encode())
 
 class RemoteCluesDisplay(CluesDisplay):

@@ -23,19 +23,10 @@ class Camera(Misc):
     def __init__(self, name):
         super().__init__(name)
         self.connected = False 
-        self.desc_changed = asyncio.Condition()
-        self.cameras_changed = asyncio.Condition()
+        self._register(Camera)
 
     def __str__(self):
         return f'camera "{self.name}"'
-
-    async def _camera_listening(self, camera):
-        while True: 
-            async with camera.desc_changed:
-                await camera.desc_changed.wait()
-                self._log_debug(f'{self}: {camera} changed its desc')
-                async with self.cameras_changed:
-                    self.cameras_changed.notify_all()
 
     @abstractmethod
     async def handle_sdp(self, sdp, type):
@@ -67,12 +58,12 @@ class LocalCamera(Camera):
     async def handle_sdp(self, sdp, type):
         #prefered = 120 #vp8
         #prefered = 121 #vp9
-        prefered = '126 |109 ' #h264 and opus
+        #prefered = '126 |109 ' #h264 and opus
         #prefered = '97 |109 ' #h264 and opus
-        sdp = re.sub(f'm=(video|audio) ([0-9]+) UDP\/TLS\/RTP\/SAVPF ([0-9 ]*)({prefered})([0-9 ]*)', r'm=\1 \2 UDP/TLS/RTP/SAVPF \4', sdp)
-        sdp = re.sub(f'a=rtpmap:(?!{prefered})\d* \w+\/.*\n?', '', sdp)
-        sdp = re.sub(f'a=fmtp:(?!{prefered}).*\n?', '', sdp)
-        sdp = re.sub(f'a=rtcp-fb:(?!{prefered}).*\n?', '', sdp)
+        #sdp = re.sub(f'm=(video|audio) ([0-9]+) UDP\/TLS\/RTP\/SAVPF ([0-9 ]*)({prefered})([0-9 ]*)', r'm=\1 \2 UDP/TLS/RTP/SAVPF \4', sdp)
+        #sdp = re.sub(f'a=rtpmap:(?!{prefered})\d* \w+\/.*\n?', '', sdp)
+        #sdp = re.sub(f'a=fmtp:(?!{prefered}).*\n?', '', sdp)
+        #sdp = re.sub(f'a=rtcp-fb:(?!{prefered}).*\n?', '', sdp)
         offer = RTCSessionDescription(sdp, type)
         pc = self._create_peer_connection()
         self.pcs.add(pc)

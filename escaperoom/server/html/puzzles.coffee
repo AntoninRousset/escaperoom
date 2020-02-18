@@ -15,7 +15,7 @@ class PuzzlesBox extends Subscriber
 	update: (datas) ->
 		@set_screen('graph')
 		@update_plugs(datas)
-		@shadowRoot.querySelector('puzzles-graph').read_items(datas.puzzles)
+		@shadowRoot.querySelector('puzzles-graph').read_items(datas.conditions)
 
 customElements.define('puzzles-box', PuzzlesBox)
 
@@ -32,6 +32,8 @@ class PuzzlesGraph extends Container
 		svg.appendChild(@graph)
 
 	add_item: (id, data) ->
+		if not (data.row? or data.col?)
+			return
 		item = document.createElementNS(svgns, 'circle')
 		item.setAttributeNS(null, 'class', 'item')
 		item.setAttributeNS(null, 'item_id', id)
@@ -43,6 +45,8 @@ class PuzzlesGraph extends Container
 
 	update_item: (id, data) ->
 		item = @get_item(id)
+		if not item?
+			return
 		item.setAttributeNS(null, 'cx', 80*data['col'])
 		item.setAttributeNS(null, 'cy', 80*data['row'])
 		colors = {'inactive' : 'red', 'active' : 'orange', 'completed' : 'green'}
@@ -59,6 +63,8 @@ class PuzzleInfo extends Subscriber
 		@shadowRoot.querySelector('#puzzle-complete').onclick = @complete
 		@shadowRoot.querySelector('#puzzle-restore').onclick = @restore
 		@set_screen('empty')
+		@conditions_list = @shadowRoot.querySelector('conditions-list')
+		@actions_list = @shadowRoot.querySelector('actions-list')
 
 	select: (id) ->
 		@subscribe('?id='+id)
@@ -76,6 +82,8 @@ class PuzzleInfo extends Subscriber
 		else if data.state == 'completed'
 			@shadowRoot.querySelector('#puzzle-activate').hidden = true
 			@shadowRoot.querySelector('#puzzle-complete').hidden = true
+		@conditions_list.read_items(data.siblings)
+		@actions_list.read_items(data.actions)
 		@set_screen('info')
 
 	activate: () =>
@@ -114,12 +122,71 @@ class PuzzleInfo extends Subscriber
 customElements.define('puzzle-info', PuzzleInfo)
 
 
-class ConditionsList extends Templated
+class ConditionsList extends Container
 	constructor: () ->
 		super()
 
 	add_item: (id, data) ->
 		item = @create_item(id)
 		@appendChild(item)
+		item.shadowRoot.querySelector('condition-item').select(id)
+
 
 customElements.define('conditions-list', ConditionsList)
+
+
+class ConditionItem extends Subscriber
+	constructor: () ->
+		super()
+		@apply_template()
+
+	select: (id) ->
+		@subscribe('?id='+id)
+
+	update: (datas) ->
+		@update_plugs(datas)
+		div = @shadowRoot.querySelector('div')
+		if datas['state'] == 'completed'
+			div.style.backgroundColor = 'green'
+		else if datas['state'] == 'active'
+			div.style.backgroundColor = 'orange'
+		else
+			div.style.backgroundColor = 'red'
+
+customElements.define('condition-item', ConditionItem)
+
+
+class ActionsList extends Container
+	constructor: () ->
+		super()
+
+	add_item: (id, data) ->
+		item = @create_item(id)
+		@appendChild(item)
+		item.shadowRoot.querySelector('action-item').select(id)
+
+customElements.define('actions-list', ActionsList)
+
+
+class ActionItem extends Subscriber
+	constructor: () ->
+		super()
+		@apply_template()
+
+	select: (id) ->
+		@subscribe('?id='+id)
+
+	update: (datas) ->
+		@update_plugs(datas)
+		div = @shadowRoot.querySelector('div')
+		if datas['running']
+			div.style.backgroundColor = 'green'
+		else if datas['failed']
+			div.style.backgroundColor = 'red'
+		else
+			div.style.backgroundColor = 'orange'
+
+
+customElements.define('action-item', ActionItem)
+
+

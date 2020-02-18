@@ -38,7 +38,7 @@ class SerialBus(Bus):
         self._register(SerialBus)
 
     def __str__(self):
-        return f'serialbus on {self.path}'
+        return f'[serialbus on {self.path}]'
 
     async def _listener(self):
         while True:

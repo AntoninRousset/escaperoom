@@ -12,7 +12,7 @@
  
 from .. import asyncio
 from ..game import Game
-from ..logic import Condition
+from ..logic import Action, Condition
 from ..network import Device
 from ..misc import Chronometer
 
@@ -35,7 +35,7 @@ events_queues = dict()
 
 async def generator():
     events_queue = SharedQueue()
-    categories = {game_events, chronometer_events, conditions_events, devices_events}
+    categories = {game_events, actions_events,chronometer_events, conditions_events, devices_events}
     for events in categories:
         asyncio.create_task(events(events_queue))
     while True:
@@ -57,8 +57,31 @@ async def chronometer_events(events_queue):
         if chronometer is None: return
         async with chronometer.changed:
             await chronometer.changed.wait()
+            await events_queue.put({'type' : 'update', 'url' : f'/chronometer'})
+
+async def actions_events(events_queue):
+    action_events = dict()
+    while True:
+        for action in Action.entries():
+            id = action.id
+            if id not in action_events:
+                t = asyncio.create_task(_action_events(action, events_queue))
+                action_events[id] = t
+        for id, t in action_events.items():
+            if t.done():
+                action_events.pop(id)
+        await Action.group_changed().wait()
+        await events_queue.put({'type' : 'update', 'url' : f'/actions'})
+
+async def _action_events(action, events_queue):
+    while action in action.entries():
+        async with action.changed:
+            await action.changed.wait()
             await events_queue.put({'type' : 'update',
-                                    'url' : f'/chronometer'})
+                                    'url' : f'/action',
+                                    'id' : action.id})
+            await events_queue.put({'type' : 'update', 'url' : f'/actions'})
+
 
 async def conditions_events(events_queue):
     condition_events = dict()

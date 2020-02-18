@@ -15,13 +15,14 @@ from . import asyncio, Logic
 
 class Action(Logic):
 
-    def __init__(self, name=None, func=lambda: None, *, desc=None):
+    def __init__(self, name=None, func=lambda: None, *, desc=None, task=False):
         super().__init__(name)
         self._running = asyncio.Lock()
         self._failed = asyncio.Event()
         self.desc = desc
         self.func = func
         self._register(Action)
+        if task: asyncio.create_task(self())
 
     def __str__(self):
         if self.running: state = 'running'
@@ -31,6 +32,9 @@ class Action(Logic):
 
     async def __call__(self, *args, **kwargs):
         async with self._running:
+            async with self.changed:
+                self._log_debug('start')
+                self.changed.notify_all()
             try:
                 if asyncio.iscoroutinefunction(self.func):
                     await self.func(*args, **kwargs)
@@ -41,6 +45,9 @@ class Action(Logic):
                 self._log_warning(f'failed : {e}')
             else:
                 self._failed.clear()
+            async with self.changed:
+                self._log_debug('end')
+                self.changed.notify_all()
 
     @property
     def running(self):

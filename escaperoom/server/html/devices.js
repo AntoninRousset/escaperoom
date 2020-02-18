@@ -91,6 +91,9 @@ DeviceInfo = class DeviceInfo extends Subscriber {
 
   update(datas) {
     this.update_plugs(datas);
+    if (datas.attrs == null) {
+      datas.attrs = {};
+    }
     this.attrs_list.read_items(datas.attrs);
     return this.set_screen('info');
   }

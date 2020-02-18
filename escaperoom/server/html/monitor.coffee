@@ -62,8 +62,8 @@ export class Subscriber extends Templated
 		for subscriber in subscribers
 			if data['type'] == 'update'
 				loc = data['url']
-				if 'id' in data
-					loc = loc+'?id='+data['id'] == subscriber.loc
+				if 'id' of data
+					loc = loc+'?id='+data['id']
 				if subscriber.loc == loc
 					subscriber.sync()
 

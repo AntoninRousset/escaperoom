@@ -11,16 +11,19 @@
 '''
 
 from ..game import Game
-from ..logic import Condition
+from ..logic import Action, Condition
 from ..misc import Camera, Chronometer
 from ..network import Device
-
 
 def datetime_to_string(datetime):
     if datetime is not None:
         return datetime.strftime('%H:%M')
 
 async def read(service, query=None):
+    if service == 'actions':
+        return await actions_reader()
+    if service == 'action':
+        return await action_reader(query)
     if service == 'cameras':
         return await cameras_reader()
     if service == 'chronometer':
@@ -37,6 +40,27 @@ async def read(service, query=None):
         return await conditions_reader()
     raise KeyError(service)
 
+async def actions_reader():
+    actions = {
+            action.id : {
+                'name' : action.name,
+                'desc' : action.name if action.desc is None else action.desc,
+                'running' : action.running,
+                'failed' : action.failed
+                } for action in Action.entries()
+            }
+    return {'actions' : actions}
+
+async def action_reader(query):
+    action = Action.find_entry(**query)
+    return {
+            'id' : action.id,
+            'name' : action.name,
+            'desc' : action.name if action.desc is None else action.desc,
+            'running' : action.running,
+            'failed' : action.failed
+            }
+
 async def cameras_reader():
     cameras = {
             camera.id : {
@@ -52,6 +76,56 @@ async def chronometer_reader():
             'running' : chronometer.is_running(),
             'time' : chronometer.elapsed().total_seconds()*1000
             }
+
+async def conditions_reader():
+    conditions = {
+            condition.id : {
+                'name' : condition.name,
+                'state' : 'completed' if condition else 'active' if condition.active else 'inactive',
+                'row' : None if condition.pos is None else condition.pos[0],
+                'col' : None if condition.pos is None else condition.pos[1],
+                } for condition in Condition.entries()
+            }
+    return {'conditions' : conditions}
+
+
+async def condition_reader(query):
+    condition = Condition.find_entry(**query)
+    actions = {
+            action.id : {
+                'name' : action.name,
+                'desc' : action.name if action.desc is None else action.desc,
+                'running' : action.running,
+                'failed' : action.failed
+                } for action in condition.actions
+            }
+    siblings = {
+            sibling.id : {
+                'name' : sibling.name,
+                'desc' : sibling.name if sibling.desc is None else sibling.desc,
+                'state' : 'completed' if sibling else 'active' if sibling.active else 'inactive',
+                } for sibling in condition.siblings
+            }
+    return {
+            'id' : condition.id,
+            'name' : condition.name,
+            'desc' : condition.name if condition.desc is None else condition.desc,
+            'state' : 'completed' if condition else 'active' if condition.active else 'inactive',
+            'description' : condition.desc,
+            'siblings' : siblings,
+            'actions' : actions,
+            }
+
+async def conditions_reader():
+    conditions = {
+            condition.id : {
+                'name' : condition.name,
+                'state' : 'completed' if condition else 'active' if condition.active else 'inactive',
+                'row' : None if condition.pos is None else condition.pos[0],
+                'col' : None if condition.pos is None else condition.pos[1],
+                } for condition in Condition.entries()
+            }
+    return {'conditions' : conditions}
 
 async def device_reader(query):
     device = Device.find_entry(**query)
@@ -70,6 +144,7 @@ async def device_reader(query):
     return {
             'id' : device.id,
             'name' : device.name,
+            'desc' : device.name if device.desc is None else device.desc,
             'attrs' : attrs,
             'type' : device.type,
             }
@@ -78,7 +153,8 @@ async def devices_reader():
     devices = {
             device.id : {
                 'name' : device.name,
-                'type' : device.type,
+                'desc' : device.name if device.desc is None else device.desc,
+                'type' : '?' if device.type == 'unknown' else device.type,
                 'n_attr' : device.n_attr
                 } for device in Device.entries()
             }
@@ -92,24 +168,4 @@ async def game_reader():
             'end_time' : datetime_to_string(Game._chronometer.end_time),
             'default_options' : Game.default_options
             }
-
-async def condition_reader(query):
-    condition = condition.find_entry(**query)
-    return {
-            'id' : condition.id,
-            'name' : condition.name,
-            'state' : condition.state,
-            'description' : condition.desc
-            }
-
-async def conditions_reader():
-    conditions = {
-            condition.id : {
-                'name' : condition.name,
-                'state' : 'done' if condition else 'active' if condition.active else 'inactive',
-                'row' : None if condition.pos is None else condition.pos[0],
-                'col' : None if condition.pos is None else condition.pos[1],
-                } for condition in Condition.entries()
-            }
-    return {'conditions' : conditions}
 

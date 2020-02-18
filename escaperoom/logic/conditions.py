@@ -63,11 +63,11 @@ class Condition(BoolLogic):
             if state:
                 self._satisfied.set()
                 self.changed.notify_all()
-                (asyncio.create_task(co()) for co in self.on_trues)
+                {asyncio.create_task(co()) for co in self.on_trues}
             else:
                 self._satisfied.clear()
                 self.changed.notify_all()
-                (asyncio.create_task(co()) for co in self.on_falses)
+                {asyncio.create_task(co()) for co in self.on_falses}
 
     async def _check(self):
         async with self._checking:

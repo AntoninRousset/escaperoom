@@ -91,25 +91,33 @@
 								<template>
 									<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
 									<div class='screen' name='info'>
-										<h1 id='puzzle-name'><slot name='name'></slot></h1>
+										<h1 id='puzzle-name'><slot name='desc'></slot></h1>
 										<div id='puzzle-state'><slot name='state'></slot></div>
 										<p id='puzzle-description'><slot name='description'></slot></p>
 										<h2>Conditions</h2>
 										<conditions-list>
-											<template class='item clickable'>
-												<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
-												<div>
-													condition
-												</div>
+											<template class='item selectable'>
+												<condition-item src='/condition'>
+													<template>
+														<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
+														<div>
+															<slot name='desc'></slot>
+														</div>
+													</template>
+												</condition-item>
 											</template>
 										</conditions-list>
 										<h2>Actions</h2>
 										<actions-list>
-											<template class='item clickable'>
-												<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
-												<div>
-													action	
-												</div>
+											<template class='item selectable'>
+												<action-item src='/action'>
+													<template>
+														<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
+														<div>
+															<slot name='desc'></slot>
+														</div>
+													</template>
+												</action-item>
 											</template>
 										</actions-list>
 										<p>Un puzzle s'active lorsqu'un de ces parents est complété.</p>
@@ -165,17 +173,17 @@
 						<template class='item selectable'> 
 							<link rel='stylesheet' type='text/css' href='ressources/devices.css'>
 							<slot name='type'></slot>
-							<slot name='name'>name</slot>
+							<slot name='desc'></slot>
 						</template>
 					</devices-list>
 					<device-info class='section scroll-y' src="/device">
 						<template>
 							<link rel='stylesheet' type='text/css' href='ressources/devices.css'>
 							<div class='screen' name='info'>
-								<h1 id='device-name'><slot name='name'></slot></h1>
+								<h1 id='device-name'><slot name='desc'></slot></h1>
 								<div id='device-state'><slot name='state'></slot></div>
 								<div id='device-msg'><slot name='msg'></slot></div>
-								<p id='device-description'><slot name='description'></slot></p>
+								<p id='device-description'><slot name='name'></slot></p>
 								<h2>Attributes</h2>
 								<device-attributes>
 									<template class='item'>
@@ -183,9 +191,8 @@
 										[<slot name='attr_id'></slot>] 
 										<slot name='name'></slot>
 										(<slot name='type'></slot>):
-										<input type='text'>
-										</input>
-											<slot name='value'></slot>
+										<input type='text'></input>
+										<slot name='value'></slot>
 									</template>
 								</device-attributes>
 								<h2>Actions</h2>

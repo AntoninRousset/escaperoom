@@ -13,7 +13,7 @@ devices-list .item img {
 	max-width: 40px;
 }
 
-devices-list .item span[slot='name'] {
+devices-list .item span[slot='desc'] {
 	margin: 16px;
 	vertical-align: middle;
 }
