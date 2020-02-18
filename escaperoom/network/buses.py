@@ -35,9 +35,10 @@ class SerialBus(Bus):
         asyncio.create_task(self._listener())
         self.sending = asyncio.Condition()
         self._connected = asyncio.Event()
+        self._register(SerialBus)
 
     def __str__(self):
-        return f'serialbus'
+        return f'serialbus on {self.path}'
 
     async def _listener(self):
         while True:
@@ -74,71 +75,4 @@ class SerialBus(Bus):
 
     async def broadcast(self, msg):
         return await self.send(0x0, msg)
-
-
-class SocketBus(Bus):
-
-    def __init__(self, host, port, *, bus_id, create_server=False):
-        super().__init__()
-        self.host, self.port = host, port
-        self.bus_id = int(bus_id)
-        if create_server:
-            self.clients = set()
-            cr = asyncio.start_server(self._handle_client, host, port)
-            asyncio.run_until_complete(cr)
-        self._reader, self._writer = None, None
-        asyncio.create_task(self._connect(host, port))
-        self.sending = self.Condition()
-
-    def __str__(self):
-        return f'socket [{self.host}:{self.port}](0x{self.bus_id:02x})'
-
-    async def _handle_client(self, reader, writer):
-        self.clients.add((reader, writer))
-        while not reader.at_eof():
-            line = await reader.readline()
-            for client in self.clients:
-                client[1].write(line)
-        self.clients.discard((reader, writer))
-
-    def _connect(self, host, port):
-        while self.disconnected():
-            try:
-                self._reader, self._writer = yield from asyncio.open_connection(host, port)
-            except ConnectionRefusedError:
-                logger.warning(f'{self}: connection refused')
-                #await asyncio.wait(5)
-        asyncio.create_task(self._listener())
-
-    async def _listener(self):
-        while True:
-            data = (await self._reader.readline()).decode()
-            words = data.split(maxsplit=2)
-            se, de, msg = int(words[0]), int(words[1]), str(words[2])[:-1]
-            if (de == 0 or de == self.bus_id) and se != self.bus_id:
-                async with self.packet_changed:
-                    self.packet = se, msg
-                    self.packet_changed.notify_all()
-                logger.debug(f'{self} received [0x{se:02x}->0x{de:02x}] "{msg}"')
-
-    async def send(self, dest, msg):
-        data = f'{self.bus_id} {dest} {msg}\n'.encode()
-        try:
-            clients = self.clients
-        except AttributeError:
-            if self.disconnected():
-                raise ConnectionError()
-            clients = {(self._reader, self._writer)}
-        async with self.sending:
-            for client in clients:
-                client[1].write(data)
-        logger.debug(f'{self}: sent [0x{self.bus_id:02x}->0x{dest:02x}] "{msg}"')
-
-    async def broadcast(self, msg):
-        await self.send(0x0, msg)
-
-    def disconnected(self):
-        if self._reader is None or self._writer is None:
-            return True
-        return False
 

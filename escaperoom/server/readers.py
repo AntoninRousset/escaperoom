@@ -11,7 +11,7 @@
 '''
 
 from ..game import Game
-from ..logic import Condition as Puzzle
+from ..logic import Condition
 from ..misc import Camera, Chronometer
 from ..network import Device
 
@@ -31,29 +31,30 @@ async def read(service, query=None):
         return await devices_reader()
     if service == 'game':
         return await game_reader()
-    if service == 'puzzle':
-        return await puzzle_reader(query)
-    if service == 'puzzles':
-        return await puzzles_reader()
+    if service == 'condition':
+        return await condition_reader(query)
+    if service == 'conditions':
+        return await conditions_reader()
     raise KeyError(service)
 
 async def cameras_reader():
     cameras = {
             camera.id : {
                 'name' : camera.name
-                } for camera in Camera.nodes()
+                } for camera in Camera.entries()
             }
     return {'cameras' : cameras}
 
 async def chronometer_reader():
-    chronometer = Chronometer.find_node('__main')
+    chronometer = Chronometer.find_entry('__game')
+    if chronometer is None: return ''
     return {
             'running' : chronometer.is_running(),
             'time' : chronometer.elapsed().total_seconds()*1000
             }
 
 async def device_reader(query):
-    device = Device.find_node(**query)
+    device = Device.find_entry(**query)
     attrs = None if device._attrs is None else dict()
     if device._attrs is None:
         attrs = None
@@ -71,7 +72,6 @@ async def device_reader(query):
             'name' : device.name,
             'attrs' : attrs,
             'type' : device.type,
-            'addr' : str(device.addr),
             }
 
 async def devices_reader():
@@ -80,7 +80,7 @@ async def devices_reader():
                 'name' : device.name,
                 'type' : device.type,
                 'n_attr' : device.n_attr
-                } for device in Device.nodes()
+                } for device in Device.entries()
             }
     return {'devices' : devices}
 
@@ -93,23 +93,23 @@ async def game_reader():
             'default_options' : Game.default_options
             }
 
-async def puzzle_reader(query):
-    puzzle = Puzzle.find_node(**query)
+async def condition_reader(query):
+    condition = condition.find_entry(**query)
     return {
-            'id' : puzzle.id,
-            'name' : puzzle.name,
-            'state' : puzzle.state,
-            'description' : puzzle.desc
+            'id' : condition.id,
+            'name' : condition.name,
+            'state' : condition.state,
+            'description' : condition.desc
             }
 
-async def puzzles_reader():
-    puzzles = {
-            puzzle.id : {
-                'name' : puzzle.name,
-                'state' : puzzle.state,
-                'row' : puzzle.pos[0],
-                'col' : puzzle.pos[1],
-                } for puzzle in Puzzle.nodes()
+async def conditions_reader():
+    conditions = {
+            condition.id : {
+                'name' : condition.name,
+                'state' : 'done' if condition else 'active' if condition.active else 'inactive',
+                'row' : None if condition.pos is None else condition.pos[0],
+                'col' : None if condition.pos is None else condition.pos[1],
+                } for condition in Condition.entries()
             }
-    return {'puzzles' : puzzles}
+    return {'conditions' : conditions}
 

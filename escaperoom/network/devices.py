@@ -10,12 +10,19 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import re
+import aiohttp, json, re
+from aiohttp_sse_client import client as sse_client
+from collections import defaultdict
 
 from . import asyncio, Network
 
 
+class NotReady(Exception):
+    pass
+
 class Device(Network):
+
+    _downloadings = defaultdict(asyncio.Lock)
 
     class Attribute():
 
@@ -48,17 +55,81 @@ class Device(Network):
         def value(self, value):
             self._value = value
 
+    @classmethod
+    async def _download_device(cls, host, id):
+        loc = host+'/device?id='+id
+        async with cls._downloadings[loc]:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(loc) as resp:
+                    data = await resp.json()
+            device = cls.find_entry(id=id)
+            if device is None: device = Device(data['name'], type=data['type'])
+            if data['attrs'] is None: return
+            for attr_id, attr in data['attrs'].items():
+                async with device.changed:
+                    if device._attrs is None: device._attrs = list()
+                    d_attr = device._attrs[int(attr_id)]
+                    if ( d_attr.name != attr['name'] or
+                         d_attr.type != attr['type'] or
+                         d_attr.value != attr['value'] ):
+                        device.changed.notify_all() 
+                    d_attr.name = attr['name']
+                    d_attr.type = attr['type']
+                    d_attr.value = attr['value']
 
-    def __init__(self, name, *, type='unknown'): 
+    @classmethod
+    async def _download(cls, host, *, recursive=False):
+        loc = host+'/devices'
+        async with cls._downloadings[loc]:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(loc) as resp:
+                    data = await resp.json()
+            if recursive:
+                for id in data['devices'].keys():
+                    asyncio.create_task(cls._download_device(host, id))
+        
+    @classmethod
+    async def _HTTP_listener(cls, host):
+        loc = host+'/events'
+        while True:
+            async with sse_client.EventSource(loc) as event_source:
+                try:
+                    async for event in event_source:
+                        data = json.loads(event.data)
+                        if data['type'] == 'update':
+                            await cls._download(host)
+                except ConnectionError:
+                    self._log_warning(f'failed to connect to {host}')
+                    await asyncio.sleep(1)
+
+    @classmethod
+    def bind(cls, host):
+        asyncio.create_task(cls._download(host, recursive=True))
+        asyncio.create_task(cls._HTTP_listener(host))
+
+    def __init__(self, name, *, type='unknown', tasks={}): 
         super().__init__(name)
         self._attrs = None
         self._connected = asyncio.Event()
         self.type = type
         self._register(Device)
+        {asyncio.create_task(task(self)) for task in tasks}
 
     def __str__(self):
         return f'device "{self.name}"'
 
+    @property
+    def n_attr(self):
+        if self._attrs is None: return None
+        return len(self._attrs)
+
+
+def device(name=None, *args, **kwargs):
+    def decorator(func):
+        d = Device.find_entry(name)
+        if d is not None: return d
+        return Device(name, tasks={func}, *args, **kwargs)
+    return decorator
 
 class SerialDevice(Device):
 
@@ -157,9 +228,9 @@ class SerialDevice(Device):
     def __init__(self, name, *, type='unknown'):
         super().__init__(name, type=type)
         self._reset = asyncio.Event()
+        self.addr = None
         asyncio.create_task(self._desc_fetching())
         asyncio.create_task(self._attrs_fetching())
-        self.addr = None
         self._register(SerialDevice)
 
     async def _desc_fetching(self):
@@ -239,12 +310,14 @@ class SerialDevice(Device):
         repeat = True
         while repeat:
             repeat = False
-            while self._attrs is None and wait:
-                await self.changed.wait()
+            while self._attrs is None:
+                if wait: await self.changed.wait()
+                else: raise NotReady('device is not ready')
             for attr_id, attr in zip(range(self.n_attr), self._attrs):
                 if attr.name == name: return attr_id, attr
-                elif attr.name is None: repeat = True and wait
-            if not wait: break
+                elif attr.name is None:
+                    if wait: repeat = True
+                    else: raise NotReady('attribute is not ready')
             await self.changed.wait()
         raise KeyError(f'Non existent attribute "{name}"')
 
@@ -259,7 +332,8 @@ class SerialDevice(Device):
     async def get_value(self, name):
         try:
             _, attr = await self._find_attr(name, wait=False)
-            if attr.value is None: raise KeyError('attribute not ready')
+            if attr.value is None: raise NotRead('attribute not ready')
+        except NotReady: raise
         except KeyError as e:
             self._log_warning(f'cannot get value: {e}')
             raise
@@ -289,11 +363,6 @@ class SerialDevice(Device):
             self._reset.set()
             self._reset.clear()
             self.changed.notify_all()
-
-    @property
-    def n_attr(self):
-        if self._attrs is None: return None
-        return len(self._attrs)
 
 '''
 class LocalDevice(Device):

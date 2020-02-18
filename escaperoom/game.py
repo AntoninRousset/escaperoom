@@ -31,11 +31,15 @@ class Game(ABC):
 
     @classmethod
     async def start(cls, options):
-        cls._chronometer.start()
+        async with cls._chronometer.changed:
+            cls._chronometer.start()
+            cls._chronometer.changed.notify_all()
 
     @classmethod
     async def stop(cls, options):
-        cls._chronometer.stop()
+        async with cls._chronometer.changed:
+            cls._chronometer.stop()
+            cls._chronometer.changed.notify_all()
 
     @classmethod
     def is_running(cls):

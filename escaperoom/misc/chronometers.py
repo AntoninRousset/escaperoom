@@ -22,6 +22,10 @@ class Chronometer(Misc):
         super().__init__(name)
         self.start_time = None #TODO list of plays and pauses
         self.end_time = None
+        self._register(Chronometer)
+
+    def __str__(self):
+        return f'chronometer "{self.name}"'
 
     def start(self):
         self.start_time = datetime.today()

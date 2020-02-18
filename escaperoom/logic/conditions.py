@@ -12,6 +12,7 @@
 
 from . import asyncio, BoolLogic
 from ..logging import ANSI
+from ..network.devices import NotReady
 
 
 class Condition(BoolLogic):
@@ -84,6 +85,7 @@ class Condition(BoolLogic):
                     self.msg = await self.func()
                 else:
                     self.msg = self.func()
+            except NotReady: pass
             except Exception as e:
                 self._log_warning(f'failed to check condition: {e}')
                 self._failed.set()

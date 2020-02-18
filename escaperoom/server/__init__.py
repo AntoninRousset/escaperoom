@@ -31,6 +31,7 @@ class Server(Registered):
 
     _logger = logger
 
+
 @interface_routes.get('/')
 async def monitor(request):
     context = {'game_name' : ''}
@@ -50,16 +51,13 @@ async def reader(request):
     return web.Response(content_type='application/json', text=json.dumps(data))
 
 @routes.post('/{service}')
-async def puzzles(request):
+async def control(request):
     service = request.match_info['service']
     answer = await controls.control(await request.json(), service, request.query)
     return web.Response(content_type='application/json', text=json.dumps(answer))
 
 class HTTPServer(Server):
 
-    _group = dict()
-
-    #TODO can we use port 80?
     def __init__(self, host='0.0.0.0', port=8080, *, interface=False):
         super().__init__(name=None)
         self.app = web.Application()

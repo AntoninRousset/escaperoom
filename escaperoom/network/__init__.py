@@ -21,6 +21,6 @@ class Network(Registered):
     _logger = logger
 
 
-from .buses import Bus, SerialBus, SocketBus
-from .devices import Device, Device, SerialDevice
+from .buses import Bus, SerialBus
+from .devices import Device, device, SerialDevice
 
