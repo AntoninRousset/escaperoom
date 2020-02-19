@@ -85,6 +85,7 @@ async def conditions_reader():
             condition.id : {
                 'name' : condition.name,
                 'state' : 'completed' if condition else 'active' if condition.active else 'inactive',
+                'desactivated' : condition.desactivated,
                 'row' : None if condition.pos is None else condition.pos[0],
                 'col' : None if condition.pos is None else condition.pos[1],
                 } for condition in Condition.entries()
@@ -108,6 +109,7 @@ async def condition_reader(query):
                 'name' : sibling.name,
                 'desc' : sibling.name if sibling.desc is None else sibling.desc,
                 'state' : 'completed' if sibling else 'active' if sibling.active else 'inactive',
+                'desactivated' : sibling.desactivated,
                 } for sibling in condition.siblings
             }
     return {
@@ -115,6 +117,7 @@ async def condition_reader(query):
             'name' : condition.name,
             'desc' : condition.name if condition.desc is None else condition.desc,
             'state' : 'completed' if condition else 'active' if condition.active else 'inactive',
+            'desactivated' : condition.desactivated,
             'description' : condition.desc,
             'siblings' : siblings,
             'actions' : actions,

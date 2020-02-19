@@ -30,6 +30,7 @@ class Condition(BoolLogic):
         self._satisfied = asyncio.Event()
         self._failed = asyncio.Event()
         self.force_satisfied = False
+        self._desactivated = asyncio.Event()
         self.msg = None
         self.func = func
         self.args = args
@@ -37,7 +38,8 @@ class Condition(BoolLogic):
         self.pos = pos
         self.add_listens(listens)
         self.add_parents(parents)
-        if siblings is None: siblings = listens
+        if siblings is None:
+            siblings = {c for c in listens if isinstance(c, Condition)}
         self.siblings.update(siblings)
         self.actions.update(actions)
         if on_trues is None: on_trues = set()
@@ -64,11 +66,13 @@ class Condition(BoolLogic):
             if state:
                 self._satisfied.set()
                 self.changed.notify_all()
-                {asyncio.create_task(co()) for co in self.on_trues}
+                if not self.desactivated:
+                    {asyncio.create_task(co()) for co in self.on_trues}
             else:
                 self._satisfied.clear()
                 self.changed.notify_all()
-                {asyncio.create_task(co()) for co in self.on_falses}
+                if not self.desactivated:
+                    {asyncio.create_task(co()) for co in self.on_falses}
 
     async def _check(self):
         async with self._checking:
@@ -128,6 +132,16 @@ class Condition(BoolLogic):
                 self._listens.add(listen)
         if listens: asyncio.create_task(self._check())
 
+    async def activate(self):
+        async with self.changed:
+            self._desactivated.clear()
+            self.changed.notify_all()
+
+    async def desactivate(self):
+        async with self.changed:
+            self._desactivated.set()
+            self.changed.notify_all()
+
     def on_true(self, *args, **kwargs):
         def decorator(func):
             a = action(*args, **kwargs)(func)
@@ -155,6 +169,10 @@ class Condition(BoolLogic):
     @property
     def failed(self):
         return self._failed.is_set()
+
+    @property
+    def desactivated(self):
+        return self._desactivated.is_set()
 
 
 def condition(name, *args, **kwargs):

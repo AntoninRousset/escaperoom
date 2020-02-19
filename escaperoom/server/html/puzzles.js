@@ -200,11 +200,17 @@ ConditionItem = class ConditionItem extends Subscriber {
     this.update_plugs(datas);
     div = this.shadowRoot.querySelector('div');
     if (datas['state'] === 'completed') {
-      return div.style.backgroundColor = 'green';
+      div.style.backgroundColor = 'green';
     } else if (datas['state'] === 'active') {
-      return div.style.backgroundColor = 'orange';
+      div.style.backgroundColor = 'orange';
     } else {
-      return div.style.backgroundColor = 'red';
+      div.style.backgroundColor = 'red';
+    }
+    if (datas['desactivated']) {
+      div.disabled = true;
+      return div.style.backgroundColor = 'gray';
+    } else {
+      return div.disabled = false;
     }
   }
 

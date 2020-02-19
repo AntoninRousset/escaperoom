@@ -190,7 +190,7 @@ class SerialDevice(Device):
         def lost_device():
             for device in cls.entries():
                 if not device._connected.is_set():
-                    cls._logger.debug('lost device:', device)
+                    cls._logger.debug(f'lost device: {device}')
                     return True
         async def safe_broadcast(bus):
             try:

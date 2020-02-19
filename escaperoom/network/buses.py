@@ -68,6 +68,7 @@ class SerialBus(Bus):
     async def send(self, dest, msg):
         async with self.sending:
             #await asyncio.sleep(0.5)
+            #TODO avoid bus saturation
             result = await serial.send(dest, (msg).encode('ascii') + b'\0')
             if result is serial.proto.OutgoingResult.SUCCESS:
                 self._log_debug(f'msg sent to 0x{dest:02x}: {msg}')

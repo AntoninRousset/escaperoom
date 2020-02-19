@@ -152,6 +152,11 @@ class ConditionItem extends Subscriber
 			div.style.backgroundColor = 'orange'
 		else
 			div.style.backgroundColor = 'red'
+		if datas['desactivated']
+			div.disabled = true
+			div.style.backgroundColor = 'gray'
+		else
+			div.disabled = false
 
 customElements.define('condition-item', ConditionItem)
 
