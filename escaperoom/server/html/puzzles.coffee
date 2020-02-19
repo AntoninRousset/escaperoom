@@ -185,7 +185,11 @@ class ActionItem extends Subscriber
 			div.style.backgroundColor = 'red'
 		else
 			div.style.backgroundColor = 'orange'
-
+		if datas['desactivated']
+			div.disabled = true
+			div.style.backgroundColor = 'gray'
+		else
+			div.disabled = false
 
 customElements.define('action-item', ActionItem)
 

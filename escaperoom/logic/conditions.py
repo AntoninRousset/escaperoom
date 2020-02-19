@@ -10,7 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from . import asyncio, BoolLogic
+from . import action, asyncio, BoolLogic
 from ..logging import ANSI
 from ..network.devices import NotReady
 
@@ -19,7 +19,7 @@ class Condition(BoolLogic):
 
     def __init__(self, name=None, func=lambda: False, *, desc=None, pos=None,
                  listens=set(), parents=set(), siblings=None, actions=set(),
-                 on_trues=None, on_falses=None):
+                 on_trues=None, on_falses=None, args=None):
         super().__init__(name)
         self.siblings = set()
         self.actions = set()
@@ -32,6 +32,7 @@ class Condition(BoolLogic):
         self.force_satisfied = False
         self.msg = None
         self.func = func
+        self.args = args
         self.desc = desc
         self.pos = pos
         self.add_listens(listens)
@@ -82,10 +83,17 @@ class Condition(BoolLogic):
             if not self.active: await self.__set_active(True)
             try:
                 if asyncio.iscoroutinefunction(self.func):
-                    self.msg = await self.func()
+                    if self.args is None:
+                        self.msg = await self.func()
+                    else:
+                        self.msg = await self.func(self.args)
                 else:
-                    self.msg = self.func()
-            except NotReady: pass
+                    if self.args is None:
+                        self.msg = self.func()
+                    else:
+                        self.msg = self.func(self.args)
+            except NotReady:
+                self._log_debug(f'not ready to check')
             except Exception as e:
                 self._log_warning(f'failed to check condition: {e}')
                 self._failed.set()
@@ -120,6 +128,22 @@ class Condition(BoolLogic):
                 self._listens.add(listen)
         if listens: asyncio.create_task(self._check())
 
+    def on_true(self, *args, **kwargs):
+        def decorator(func):
+            a = action(*args, **kwargs)(func)
+            self.on_trues.add(a)
+            self.actions.add(a)
+            return a
+        return decorator
+
+    def on_false(self, *args, **kwargs):
+        def decorator(func):
+            a = action(*args, **kwargs)(func)
+            self.on_falses.add(a)
+            self.actions.add(a)
+            return a
+        return decorator
+
     @property
     def checking(self):
         return self._checking.locked()
@@ -134,9 +158,9 @@ class Condition(BoolLogic):
 
 
 def condition(name, *args, **kwargs):
+    from functools import partial
     def decorator(func):
         c = Condition.find_entry(name)
-        if c is not None: return c
         return Condition(name, func, *args, **kwargs)
     return decorator
 

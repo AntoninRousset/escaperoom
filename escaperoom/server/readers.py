@@ -40,10 +40,12 @@ async def read(service, query=None):
         return await conditions_reader()
     raise KeyError(service)
 
+#TODO a reader should take a set of entries, like actions so it can be reused
 async def actions_reader():
     actions = {
             action.id : {
                 'name' : action.name,
+                'desactivated' : action.desactivated,
                 'desc' : action.name if action.desc is None else action.desc,
                 'running' : action.running,
                 'failed' : action.failed
@@ -56,6 +58,7 @@ async def action_reader(query):
     return {
             'id' : action.id,
             'name' : action.name,
+            'desactivated' : action.desactivated,
             'desc' : action.name if action.desc is None else action.desc,
             'running' : action.running,
             'failed' : action.failed
@@ -70,7 +73,7 @@ async def cameras_reader():
     return {'cameras' : cameras}
 
 async def chronometer_reader():
-    chronometer = Chronometer.find_entry('__game')
+    chronometer = Chronometer.find_entry('timer')
     if chronometer is None: return ''
     return {
             'running' : chronometer.is_running(),
@@ -95,6 +98,7 @@ async def condition_reader(query):
             action.id : {
                 'name' : action.name,
                 'desc' : action.name if action.desc is None else action.desc,
+                'desactivated' : action.desactivated,
                 'running' : action.running,
                 'failed' : action.failed
                 } for action in condition.actions

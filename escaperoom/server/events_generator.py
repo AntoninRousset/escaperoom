@@ -94,7 +94,7 @@ async def conditions_events(events_queue):
         for id, t in condition_events.items():
             if t.done():
                 condition_events.pop(id)
-        await condition.group_changed().wait()
+        await Condition.group_changed().wait()
         await events_queue.put({'type' : 'update', 'url' : f'/conditions'})
 
 async def _condition_events(condition, events_queue):

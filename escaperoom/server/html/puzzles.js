@@ -243,11 +243,17 @@ ActionItem = class ActionItem extends Subscriber {
     this.update_plugs(datas);
     div = this.shadowRoot.querySelector('div');
     if (datas['running']) {
-      return div.style.backgroundColor = 'green';
+      div.style.backgroundColor = 'green';
     } else if (datas['failed']) {
-      return div.style.backgroundColor = 'red';
+      div.style.backgroundColor = 'red';
     } else {
-      return div.style.backgroundColor = 'orange';
+      div.style.backgroundColor = 'orange';
+    }
+    if (datas['desactivated']) {
+      div.disabled = true;
+      return div.style.backgroundColor = 'gray';
+    } else {
+      return div.disabled = false;
     }
   }
 

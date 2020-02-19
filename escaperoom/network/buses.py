@@ -53,7 +53,7 @@ class SerialBus(Bus):
                     self._set_connected(True)
             except ConnectionRefusedError:
                 self._set_connected(False)
-                await asyncio.sleep(0)
+                await asyncio.sleep(1)
 
     def _set_connected(self, state: bool):
         if state:
@@ -67,6 +67,7 @@ class SerialBus(Bus):
 
     async def send(self, dest, msg):
         async with self.sending:
+            #await asyncio.sleep(0.5)
             result = await serial.send(dest, (msg).encode('ascii') + b'\0')
             if result is serial.proto.OutgoingResult.SUCCESS:
                 self._log_debug(f'msg sent to 0x{dest:02x}: {msg}')

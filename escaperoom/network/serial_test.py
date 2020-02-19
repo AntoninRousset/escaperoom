@@ -24,7 +24,22 @@ _devices_defaults = {
             'name' : 'lights_uv',
             'attrs' : {
                 0 : {
-                    'name' : 'state',
+                    'name' : 'room1',
+                    'type' : 'bool',
+                    'value' : '1'
+                    },
+                1 : {
+                    'name' : 'room2',
+                    'type' : 'bool',
+                    'value' : '1'
+                    },
+                2 : {
+                    'name' : 'vessel',
+                    'type' : 'bool',
+                    'value' : '1'
+                    },
+                3 : {
+                    'name' : 'uv',
                     'type' : 'bool',
                     'value' : '0'
                     }
@@ -88,6 +103,20 @@ _devices_defaults = {
                     'value' : '0'
                     }
                 }
+            },
+        6 : {'name' : 'vessel',
+            'attrs' : {
+                0 : {
+                    'name' : 'door1',
+                    'type' : 'bool',
+                    'value' : '0'
+                    },
+                1 : {
+                    'name' : 'door2',
+                    'type' : 'bool',
+                    'value' : '0'
+                    }
+                }
             }
     }
 
@@ -141,6 +170,7 @@ async def _device_answer(dest, msg):
     if re.match('\s*reboot\s*', msg):
         for id in _devices_defaults.keys():
             _devices[id] = deepcopy(_devices_defaults[id])
+        return
 
 async def _new_packet(src, msg, *, random_wait=True):
     async def wait_and_pack(delay):

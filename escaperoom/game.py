@@ -27,7 +27,7 @@ class Game(ABC):
             'timeout' : '01:00:00'
         }
     changed = asyncio.Condition()
-    _chronometer = Chronometer('__game')
+    _chronometer = Chronometer()
 
     @classmethod
     async def start(cls, options):

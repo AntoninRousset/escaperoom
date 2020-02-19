@@ -26,7 +26,7 @@ class Device(Network):
 
     class Attribute():
 
-        def __init__(self, name=None, type=None, value=None):
+        def __init__(self, name=None, type=None, value=None): 
             super().__init__()
             self.name = name
             self.type = type 
@@ -122,13 +122,15 @@ class Device(Network):
         asyncio.create_task(cls._download(host))
         asyncio.create_task(cls._HTTP_listener(host))
 
-    def __init__(self, name, *, desc=None, type='unknown', tasks={}): 
+    def __init__(self, name, *, desc=None, type='unknown', tasks={},
+                 reset=False): 
         super().__init__(name)
         self.desc = desc
         self._attrs = None
         self._connected = asyncio.Event()
         self.type = type
         self._register(Device)
+        #if reset: asyncio.create_task(self.reset()) #TODO
         {asyncio.create_task(task(self)) for task in tasks}
 
     def __str__(self):
@@ -188,6 +190,7 @@ class SerialDevice(Device):
         def lost_device():
             for device in cls.entries():
                 if not device._connected.is_set():
+                    cls._logger.debug('lost device:', device)
                     return True
         async def safe_broadcast(bus):
             try:
@@ -196,8 +199,8 @@ class SerialDevice(Device):
                 cls._logger.warning(f'cannot broadcast on {bus}: {e}')
         while True:
             if cls.discover or lost_device():
-                await asyncio.gather(*(safe_broadcast(b) for b in cls._buses))
-                await asyncio.sleep(5)
+                await asyncio.gather(*{safe_broadcast(b) for b in cls._buses})
+                await asyncio.sleep(10)
             else:
                 await cls.group_changed().wait()
 
@@ -252,20 +255,24 @@ class SerialDevice(Device):
             cls._buses.add(bus)
         cls._logger.debug(f'{bus} added')
 
-    def __init__(self, name, *, desc=None, type='unknown'):
-        super().__init__(name, desc=desc, type=type)
+    def __init__(self, name, *, desc=None, type='unknown', reset=False):
+        super().__init__(name, desc=desc, type=type, reset=reset)
         self._reset = asyncio.Event()
         self.addr = None
+        if reset: asyncio.create_task(self.__reset_before_start())
+        self._register(SerialDevice)
+
+    async def __reset_before_start(self):
+        await self.reset()
         asyncio.create_task(self._desc_fetching())
         asyncio.create_task(self._attrs_fetching())
-        self._register(SerialDevice)
 
     async def _desc_fetching(self):
         while True:
             if self.name is None or self._attrs is None:
                 self._log_debug(f'incomplete desc') 
                 await self._send(f'get desc')
-                await asyncio.wait({asyncio.sleep(5), self._reset.wait()},
+                await asyncio.wait({asyncio.sleep(10), self._reset.wait()},
                                    return_when=asyncio.FIRST_COMPLETED)
             else:
                 async with self.changed:
@@ -286,7 +293,7 @@ class SerialDevice(Device):
                 if cos:
                     self._log_debug(f'incomplete attrs') 
                     await asyncio.gather(*cos)
-                    await asyncio.wait({asyncio.sleep(5), self._reset.wait()},
+                    await asyncio.wait({asyncio.sleep(10), self._reset.wait()},
                                        return_when=asyncio.FIRST_COMPLETED)
                 else:
                     async with self.changed:
@@ -369,22 +376,23 @@ class SerialDevice(Device):
     async def set_value(self, name, value):
         async def wait_value(attr, value):
             while attr._value != value:
-                await self.changed.wait()
+                async with self.changed:
+                    await self.changed.wait()
         try:
             async with self.changed:
                 attr_id, attr = await self._find_attr(name, wait=True)
                 value = self._value_for_msg(attr.type, value)
                 await self._send(f'set val {attr_id} {value}')
-                await asyncio.wait_for(wait_value(attr, value), timeout=20)
+            await asyncio.wait_for(wait_value(attr, value), timeout=60)
         except KeyError as e:
             self._log_warning(f'cannot set value: {e}')
-            raise
+            raise e
         except TimeoutError: 
             self._log_warning(f'cannot set value: the attribute did not change')
-            raise
+            raise e
 
     async def reset(self):
-        await self._send(f'reboot')
+        await self._send(f'reset')
         async with self.changed:
             self._attrs = None
             self._reset.set()

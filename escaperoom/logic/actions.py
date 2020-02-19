@@ -15,14 +15,17 @@ from . import asyncio, Logic
 
 class Action(Logic):
 
-    def __init__(self, name=None, func=lambda: None, *, desc=None, task=False):
+    def __init__(self, name=None, func=lambda: None, *, desc=None, task=False,
+                 args=None):
         super().__init__(name)
         self._running = asyncio.Lock()
         self._failed = asyncio.Event()
         self.desc = desc
         self.func = func
-        self._register(Action)
+        self.args = args
+        self._desactivated = asyncio.Event()
         if task: asyncio.create_task(self())
+        self._register(Action)
 
     def __str__(self):
         if self.running: state = 'running'
@@ -30,16 +33,24 @@ class Action(Logic):
         else: state = 'not running'
         return f'action "{self.name}" [{state}]'
 
-    async def __call__(self, *args, **kwargs):
+    async def __call__(self):
         async with self._running:
+            if self.desactivated:
+                return
             async with self.changed:
                 self._log_debug('start')
                 self.changed.notify_all()
             try:
                 if asyncio.iscoroutinefunction(self.func):
-                    await self.func(*args, **kwargs)
+                    if self.args is None:
+                        await self.func()
+                    else:
+                        await self.func(self.args)
                 else:
-                    self.func(*args, **kwargs)
+                    if self.args is None:
+                        self.func()
+                    else:
+                        self.func(self.args)
             except Exception as e:
                 self._failed.set()
                 self._log_warning(f'failed : {e}')
@@ -49,6 +60,16 @@ class Action(Logic):
                 self._log_debug('end')
                 self.changed.notify_all()
 
+    async def activate(self):
+        async with self.changed:
+            self._desactivated.clear()
+            self.changed.notify_all()
+
+    async def desactivate(self):
+        async with self.changed:
+            self._desactivated.set()
+            self.changed.notify_all()
+
     @property
     def running(self):
         return self._running.locked()
@@ -56,6 +77,10 @@ class Action(Logic):
     @property
     def failed(self):
         return self._failed.is_set()
+
+    @property
+    def desactivated(self):
+        return self._desactivated.is_set()
 
 
 def action(name=None, *args, **kwargs):
