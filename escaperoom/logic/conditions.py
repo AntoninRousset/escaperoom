@@ -31,7 +31,7 @@ class Condition(BoolLogic):
         self._failed = asyncio.Event()
         self.force_satisfied = False
         self._desactivated = asyncio.Event()
-        self.msg = None
+        self.msg = ''
         self.func = func
         self.args = args
         self.desc = desc
@@ -53,26 +53,13 @@ class Condition(BoolLogic):
         return f'condition "{self.name}" [{state}]'
 
     def __bool__(self):
-        return self._satisfied.is_set()
+        return self.msg is None
 
     async def __set_active(self, state: bool):
         async with self.changed:
             if state: self._active.set()
             else: self._active.clear()
             self.changed.notify_all()
-
-    async def __set_satisfied(self, state: bool):
-        async with self.changed:
-            if state:
-                self._satisfied.set()
-                self.changed.notify_all()
-                if not self.desactivated:
-                    {asyncio.create_task(co()) for co in self.on_trues}
-            else:
-                self._satisfied.clear()
-                self.changed.notify_all()
-                if not self.desactivated:
-                    {asyncio.create_task(co()) for co in self.on_falses}
 
     async def _check(self):
         async with self._checking:
@@ -88,29 +75,42 @@ class Condition(BoolLogic):
             try:
                 if asyncio.iscoroutinefunction(self.func):
                     if self.args is None:
-                        self.msg = await self.func()
+                        msg = await self.func()
                     else:
-                        self.msg = await self.func(self.args)
+                        msg = await self.func(self.args)
                 else:
                     if self.args is None:
-                        self.msg = self.func()
+                        msg = self.func()
                     else:
-                        self.msg = self.func(self.args)
+                        msg = self.func(self.args)
             except NotReady:
                 self._log_debug(f'not ready to check')
+                print(self.msg, '->', bool(self))
             except Exception as e:
                 self._log_warning(f'failed to check condition: {e}')
-                self._failed.set()
+                async with self.changed:
+                    if not self.failed:
+                        self.changed.notify_all()
+                    self._failed.set()
             else:
-                self._failed.clear()
-                if self.msg is None:
-                    self._log_debug(f'function is {ANSI["bold"]}'
-                                    f'{ANSI["green"]} good')
-                    if not self: await self.__set_satisfied(True)
-                elif self.msg is not None:
-                    self._log_debug(f'function is {ANSI["bold"]} {ANSI["red"]}'
-                                    f'bad')
-                    if self: await self.__set_satisfied(False)
+                async with self.changed:
+                    previous_state = bool(self)
+                    self.msg = msg
+                    if self.msg is None:
+                        print(self, 'winner!', msg)
+                        self._log_debug(f'function is {ANSI["bold"]}'
+                                        f'{ANSI["green"]} good')
+                        if not previous_state or self.failed:
+                            self.changed.notify_all()
+                        if not previous_state and not self.desactivated:
+                            {asyncio.create_task(co()) for co in self.on_trues}
+                    elif self.msg is not None:
+                        self._log_debug(f'function is {ANSI["bold"]}'
+                                        f'{ANSI["red"]} bad')
+                        if previous_state or self.failed:
+                            self.changed.notify_all()
+                        if previous_state and not self.desactivated:
+                            {asyncio.create_task(co()) for co in self.on_falses}
 
     async def __listening(self, listen):
         while listen in self._listens | self._parents:

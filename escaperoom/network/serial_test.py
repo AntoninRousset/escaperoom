@@ -90,7 +90,8 @@ _devices_defaults = {
                     }
                 }
             },
-        5 : {'name' : 'base_star',
+        5 : {
+            'name' : 'base_star',
             'attrs' : {
                 0 : {
                     'name' : 'hall_state',
@@ -104,7 +105,8 @@ _devices_defaults = {
                     }
                 }
             },
-        6 : {'name' : 'vessel',
+        6 : {
+            'name' : 'vessel',
             'attrs' : {
                 0 : {
                     'name' : 'door1',
@@ -117,7 +119,36 @@ _devices_defaults = {
                     'value' : '0'
                     }
                 }
+            },
+        7 : {
+            'name' : 'vessel_box_connect',
+            'attrs' : {
+                0 : {
+                    'name' : 'fuse1',
+                    'type' : 'bool',
+                    'value' : '1'
+                    },
+                1 : {
+                    'name' : 'fuse2',
+                    'type' : 'bool',
+                    'value' : '1'
+                    },
+                2 : {
+                    'name' : 'fuse3',
+                    'type' : 'bool',
+                    'value' : '0'
+                    },
+                3 : {
+                    'name' : 'jacks',
+                    'type' : 'bool',
+                    'value' : '0'
+                    }
+            },
+        8 : {
+            'name' : 'vessel_box_code',
+            'attrs' : dict()
             }
+        }
     }
 
 _devices = deepcopy(_devices_defaults)
