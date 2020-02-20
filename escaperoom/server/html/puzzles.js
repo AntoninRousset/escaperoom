@@ -38,14 +38,13 @@ svgns = 'http://www.w3.org/2000/svg';
 
 PuzzlesGraph = class PuzzlesGraph extends Container {
   constructor() {
-    var svg;
     super();
-    svg = document.createElementNS(svgns, 'svg');
-    svg.setAttributeNS(null, 'style', 'width: 100%;');
-    this.appendChild(svg);
+    this.svg = document.createElementNS(svgns, 'svg');
+    this.svg.setAttributeNS(null, 'style', 'width: 100%;');
+    this.appendChild(this.svg);
     this.graph = document.createElementNS(svgns, 'g');
     this.graph.setAttributeNS(null, 'style', 'transform: translate(50%, 40px)');
-    svg.appendChild(this.graph);
+    this.svg.appendChild(this.graph);
   }
 
   add_item(id, data) {
@@ -71,14 +70,21 @@ PuzzlesGraph = class PuzzlesGraph extends Container {
     if (item == null) {
       return;
     }
-    item.setAttributeNS(null, 'cx', 80 * data['col']);
-    item.setAttributeNS(null, 'cy', 80 * data['row']);
+    item.setAttributeNS(null, 'cx', 70 * data['col']);
+    item.setAttributeNS(null, 'cy', 100 * data['row']);
     colors = {
       'inactive': 'red',
       'active': 'orange',
       'completed': 'green'
     };
     return item.setAttributeNS(null, 'style', 'fill: ' + colors[data['state']] + ';');
+  }
+
+  onupdated(datas) {
+    var box;
+    box = this.svg.getBBox();
+    this.svg.setAttribute('width', box.x + box.width + box.x);
+    return this.svg.setAttribute('height', box.y + box.height + box.y);
   }
 
 };

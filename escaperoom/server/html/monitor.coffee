@@ -129,6 +129,8 @@ export class Container extends Templated
 			if id not in @items_ids()
 				@add_item(id, data)
 			@update_item(id, data)
+		if @onupdated?
+			@onupdated(datas)
 		if is_empty(datas) and @onempty?
 			@onempty()
 

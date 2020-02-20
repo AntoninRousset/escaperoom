@@ -241,6 +241,9 @@ export var Container = class Container extends Templated {
       }
       this.update_item(id, data);
     }
+    if (this.onupdated != null) {
+      this.onupdated(datas);
+    }
     if (is_empty(datas) && (this.onempty != null)) {
       return this.onempty();
     }

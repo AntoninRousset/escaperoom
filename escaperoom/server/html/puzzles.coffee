@@ -24,12 +24,12 @@ svgns = 'http://www.w3.org/2000/svg'
 class PuzzlesGraph extends Container
 	constructor: () ->
 		super()
-		svg = document.createElementNS(svgns, 'svg')
-		svg.setAttributeNS(null, 'style', 'width: 100%;')
-		@appendChild(svg)
+		@svg = document.createElementNS(svgns, 'svg')
+		@svg.setAttributeNS(null, 'style', 'width: 100%;')
+		@appendChild(@svg)
 		@graph = document.createElementNS(svgns, 'g')
 		@graph.setAttributeNS(null, 'style', 'transform: translate(50%, 40px)')
-		svg.appendChild(@graph)
+		@svg.appendChild(@graph)
 
 	add_item: (id, data) ->
 		if not (data.row? or data.col?)
@@ -47,10 +47,16 @@ class PuzzlesGraph extends Container
 		item = @get_item(id)
 		if not item?
 			return
-		item.setAttributeNS(null, 'cx', 80*data['col'])
-		item.setAttributeNS(null, 'cy', 80*data['row'])
+		item.setAttributeNS(null, 'cx', 70*data['col'])
+		item.setAttributeNS(null, 'cy', 100*data['row'])
 		colors = {'inactive' : 'red', 'active' : 'orange', 'completed' : 'green'}
 		item.setAttributeNS(null, 'style', 'fill: '+colors[data['state']]+';')
+
+	onupdated: (datas) ->
+		box = @svg.getBBox()
+		@svg.setAttribute('width', box.x + box.width + box.x)
+		@svg.setAttribute('height', box.y + box.height + box.y)
+
 
 customElements.define('puzzles-graph', PuzzlesGraph)
 

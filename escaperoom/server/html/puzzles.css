@@ -33,11 +33,8 @@
 puzzles-graph {
 	display: block;
 	background: none;
+	padding-top: 70px;
 	flex: 1;
-}
-
-#graph-offset {
-	height: 70px;
 }
 
 puzzle-info {
