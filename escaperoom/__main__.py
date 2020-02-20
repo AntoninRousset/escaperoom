@@ -39,8 +39,9 @@ def launch_rooms(rooms_re):
         if room_name in rooms:
             raise Exception('duplicated room\'s names "{room_name}"')
         path = rooms_dir/child
+        PYTHONPATH=':'.join(x for x in [str(ROOT.parent), *sys.path] if x)
         co = asyncio.create_subprocess_shell(
-                f'python "{path}"', env={'PYTHONPATH' : ROOT.parent}
+                f'PYTHONPATH={PYTHONPATH} python "{path}"' 
                 )
         logger.info(f'launching room: {room_name}')
         asyncio.run_until_complete(co)
