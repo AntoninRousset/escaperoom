@@ -10,7 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import errno, importlib, logging, os, re, sys
+import errno, importlib, logging, os, re, subprocess, sys
 from argparse import ArgumentParser
 from contextlib import contextmanager
 from pathlib import Path
@@ -39,12 +39,11 @@ def launch_rooms(rooms_re):
         if room_name in rooms:
             raise Exception('duplicated room\'s names "{room_name}"')
         path = rooms_dir/child
-        PYTHONPATH=':'.join(x for x in [str(ROOT.parent), *sys.path] if x)
-        co = asyncio.create_subprocess_shell(
-                f'PYTHONPATH={PYTHONPATH} python "{path}"' 
-                )
-        logger.info(f'launching room: {room_name}')
-        asyncio.run_until_complete(co)
+        room_env = os.environ.copy()
+        room_env['PYTHONPATH'] = ':'.join(x for x in [str(ROOT.parent), *sys.path] if x)
+        co = subprocess.run(['python', path], env=room_env)
+        logger.info(f'launching room: {room_name}') #TODO doesnt do anything
+        asyncio.create_task(co)
         rooms.add(room_name)
 
 def main():

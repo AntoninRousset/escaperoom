@@ -12,7 +12,10 @@
 
 import aiortc.contrib.media as aiom
 import threading
+#import alsaaudio as alsa
+
 from . import asyncio, logger
+
 
 def effect_worker(loop, track_in, track_out, effect, quit_event):
 
@@ -99,3 +102,43 @@ class MediaPlayer(aiom.MediaPlayer):
             self.__effect_video_thread.join()
             self.__effect_video_thread = None
 
+
+class Audio():
+    
+    EXEC_NAME = 'mpg123 --no-control --quiet'
+
+    def __init__(self, file):
+        self.file = str(file)
+        self.sp = None
+
+    async def play(self, *, wait=False):
+        self.sp = await asyncio.create_subprocess_shell(
+                f'{self.EXEC_NAME} {self.file}'
+                )
+        if wait:
+            await self.sp.wait()
+
+    async def stop(self):
+        self.sp.cancel()
+        return self.sp
+
+'''
+class Audio():
+    
+    def __init__(self, *args, **args):
+        self.mp = MediaPlayer(*args, **kwargs)
+        self.output = aa.PCM(aa.PCM_PLAYBACK, aa.PCM_NORMAL)    
+        #self.output.setformat(aa.PCM_FORMAT_S16_LE)
+        self.output.write(data)
+        self._playing = asyncio.Lock()
+        self._finished = asyncio.Event()
+
+    def play():
+
+        return self._finished.wait()
+
+    @property
+    def playing(self):
+        return self._playing.locked()
+
+'''

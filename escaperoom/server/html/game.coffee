@@ -31,15 +31,15 @@ class GameMenu extends HTMLElement
 		@querySelector('#game-option-timeout-enabled').onchange = (event) =>
 			@timeout_enabled_changed()
 		@querySelector('#game-option-reset').onclick = (event) =>
-			@read_options(@default_options)
+			@read_options(@options)
 		@querySelector('#new-game').onclick = @new_game
 		@querySelector('#back-to-game').onclick = @back_to_game
 		@querySelector('#stop-game').onclick = @stop_game
 
 	update: (datas) ->
-		if not default_options?
-			@read_options(datas.default_options)
-		@default_options = datas.default_options
+		if not @options?
+			@read_options(datas.options)
+		@options = datas.options
 		if datas.running
 			@querySelector('#new-game').setAttribute('hidden', '')
 			@querySelector('#back-to-game').removeAttribute('hidden')

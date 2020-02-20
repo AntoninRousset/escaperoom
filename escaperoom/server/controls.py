@@ -55,15 +55,16 @@ async def cluesdisplay_control(params, query):
                                                  params['seconds'])
 
 async def game_control(params):
+    game = Game.find_entry('.*')
     if params['action'] == 'new_game':
         options = params['options']
-        async with Game.changed:
-            await Game.start(options)
-            Game.changed.notify_all()
+        async with game.changed:
+            await game.start(options)
+            game.changed.notify_all()
     elif params['action'] == 'stop_game':
-        async with Game.changed:
-            await Game.stop(options)
-            Game.changed.notify_all()
+        async with game.changed:
+            await game.stop(options)
+            game.changed.notify_all()
     return ''
 
 async def condition_control(params, query):

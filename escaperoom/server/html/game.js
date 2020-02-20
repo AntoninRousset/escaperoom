@@ -53,7 +53,7 @@ GameMenu = class GameMenu extends HTMLElement {
       return this.timeout_enabled_changed();
     };
     this.querySelector('#game-option-reset').onclick = (event) => {
-      return this.read_options(this.default_options);
+      return this.read_options(this.options);
     };
     this.querySelector('#new-game').onclick = this.new_game;
     this.querySelector('#back-to-game').onclick = this.back_to_game;
@@ -61,10 +61,10 @@ GameMenu = class GameMenu extends HTMLElement {
   }
 
   update(datas) {
-    if (typeof default_options === "undefined" || default_options === null) {
-      this.read_options(datas.default_options);
+    if (this.options == null) {
+      this.read_options(datas.options);
     }
-    this.default_options = datas.default_options;
+    this.options = datas.options;
     if (datas.running) {
       this.querySelector('#new-game').setAttribute('hidden', '');
       this.querySelector('#back-to-game').removeAttribute('hidden');

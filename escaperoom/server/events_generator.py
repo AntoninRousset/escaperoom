@@ -46,9 +46,10 @@ async def generator():
         yield event
 
 async def game_events(events_queue):
+    game = Game.find_entry('.*')
     while True:
-        async with Game.changed:
-            await Game.changed.wait()
+        async with game.changed:
+            await game.changed.wait()
             await events_queue.put({'type' : 'update', 'url' : f'/game'})
 
 async def chronometer_events(events_queue):

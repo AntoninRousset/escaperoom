@@ -16,7 +16,7 @@ from .. import asyncio, logging
 from ..registered import Registered
 
 
-logger = logging.getLogger('escaperoom.logic')
+logger = logging.getLogger(__name__)
 
 class Logic(Registered):
     

@@ -14,4 +14,4 @@ from .. import asyncio, logging
 
 logger = logging.getLogger('escaperoom')
 
-from .player import MediaPlayer
+from .player import Audio, MediaPlayer

@@ -168,11 +168,12 @@ async def devices_reader():
     return {'devices' : devices}
 
 async def game_reader():
+    game = Game.find_entry('.*')
     return {
-            'running' : Game.is_running(),
-            'name' : Game.name,
-            'start_time' : datetime_to_string(Game._chronometer.start_time),
-            'end_time' : datetime_to_string(Game._chronometer.end_time),
-            'default_options' : Game.default_options
+            'running' : game.running,
+            'name' : game.name,
+            'start_time' : datetime_to_string(game._chronometer.start_time),
+            'end_time' : datetime_to_string(game._chronometer.end_time),
+            'options' : game.options
             }
 
