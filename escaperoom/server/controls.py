@@ -74,7 +74,7 @@ async def condition_control(params, query):
             condition.changed.notify_all()
     elif params['action'] == 'complete':
         async with condition.changed:
-            condition.force_completed = True
+            condition.force_satisfied = True
             condition.changed.notify_all()
     elif params['action'] == 'restore':
         async with condition.changed:

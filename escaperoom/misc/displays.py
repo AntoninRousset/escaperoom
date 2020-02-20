@@ -44,7 +44,7 @@ class CluesDisplay(Display):
         pass
 
     @abstractmethod
-    async def set_clue(self, msg):
+    async def set_msg(self, msg):
         pass
 
 
@@ -81,9 +81,9 @@ class LocalCluesDisplay(CluesDisplay):
         msg = f'chronometer {int(running)} {seconds}\n'
         await self._write_to_process(msg.encode())
 
-    async def set_clue(self, clue):
-        clue = clue.replace('\n', '\\n')
-        msg = f'clue {clue}\n'
+    async def set_msg(self, msg):
+        msg = msg.replace('\n', '\\n')
+        msg = f'clue {msg}\n'
         await self._write_to_process(msg.encode())
 
 class RemoteCluesDisplay(CluesDisplay):

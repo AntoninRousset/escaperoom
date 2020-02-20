@@ -129,12 +129,12 @@ _devices_defaults = {
                     'value' : '1'
                     },
                 1 : {
-                    'name' : 'fuse2',
+                    'name' : 'fuse1',
                     'type' : 'bool',
                     'value' : '1'
                     },
                 2 : {
-                    'name' : 'fuse3',
+                    'name' : 'fuse2',
                     'type' : 'bool',
                     'value' : '0'
                     },
@@ -212,7 +212,15 @@ async def _new_packet(src, msg, *, random_wait=True):
     return await wait_and_pack(delay)
 
 async def _events_creator():
-    await asyncio.sleep(8)
+    await asyncio.sleep(14)
+    _devices[7]['attrs'][2]['value'] = '1'
+    await _new_packet(7, 'val 2 1')
+
+    await asyncio.sleep(2)
+    _devices[7]['attrs'][3]['value'] = '1'
+    await _new_packet(7, 'val 3 1')
+
+    await asyncio.sleep(2)
     for i in range(2, 5):
         _devices[i]['attrs'][0]['value'] = '1'
         await _new_packet(i, 'val 0 1')

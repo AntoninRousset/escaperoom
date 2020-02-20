@@ -37,6 +37,16 @@ class Device(Network):
                 return f'attribute "{self.name}" [{self.value}]'
             return 'attribute'
 
+        def convert(self, value, type=None):
+            value = str(value)
+            if type is None:
+                type = self.type
+            if type == 'bool':
+                if re.match('((T|t)rue|(O|o)n|(Y|y)es)', value): return '1'
+                elif re.match('((F|f)alse|(O|o)ff|(N|n)o)', value): return '0' 
+                else: return value
+            return value
+
         @property
         def value(self):
             if self._value is None:
@@ -53,7 +63,7 @@ class Device(Network):
 
         @value.setter
         def value(self, value):
-            self._value = value
+            self._value = self.convert(value)
 
     @classmethod
     async def _download_device(cls, host, id):
@@ -138,6 +148,31 @@ class Device(Network):
 
     async def reset(self):
         pass
+
+    def _find_attr(self, name):
+        if self._attrs is not None:
+            for attr in self._attrs:
+                if attr.name == name:
+                    return attr
+        raise KeyError(f'Non existent attribute "{name}"')
+
+    async def get_value(self, name):
+        return self._find_attr(name).value
+
+    async def _set_value(self, name, value, *, type=None):
+        try:
+            attr = self._find_attr(name)
+        except KeyError:
+            if self._attrs is None:
+                self._attrs = set()
+            self._attrs.add(Device.Attribute(name, type=type, value=value))
+        else:
+            attr.value = value
+
+    async def set_value(self, name, value):
+        async with self.changed:
+            await self._set_value(name, value)
+            self.changed.notify_all()
 
     @property
     def n_attr(self):
@@ -352,16 +387,8 @@ class SerialDevice(Device):
                 elif attr.name is None:
                     if wait: repeat = True
                     else: raise NotReady('attribute is not ready')
-            await self.changed.wait()
+            if wait: await self.changed.wait()
         raise KeyError(f'Non existent attribute "{name}"')
-
-    def _value_for_msg(self, type, value):
-        value = str(value)
-        if type == 'bool':
-            if re.match('((T|t)rue|(O|o)n|(Y|y)es)', value): return '1'
-            elif re.match('((F|f)alse|(O|o)ff|(N|n)o)', value): return '0' 
-            else: return value
-        return value
 
     async def get_value(self, name):
         try:
@@ -373,16 +400,14 @@ class SerialDevice(Device):
             raise
         return attr.value
 
-    async def set_value(self, name, value):
+    async def _set_value(self, name, value):
         async def wait_value(attr, value):
             while attr._value != value:
-                async with self.changed:
-                    await self.changed.wait()
+                await self.changed.wait()
         try:
-            async with self.changed:
-                attr_id, attr = await self._find_attr(name, wait=True)
-                value = self._value_for_msg(attr.type, value)
-                await self._send(f'set val {attr_id} {value}')
+            attr_id, attr = await self._find_attr(name, wait=True)
+            value = attr.convert(value)
+            await self._send(f'set val {attr_id} {value}')
             await asyncio.wait_for(wait_value(attr, value), timeout=60)
         except KeyError as e:
             self._log_warning(f'cannot set value: {e}')
@@ -399,68 +424,3 @@ class SerialDevice(Device):
             self._reset.clear()
             self.changed.notify_all()
 
-'''
-class LocalDevice(Device):
-
-    def __init__(self, name, *, bus, addr, type='?'):
-        super().__init__(name=name, addr=(bus, addr), type=type)
-        self.create_task(self._bus_listening(bus))
-
-    async def _attr_listening(self, attr):
-        while attr in self.attrs.values(): 
-            attr_name, attr_type = attr.name, attr.type
-            attr_value = attr.value
-            async with attr.desc_changed: 
-                await attr.desc_changed.wait()
-                if attr.name != attr_name or attr.type != attr_type:
-                    await self.send(f'attr {attr.attr_id} {attr.name} {attr.type}')
-                elif attr.value != attr_value:
-                    await self.send(f'val {attr.attr_id} {attr.value}')
-                async with self.attrs_changed:
-                    self.attrs_changed.notify_all()
-
-    async def _bus_listening(self, bus):
-        while True:
-            async with bus.packet_changed:
-                if bus.packet is not None:
-                    device_id, msg = bus.packet
-                    await self.read_msg(msg)
-                await bus.packet_changed.wait()
-
-    async def read_msg(self, msg):
-        async with self.msg_changed:
-            self.msg = msg
-            self.msg_changed.notify_all()
-        words = msg.split()
-        if re.match('\s*get\s+desc\s*', msg):
-            await self.send(f'desc {self.name} {self.n_attr}')
-        elif re.match('\s*get\s+attr\s+\d+\s*', msg):
-            attr = self._find_attr(int(words[2]))
-            if attr is not None:
-                await self.send(f'attr {attr.attr_id} {attr.name} {attr.type}')
-        elif re.match('\s*get\s+val\s+\d+\s*', msg):
-            attr = self._find_attr(int(words[2]))
-            if attr is not None:
-                await self.send(f'val {attr.attr_id} {attr.value}')
-
-    async def send(self, msg):
-        while True:
-            if self.disconnected():
-                async with self.desc_changed:
-                    await self.desc_changed.wait() # wait for reconnection
-            else:
-                return await self.addr[0].send(self.addr[1], msg)
-
-    async def set_value(self, name, value):
-        self._log_warning('set_value not implemented for local device')
-        raise RuntimeError
-
-    def add_attr(self, attr):
-        if attr.attr_id is None:
-            attr.attr_id = len(self.attrs)
-        super().add_attr(attr)
-
-    @property
-    def n_attr(self):
-        return len(self.attrs)
-'''

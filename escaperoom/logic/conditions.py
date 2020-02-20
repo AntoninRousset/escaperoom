@@ -33,7 +33,7 @@ class Condition(BoolLogic):
         self._desactivated = asyncio.Event()
         self.msg = ''
         self.func = func
-        self.args = args
+        self.args = args #TODO multiple arguments?
         self.desc = desc
         self.pos = pos
         self.add_listens(listens)
@@ -53,7 +53,7 @@ class Condition(BoolLogic):
         return f'condition "{self.name}" [{state}]'
 
     def __bool__(self):
-        return self.msg is None
+        return self.msg is None or self.force_satisfied
 
     async def __set_active(self, state: bool):
         async with self.changed:
@@ -85,7 +85,6 @@ class Condition(BoolLogic):
                         msg = self.func(self.args)
             except NotReady:
                 self._log_debug(f'not ready to check')
-                print(self.msg, '->', bool(self))
             except Exception as e:
                 self._log_warning(f'failed to check condition: {e}')
                 async with self.changed:
@@ -97,7 +96,6 @@ class Condition(BoolLogic):
                     previous_state = bool(self)
                     self.msg = msg
                     if self.msg is None:
-                        print(self, 'winner!', msg)
                         self._log_debug(f'function is {ANSI["bold"]}'
                                         f'{ANSI["green"]} good')
                         if not previous_state or self.failed:
@@ -123,14 +121,14 @@ class Condition(BoolLogic):
             if parent not in self._parents:
                 asyncio.create_task(self.__listening(parent))
                 self._parents.add(parent)
-        if parents: asyncio.create_task(self._check())
+        asyncio.create_task(self._check())
 
     def add_listens(self, listens: BoolLogic):
         for listen in listens:
             if listen not in self._listens:
                 asyncio.create_task(self.__listening(listen))
                 self._listens.add(listen)
-        if listens: asyncio.create_task(self._check())
+        asyncio.create_task(self._check())
 
     async def activate(self):
         async with self.changed:
