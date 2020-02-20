@@ -124,7 +124,7 @@ _devices_defaults = {
             'name' : 'vessel_box_connect',
             'attrs' : {
                 0 : {
-                    'name' : 'fuse1',
+                    'name' : 'fuse0',
                     'type' : 'bool',
                     'value' : '1'
                     },

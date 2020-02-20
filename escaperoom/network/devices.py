@@ -49,17 +49,20 @@ class Device(Network):
 
         @property
         def value(self):
-            if self._value is None:
+            try:
+                if self._value is None:
+                    return None
+                if self.type == 'int':
+                    return int(self._value)
+                if self.type == 'float':
+                    return float(self._value)
+                if self.type == 'bool':
+                    return bool(float(self._value))
+                if self.type == 'str':
+                    return str(self._value)
+                return self._value
+            except ValueError:
                 return None
-            if self.type == 'int':
-                return int(self._value)
-            if self.type == 'float':
-                return float(self._value)
-            if self.type == 'bool':
-                return bool(float(self._value))
-            if self.type == 'str':
-                return str(self._value)
-            return self._value
 
         @value.setter
         def value(self, value):

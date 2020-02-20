@@ -16,7 +16,7 @@ from pathlib import Path
 #TODO All config should be red in config.py
 config = configparser.ConfigParser()
 ROOT = Path(os.path.dirname(__file__))
-config.read(Path(ROOT/'escaperoom.conf').resolve())
+config.read(Path(ROOT/'escaperoom.conf').resolve(), encoding='utf-8')
 
 for path in config['DEFAULT']['escaperoom_dir'], config['DEFAULT']['rooms_dir']:
     try:
@@ -24,7 +24,7 @@ for path in config['DEFAULT']['escaperoom_dir'], config['DEFAULT']['rooms_dir']:
     except FileExistsError:
         pass
 
-config.read(Path(config['DEFAULT']['conf_file']).expanduser())
+config.read(Path(config['DEFAULT']['conf_file']).expanduser(), encoding='utf-8')
 
 from .logging import ColoredFormatter
 

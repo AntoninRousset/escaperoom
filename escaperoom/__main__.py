@@ -29,44 +29,27 @@ def get_args():
     return parser.parse_args()
 
 
-def load_rooms(rooms_dir, rooms):
-    @contextmanager
-    def sibling_imports(module):
-        old_module = sys.modules.get(module.__name__)
-        sys.modules[module.__name__] = module
-        try:
-            yield
-        finally:
-            if old_module is None:
-                sys.modules.pop(module.__name__)
-            else:
-                sys.modules[module.__name__] = old_module
-
-    loader_details = (
-        importlib.machinery.SourceFileLoader,
-        importlib.machinery.SOURCE_SUFFIXES
-        )
-    room_finder = importlib.machinery.FileFinder(str(rooms_dir),
-                                                 loader_details)
+def launch_rooms(rooms_re):
+    rooms_dir = Path(config['DEFAULT']['rooms_dir']).expanduser()
+    rooms = set()
     for child in Path(rooms_dir).iterdir():
-        name = child.stem
-        spec = room_finder.find_spec(name)
-        if spec is None or spec.loader is None:
-            logger.debug(f'skipping child "{name}" in {rooms_dir}')
+        room_name = child.stem
+        if not re.match(rooms_re, room_name):
             continue
-        if name in rooms:
-            raise Exception('duplicated room\'s names')
-        room = importlib.util.module_from_spec(spec)
-        logger.info(f'loading room: {name}')
-        with sibling_imports(room):
-            spec.loader.exec_module(room)
-
+        if room_name in rooms:
+            raise Exception('duplicated room\'s names "{room_name}"')
+        path = rooms_dir/child
+        co = asyncio.create_subprocess_shell(
+                f'python "{path}"', env={'PYTHONPATH' : ROOT.parent}
+                )
+        logger.info(f'launching room: {room_name}')
+        asyncio.run_until_complete(co)
+        rooms.add(room_name)
 
 def main():
     args = get_args()
-    load_rooms(Path(config['DEFAULT']['rooms_dir']).expanduser(), args.rooms)
+    rooms = launch_rooms('.*')
     loop()
-
 
 if __name__ == '__main__':
     main()
