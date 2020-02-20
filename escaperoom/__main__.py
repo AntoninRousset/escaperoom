@@ -15,7 +15,7 @@ from argparse import ArgumentParser
 from contextlib import contextmanager
 from pathlib import Path
 
-from . import asyncio, config
+from . import asyncio, config, loop
 
 ROOT = Path(os.path.dirname(__file__))
 
@@ -65,7 +65,7 @@ def load_rooms(rooms_dir, rooms):
 def main():
     args = get_args()
     load_rooms(Path(config['DEFAULT']['rooms_dir']).expanduser(), args.rooms)
-    asyncio.get_event_loop().run_forever()
+    loop()
 
 
 if __name__ == '__main__':

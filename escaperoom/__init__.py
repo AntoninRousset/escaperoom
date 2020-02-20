@@ -37,3 +37,5 @@ from .misc import LocalCamera, RemoteCamera, LocalCluesDisplay, RemoteCluesDispl
 from .network import SerialBus, Device, device, SerialDevice
 from .server import HTTPServer
 
+def loop():
+    asyncio.get_event_loop().run_forever()
