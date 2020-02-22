@@ -81,20 +81,34 @@ class Device(Network):
         loc = host+'/device?id='+id
         async with cls._downloadings[loc]:
             data = await fetch(loc)
-            device = cls.find_entry(id=id)
-            if device is None: device = Device(data['name'], type=data['type'])
-            if data['attrs'] is None: return
-            for attr_id, attr in data['attrs'].items():
-                async with device.changed:
-                    if device._attrs is None: device._attrs = list()
-                    d_attr = device._attrs[int(attr_id)]
-                    if ( d_attr.name != attr['name'] or
-                         d_attr.type != attr['type'] or
-                         d_attr.value != attr['value'] ):
+            device = cls.find_entry(data['name'])
+            if device is None:
+                device = Device(data['name'], type=data['type'])
+            if device.type is 'unknown':
+                device.type = data['type']
+            async with device.changed:
+                if data['attrs'] is None and device._attrs is not None:
+                    device._attrs = None
+                    return device.changed.notify_all()
+                elif data['attrs'] is not None and device._attrs is None:
+                    device._attrs = list()
+                    device.changed.notify_all()
+                for i in range(0, len(data['attrs'])):
+                    attr = data['attrs'][str(i)]
+                    if len(device._attrs) <= i:
+                        device._attrs.append(Device.Attribute(attr['name'],
+                                                              attr['type'],
+                                                              attr['value']))
                         device.changed.notify_all() 
-                    d_attr.name = attr['name']
-                    d_attr.type = attr['type']
-                    d_attr.value = attr['value']
+                    else:
+                        d_attr = device._attrs[i]
+                        if ( d_attr.name != attr['name'] or
+                             d_attr.type != attr['type'] or
+                             d_attr.value != attr['value'] ):
+                            device.changed.notify_all() 
+                        d_attr.name = attr['name']
+                        d_attr.type = attr['type']
+                        d_attr.value = attr['value']
 
     @classmethod
     async def _download(cls, host):
@@ -115,20 +129,21 @@ class Device(Network):
     @classmethod
     async def _HTTP_listener(cls, host):
         loc = host+'/events'
+        warned = False
         while True:
-            async with sse_client.EventSource(loc) as event_source:
-                warned = False
-                try:
+            try:
+                async with sse_client.EventSource(loc) as event_source:
                     async for event in event_source:
                         data = json.loads(event.data)
                         if ( data['type'] == 'update' and
-                             data['loc'] == '/devices' ):
+                             data['url'] == '/devices' ):
                             asyncio.create_task(cls._download(host))
-                except aiohttp.ClientConnectorError:
-                    if not warned:
-                        self._log_warning(f'failed to connect to {host}')
-                        warned = True
-                    await asyncio.sleep(1)
+                warned = False
+            except aiohttp.ClientConnectorError:
+                if not warned:
+                    cls._logger.warning(f'failed to connect to {host}')
+                    warned = True
+                await asyncio.sleep(1)
 
     @classmethod
     def bind(cls, host):
@@ -148,6 +163,9 @@ class Device(Network):
 
     def __str__(self):
         return f'device "{self.name}"'
+
+    def __bool__(self):
+        return self.ready
 
     async def reset(self):
         pass
@@ -181,6 +199,10 @@ class Device(Network):
     def n_attr(self):
         if self._attrs is None: return None
         return len(self._attrs)
+
+    @property
+    def ready(self):
+        return True
 
 
 def device(name=None, *args, **kwargs):
@@ -426,4 +448,13 @@ class SerialDevice(Device):
             self._reset.set()
             self._reset.clear()
             self.changed.notify_all()
+
+    @property
+    def ready(self):
+        if self.addr is None or self._attrs is None: 
+            return False
+        for attr in self._attrs:
+            if attr.name is None or attr.type is None or attr.value is None:
+                return False
+        return True
 

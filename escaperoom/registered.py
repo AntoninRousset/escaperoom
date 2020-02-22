@@ -31,7 +31,7 @@ class Registered(ABC):
 
     @classmethod
     def find_entry(cls, name=None, *, id=None):
-        if id: return cls._groups[cls][id]
+        if id: return cls._groups[cls].get(id)
         if name:
             for entry in cls.entries():
                 if entry.name and re.match(name, entry.name): return entry

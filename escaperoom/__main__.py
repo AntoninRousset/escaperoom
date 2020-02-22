@@ -40,11 +40,13 @@ def launch_rooms(rooms_re):
             raise Exception('duplicated room\'s names "{room_name}"')
         path = rooms_dir/child
         room_env = os.environ.copy()
-        room_env['PYTHONPATH'] = ':'.join(x for x in [str(ROOT.parent), *sys.path] if x)
-        co = subprocess.run(['python', path], env=room_env)
+        room_env['PYTHONPATH'] = ':'.join(x for x in [str(rooms_dir),str(ROOT.parent), *sys.path] if x)
+        co = asyncio.create_subprocess_shell(f'python -m {room_name}', env=room_env)
         logger.info(f'launching room: {room_name}') #TODO doesnt do anything
         asyncio.create_task(co)
         rooms.add(room_name)
+
+#TODO master server that redirect each request to the slave server
 
 def main():
     args = get_args()

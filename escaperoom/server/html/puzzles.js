@@ -65,19 +65,22 @@ PuzzlesGraph = class PuzzlesGraph extends Container {
   }
 
   update_item(id, data) {
-    var colors, item;
+    var color, item;
     item = this.get_item(id);
     if (item == null) {
       return;
     }
     item.setAttributeNS(null, 'cx', 70 * data['col']);
     item.setAttributeNS(null, 'cy', 100 * data['row']);
-    colors = {
-      'inactive': 'red',
-      'active': 'orange',
-      'completed': 'green'
-    };
-    return item.setAttributeNS(null, 'style', 'fill: ' + colors[data['state']] + ';');
+    if (data['state']) {
+      color = 'green';
+    } else {
+      color = 'red';
+    }
+    if (data['desactivated']) {
+      color = 'gray';
+    }
+    return item.setAttributeNS(null, 'style', 'fill: ' + color + ';');
   }
 
   onupdated(datas) {
@@ -112,17 +115,17 @@ PuzzleInfo = class PuzzleInfo extends Subscriber {
 
   update(data) {
     this.update_plugs(data);
-    if (data.state === 'inactive') {
-      this.shadowRoot.querySelector('#puzzle-activate').hidden = false;
-      this.shadowRoot.querySelector('#puzzle-activate').disable = false;
+    //if data.state == 'inactive'
+    //	@shadowRoot.querySelector('#puzzle-activate').hidden = false
+    //	@shadowRoot.querySelector('#puzzle-activate').disable = false
+    //	@shadowRoot.querySelector('#puzzle-complete').hidden = true
+    if (data['state']) {
+      this.shadowRoot.querySelector('#puzzle-activate').hidden = true;
       this.shadowRoot.querySelector('#puzzle-complete').hidden = true;
-    } else if (data.state === 'active') {
+    } else {
       this.shadowRoot.querySelector('#puzzle-activate').hidden = true;
       this.shadowRoot.querySelector('#puzzle-complete').hidden = false;
       this.shadowRoot.querySelector('#puzzle-complete').disabled = false;
-    } else if (data.state === 'completed') {
-      this.shadowRoot.querySelector('#puzzle-activate').hidden = true;
-      this.shadowRoot.querySelector('#puzzle-complete').hidden = true;
     }
     this.conditions_list.read_items(data.siblings);
     this.actions_list.read_items(data.actions);
@@ -205,13 +208,13 @@ ConditionItem = class ConditionItem extends Subscriber {
     var div;
     this.update_plugs(datas);
     div = this.shadowRoot.querySelector('div');
-    if (datas['state'] === 'completed') {
+    if (datas['state']) {
       div.style.backgroundColor = 'green';
-    } else if (datas['state'] === 'active') {
-      div.style.backgroundColor = 'orange';
     } else {
       div.style.backgroundColor = 'red';
     }
+    //else if datas['state'] == 'active'
+    //	div.style.backgroundColor = 'orange'
     if (datas['desactivated']) {
       div.disabled = true;
       return div.style.backgroundColor = 'gray';

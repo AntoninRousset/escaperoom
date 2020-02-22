@@ -49,8 +49,13 @@ class PuzzlesGraph extends Container
 			return
 		item.setAttributeNS(null, 'cx', 70*data['col'])
 		item.setAttributeNS(null, 'cy', 100*data['row'])
-		colors = {'inactive' : 'red', 'active' : 'orange', 'completed' : 'green'}
-		item.setAttributeNS(null, 'style', 'fill: '+colors[data['state']]+';')
+		if data['state']
+			color = 'green'
+		else
+			color = 'red'
+		if data['desactivated']
+			color = 'gray'
+		item.setAttributeNS(null, 'style', 'fill: '+color+';')
 
 	onupdated: (datas) ->
 		box = @svg.getBBox()
@@ -77,17 +82,17 @@ class PuzzleInfo extends Subscriber
 
 	update: (data) ->
 		@update_plugs(data)
-		if data.state == 'inactive'
-			@shadowRoot.querySelector('#puzzle-activate').hidden = false
-			@shadowRoot.querySelector('#puzzle-activate').disable = false
+		#if data.state == 'inactive'
+		#	@shadowRoot.querySelector('#puzzle-activate').hidden = false
+		#	@shadowRoot.querySelector('#puzzle-activate').disable = false
+		#	@shadowRoot.querySelector('#puzzle-complete').hidden = true
+		if data['state']
+			@shadowRoot.querySelector('#puzzle-activate').hidden = true
 			@shadowRoot.querySelector('#puzzle-complete').hidden = true
-		else if data.state == 'active'
+		else
 			@shadowRoot.querySelector('#puzzle-activate').hidden = true
 			@shadowRoot.querySelector('#puzzle-complete').hidden = false
 			@shadowRoot.querySelector('#puzzle-complete').disabled = false
-		else if data.state == 'completed'
-			@shadowRoot.querySelector('#puzzle-activate').hidden = true
-			@shadowRoot.querySelector('#puzzle-complete').hidden = true
 		@conditions_list.read_items(data.siblings)
 		@actions_list.read_items(data.actions)
 		@set_screen('info')
@@ -152,12 +157,12 @@ class ConditionItem extends Subscriber
 	update: (datas) ->
 		@update_plugs(datas)
 		div = @shadowRoot.querySelector('div')
-		if datas['state'] == 'completed'
+		if datas['state']
 			div.style.backgroundColor = 'green'
-		else if datas['state'] == 'active'
-			div.style.backgroundColor = 'orange'
 		else
 			div.style.backgroundColor = 'red'
+		#else if datas['state'] == 'active'
+		#	div.style.backgroundColor = 'orange'
 		if datas['desactivated']
 			div.disabled = true
 			div.style.backgroundColor = 'gray'

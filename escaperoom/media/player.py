@@ -110,17 +110,39 @@ class Audio():
     def __init__(self, file):
         self.file = str(file)
         self.sp = None
+        self.task = None
+        self.stopped = False
+        #TODO test for file
 
-    async def play(self, *, wait=False):
-        self.sp = await asyncio.create_subprocess_shell(
-                f'{self.EXEC_NAME} {self.file}'
-                )
-        if wait:
-            await self.sp.wait()
+    async def __await__(self):
+        return await self.sp.wait()
+
+    async def _play(self, loop):
+        while True:
+            self.sp = await asyncio.create_subprocess_shell(
+                    f'{self.EXEC_NAME} {self.file}'
+                    )
+            if self.sp is not None:
+                await self.sp.wait()
+            if not loop or self.stopped:
+                self.sp = None
+                self.task = None
+                return
+
+    def play(self, *, loop=False):
+        if self.task is None:
+            self.stopped = False
+            self.task = asyncio.create_task(self._play(loop))
+        return self.task
 
     async def stop(self):
-        self.sp.cancel()
-        return self.sp
+        self.stopped = True
+        self.task = None
+        if self.sp is not None:
+            self.sp.kill()
+            sp = self.sp
+            self.sp = None
+            return asyncio.create_task(sp.wait())
 
 '''
 class Audio():

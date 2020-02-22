@@ -70,16 +70,9 @@ async def game_control(params):
 async def condition_control(params, query):
     condition = Condition.find_entry(**query)
     if params['action'] == 'activate':
-        async with condition.changed:
-            condition.force_active = True
-            condition.changed.notify_all()
+        await condition.force(True)
     elif params['action'] == 'complete':
-        async with condition.changed:
-            condition.force_satisfied = True
-            condition.changed.notify_all()
+        await condition.force(True)
     elif params['action'] == 'restore':
-        async with condition.changed:
-            condition.force_active = False
-            condition.force_completed = False
-            condition.changed.notify_all()
+        await condition.restore()
 

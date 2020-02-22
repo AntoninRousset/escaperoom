@@ -139,22 +139,53 @@ _devices_defaults = {
                     'value' : '0'
                     },
                 3 : {
+                    'name' : 'fuse_led0',
+                    'type' : 'bool',
+                    'value' : '0'
+                    },
+                4 : {
+                    'name' : 'fuse_led1',
+                    'type' : 'bool',
+                    'value' : '0'
+                    },
+                5 : {
+                    'name' : 'fuse_led2',
+                    'type' : 'bool',
+                    'value' : '0'
+                    },
+                6 : {
                     'name' : 'jacks',
                     'type' : 'bool',
                     'value' : '0'
                     }
+                }
             },
         8 : {
             'name' : 'vessel_box_code',
-            'attrs' : dict()
+            'attrs' : {
+                0 : {
+                    'name' : 'state',
+                    'type' : 'bool',
+                    'value' : '0'
+                    },
+                1 : {
+                    'name' : 'led_red',
+                    'type' : 'bool',
+                    'value' : '0'
+                    },
+                2 : {
+                    'name' : 'led_green',
+                    'type' : 'bool',
+                    'value' : '0'
+                    }
+                }
             }
-        }
     }
 
 _devices = deepcopy(_devices_defaults)
 
 COMPUTER_SEND_DELAY = 0
-ARDUINO_SEND_DELAY = 0
+ARDUINO_SEND_DELAY = 2
 
 async def listen():
     while True:
@@ -212,15 +243,55 @@ async def _new_packet(src, msg, *, random_wait=True):
     return await wait_and_pack(delay)
 
 async def _events_creator():
-    await asyncio.sleep(14)
+    from .. import Game
+    while True:
+        game = Game.find_entry('.*')
+        if game is not None:
+            break
+        await Game.group_changed().wait()
+    while not game:
+        async with game.changed:
+            await game.changed.wait()
+    print('* starting events *')
+    await asyncio.sleep(80)
+
+    print('* Remove fuse 1 *')
+    _devices[7]['attrs'][0]['value'] = '0'
+    await _new_packet(7, 'val 0 1')
+    await asyncio.sleep(2)
+
+    print('* Put fuse 3 *')
     _devices[7]['attrs'][2]['value'] = '1'
     await _new_packet(7, 'val 2 1')
+    await asyncio.sleep(4)
 
+    print('* Put fuse 1 *')
+    _devices[7]['attrs'][0]['value'] = '1'
+    await _new_packet(7, 'val 0 1')
     await asyncio.sleep(2)
-    _devices[7]['attrs'][3]['value'] = '1'
-    await _new_packet(7, 'val 3 1')
 
+    print('* Jacks connected *')
+    _devices[7]['attrs'][6]['value'] = '1'
+    await _new_packet(7, 'val 6 1')
     await asyncio.sleep(2)
+
+    print('* Date entered *')
+    _devices[8]['attrs'][0]['value'] = '1'
+    await _new_packet(8, 'val 0 1')
+    await asyncio.sleep(8)
+
+    print('* Jacks disconnected *')
+    _devices[7]['attrs'][6]['value'] = '0'
+    await _new_packet(7, 'val 6 0')
+    await asyncio.sleep(2)
+
+    print('* Jacks connected *')
+    _devices[7]['attrs'][6]['value'] = '1'
+    await _new_packet(7, 'val 6 1')
+    await asyncio.sleep(8)
+
+
+    '''
     for i in range(2, 5):
         _devices[i]['attrs'][0]['value'] = '1'
         await _new_packet(i, 'val 0 1')
@@ -230,6 +301,7 @@ async def _events_creator():
     for i in range(4, 6):
         _devices[i]['attrs'][0]['value'] = '1'
         await _new_packet(i, 'val 0 1')
+    '''
 
 asyncio.create_task(_events_creator())
 

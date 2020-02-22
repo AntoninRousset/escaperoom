@@ -22,8 +22,9 @@ class Action(Logic):
         self._failed = asyncio.Event()
         self.desc = desc
         self.func = func
-        self.args = args
+        self.args = tuple() if args is None else args
         self._desactivated = asyncio.Event()
+        self._success = asyncio.Event()
         if task: asyncio.create_task(self())
         self._register(Action)
 
@@ -33,30 +34,28 @@ class Action(Logic):
         else: state = 'not running'
         return f'action "{self.name}" [{state}]'
 
+    def __bool__(self):
+        return self._success.is_set()
+
     async def __call__(self):
         async with self._running:
-            if self.desactivated:
-                return
             async with self.changed:
+                if self.desactivated:
+                    return
                 self._log_debug('start')
                 self.changed.notify_all()
-            try:
-                if asyncio.iscoroutinefunction(self.func):
-                    if self.args is None:
-                        await self.func()
+                try:
+                    if asyncio.iscoroutinefunction(self.func):
+                        await self.func(*self.args)
                     else:
-                        await self.func(self.args)
+                        self.func(*self.args)
+                except Exception as e:
+                    self._failed.set()
+                    self._success.clear()
+                    self._log_warning(f'failed : {e}')
                 else:
-                    if self.args is None:
-                        self.func()
-                    else:
-                        self.func(self.args)
-            except Exception as e:
-                self._failed.set()
-                self._log_warning(f'failed : {e}')
-            else:
-                self._failed.clear()
-            async with self.changed:
+                    self._failed.clear()
+                    self._success.set()
                 self._log_debug('end')
                 self.changed.notify_all()
 
