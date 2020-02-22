@@ -185,7 +185,7 @@ _devices_defaults = {
 _devices = deepcopy(_devices_defaults)
 
 COMPUTER_SEND_DELAY = 0
-ARDUINO_SEND_DELAY = 2
+ARDUINO_SEND_DELAY = 0
 
 async def listen():
     while True:
@@ -280,12 +280,12 @@ async def _events_creator():
     await _new_packet(8, 'val 0 1')
     await asyncio.sleep(8)
 
-    print('* Jacks disconnected *')
-    _devices[7]['attrs'][6]['value'] = '0'
+    print('* Date changed *')
+    _devices[8]['attrs'][0]['value'] = '0'
     await _new_packet(7, 'val 6 0')
     await asyncio.sleep(2)
 
-    print('* Jacks connected *')
+    print('* Date entered *')
     _devices[7]['attrs'][6]['value'] = '1'
     await _new_packet(7, 'val 6 1')
     await asyncio.sleep(8)

@@ -44,7 +44,15 @@ class CluesDisplay(Display):
         pass
 
     @abstractmethod
-    async def set_msg(self, msg):
+    async def set_msg(self, msg: str):
+        pass
+
+    @abstractmethod
+    async def set_color(self, color: str):
+        pass
+
+    @abstractmethod
+    async def set_power(self, state: bool):
         pass
 
 
@@ -85,6 +93,16 @@ class LocalCluesDisplay(CluesDisplay):
         msg = msg.replace('\n', '\\n')
         msg = f'clue {msg}\n'
         await self._write_to_process(msg.encode())
+
+    async def set_color(self, color):
+        msg = f'color {color}\n'
+        await self._write_to_process(msg.encode())
+
+    async def set_power(self, state):
+        msg = f'power {"on" if state else "off"}\n'
+        print(msg)
+        await self._write_to_process(msg.encode())
+
 
 class RemoteCluesDisplay(CluesDisplay):
 

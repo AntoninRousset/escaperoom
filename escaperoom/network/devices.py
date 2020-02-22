@@ -133,11 +133,12 @@ class Device(Network):
         while True:
             try:
                 async with sse_client.EventSource(loc) as event_source:
+                    await cls._download(host)
                     async for event in event_source:
                         data = json.loads(event.data)
                         if ( data['type'] == 'update' and
                              data['url'] == '/devices' ):
-                            asyncio.create_task(cls._download(host))
+                            await cls._download(host)
                 warned = False
             except aiohttp.ClientConnectorError:
                 if not warned:
@@ -147,7 +148,6 @@ class Device(Network):
 
     @classmethod
     def bind(cls, host):
-        asyncio.create_task(cls._download(host))
         asyncio.create_task(cls._HTTP_listener(host))
 
     def __init__(self, name, *, desc=None, type='unknown', tasks={},
@@ -202,7 +202,7 @@ class Device(Network):
 
     @property
     def ready(self):
-        return True
+        return self._attrs is not None
 
 
 def device(name=None, *args, **kwargs):
@@ -451,7 +451,9 @@ class SerialDevice(Device):
 
     @property
     def ready(self):
-        if self.addr is None or self._attrs is None: 
+        if not super().ready:
+            return False
+        if self.addr is None:
             return False
         for attr in self._attrs:
             if attr.name is None or attr.type is None or attr.value is None:
