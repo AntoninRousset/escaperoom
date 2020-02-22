@@ -56,7 +56,7 @@ class LocalCamera(Camera):
         async def on_ice_connection_state_change():
             if pc.iceConnectionState == 'failed':
                 await pc.close()
-                self.pcs.discard(pc)
+                pcs.discard(pc)
         return pc
 
     async def handle_sdp(self, sdp, type):
@@ -79,8 +79,7 @@ class LocalCamera(Camera):
                 pc.addTrack(self.video)
         answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
-        return {'sdp': pc.localDescription.sdp,
-                'type': pc.localDescription.type}
+        return {'sdp' : pc.localDescription.sdp, 'type' : pc.localDescription.type}
 
     @property
     def audio(self):
@@ -108,5 +107,6 @@ class RemoteCamera(Camera):
                 async with s.post(address, data=json.dumps(data)) as r:
                     return await r.json()
         except aiohttp.ClientError:
-            self._log_warning('error while connecting to camera on '
-                              f'{self.address}')
+            self._log_warning(f'error while connecting to camera on '
+                              {self.address}')
+

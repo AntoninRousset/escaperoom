@@ -22,7 +22,7 @@ def effect_worker(loop, track_in, track_out, effect, quit_event):
     while not quit_event.is_set():
         future = asyncio.run_coroutine_threadsafe(track_in._queue.get(), loop)
         frame = future.result()
-        frame = effect(frame)
+        frame = effect(loop, frame)
         asyncio.run_coroutine_threadsafe(track_out._queue.put(frame), loop)
 
 
