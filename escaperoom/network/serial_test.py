@@ -290,8 +290,6 @@ async def _events_creator():
     await _new_packet(7, 'val 6 1')
     await asyncio.sleep(8)
 
-
-    '''
     for i in range(2, 5):
         _devices[i]['attrs'][0]['value'] = '1'
         await _new_packet(i, 'val 0 1')
@@ -301,7 +299,6 @@ async def _events_creator():
     for i in range(4, 6):
         _devices[i]['attrs'][0]['value'] = '1'
         await _new_packet(i, 'val 0 1')
-    '''
 
 asyncio.create_task(_events_creator())
 

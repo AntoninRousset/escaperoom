@@ -18,7 +18,6 @@ from ..network import Device
 
 
 async def control(params, service, query=None):
-    print(service)
     if service == 'camera':
         return await camera_control(params, query)
     if service == 'device':

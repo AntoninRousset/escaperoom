@@ -105,7 +105,8 @@ class MediaPlayer(aiom.MediaPlayer):
 
 class Audio():
     
-    EXEC_NAME = 'mpg123 --no-control --quiet'
+    #EXEC_NAME = 'mpg123 --no-control --quiet'
+    EXEC_NAME = 'ffplay -v -8 -nodisp'
 
     def __init__(self, file):
         self.file = str(file)
