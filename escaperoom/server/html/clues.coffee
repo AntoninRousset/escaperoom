@@ -8,7 +8,7 @@ class CluesBox extends HTMLElement
 
 	send_clue: (event) =>
 		text = event.target.parentNode.querySelector('textarea').value
-		reponse = await fetch('/time/display?name=clues', {
+		reponse = await fetch('/display?name=clues', {
 			headers: {
 				'Content-Type': 'application/json'
 			},

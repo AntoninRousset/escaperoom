@@ -18,12 +18,13 @@ from ..network import Device
 
 
 async def control(params, service, query=None):
+    print(service)
     if service == 'camera':
         return await camera_control(params, query)
     if service == 'device':
         return await device_control(params, query)
     if service == 'display':
-        return await display_control(params, query)
+        return await cluesdisplay_control(params, query)
     if service == 'game':
         return await game_control(params)
     if service == 'condition':
@@ -46,9 +47,10 @@ async def device_control(params, query):
 
 async def cluesdisplay_control(params, query):
     if params['type'] == 'clue':
-        name = query['name'] if name in query else '.*'
+        #name = query['name'] if name in query else '.*'
+        name = '.*'
         cluesdisplay = CluesDisplay.find_entry(name=name)
-        return await cluesdisplay.set_clue(params['text'])
+        return await cluesdisplay.set_msg(params['text'])
     elif params['type'] == 'chronometer':
         for display in CluesDisplay.displays.values():
             return await display.set_chronometer(params['running'],
