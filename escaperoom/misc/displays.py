@@ -100,7 +100,6 @@ class LocalCluesDisplay(CluesDisplay):
 
     async def set_power(self, state):
         msg = f'power {"on" if state else "off"}\n'
-        print(msg)
         await self._write_to_process(msg.encode())
 
 

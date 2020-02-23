@@ -20,6 +20,7 @@ from . import asyncio, Network
 class NotReady(Exception):
     pass
 
+
 class Device(Network):
 
     _downloadings = defaultdict(asyncio.Lock)
@@ -86,6 +87,7 @@ class Device(Network):
                 device = Device(data['name'], type=data['type'])
             if device.type is 'unknown':
                 device.type = data['type']
+            device.loc = loc
             async with device.changed:
                 if data['attrs'] is None and device._attrs is not None:
                     device._attrs = None
@@ -148,6 +150,7 @@ class Device(Network):
 
     @classmethod
     def bind(cls, host):
+        asyncio.create_task(cls._download(host))
         asyncio.create_task(cls._HTTP_listener(host))
 
     def __init__(self, name, *, desc=None, type='unknown', tasks={},
@@ -157,6 +160,7 @@ class Device(Network):
         self._attrs = None
         self._connected = asyncio.Event()
         self.type = type
+        self.loc = None
         self._register(Device)
         #if reset: asyncio.create_task(self.reset()) #TODO
         {asyncio.create_task(task(self)) for task in tasks}
@@ -181,14 +185,37 @@ class Device(Network):
         return self._find_attr(name).value
 
     async def _set_value(self, name, value, *, type=None):
-        try:
-            attr = self._find_attr(name)
-        except KeyError:
-            if self._attrs is None:
-                self._attrs = set()
-            self._attrs.add(Device.Attribute(name, type=type, value=value))
+        if self.loc is None:
+            try:
+                attr = self._find_attr(name)
+            except (KeyError, AttributeError):
+                if self._attrs is None:
+                    self._attrs = set()
+                self._attrs.add(Device.Attribute(name, type=type, value=value))
+            else:
+                attr.value = value
         else:
-            attr.value = value
+            async def post(loc):
+                 while True:
+                    try:
+                        data = {'action' : 'set_val',
+                                'name' : name, 'value' : value}
+                        async with aiohttp.ClientSession() as session:
+                            async with session.post(loc, json=data) as resp:
+                                return await resp.text()
+                    except aiohttp.ClientConnectorError:
+                        await asyncio.sleep(1)
+            await post(self.loc)
+            while True:
+                try:
+                    attr = self._find_attr(name)
+                    if attr is not None:
+                        if attr.value == value:
+                            return
+                except Exception as e:
+                    print(e)
+                await self.changed.wait()
+
 
     async def set_value(self, name, value):
         async with self.changed:
