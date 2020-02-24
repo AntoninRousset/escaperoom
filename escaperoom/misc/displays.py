@@ -65,7 +65,6 @@ class LocalCluesDisplay(CluesDisplay):
         self.start_display()
 
     def start_display(self):
-        from subprocess import Popen
         from asyncio.subprocess import PIPE
         try:
             co = asyncio.create_subprocess_shell(self.EXEC_NAME, stdin=PIPE)

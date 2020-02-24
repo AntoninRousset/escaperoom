@@ -11,11 +11,11 @@
 '''
 
 import aiortc.contrib.media as aiom
-import threading
+import threading, json
 #import alsaaudio as alsa
 
 from . import asyncio, logger
-
+from ..utils import ensure_iter
 
 def effect_worker(loop, track_in, track_out, effect, quit_event):
 
@@ -105,63 +105,118 @@ class MediaPlayer(aiom.MediaPlayer):
 
 class Audio():
     
-    #EXEC_NAME = 'mpg123 --no-control --quiet'
-    EXEC_NAME = 'ffplay -v -8 -nodisp'
+    EXEC_NAME = 'mpv --input-ipc-server={socket} --idle --no-config --no-terminal --pause'
 
-    def __init__(self, file):
-        self.file = str(file)
-        self.sp = None
-        self.task = None
-        self.stopped = False
-        #TODO test for file
+    def __init__(self, files, *, loop=False, loop_last=False):
+        self.loop = loop
+        self.loop_last = loop_last
+        self.socket = None
+        self._requests = dict()
+        self.end = asyncio.Event()
+        self._need_check_last_file = asyncio.Event()
+        asyncio.create_task(self._last_file_checking())
+        asyncio.run_until_complete(self._open())
+        asyncio.run_until_complete(self.append_files(files))
 
     async def __await__(self):
         return await self.sp.wait()
 
-    async def _play(self, loop):
+    async def _open(self):
+        socket = '/tmp/mpv'+str(hex(id(self)))
+        sp = await asyncio.create_subprocess_shell(
+            self.EXEC_NAME.format(socket=socket),
+        )
         while True:
-            self.sp = await asyncio.create_subprocess_shell(
-                    f'{self.EXEC_NAME} {self.file}'
-                    )
-            if self.sp is not None:
-                await self.sp.wait()
-            if not loop or self.stopped:
-                self.sp = None
-                self.task = None
+            try:
+                accesses = await asyncio.open_unix_connection(socket)
+                reader, self._socket = accesses
+                asyncio.create_task(self._listener(reader))
                 return
+            except (FileNotFoundError, ConnectionRefusedError):
+                await asyncio.sleep(0)
 
-    def play(self, *, loop=False):
-        if self.task is None:
-            self.stopped = False
-            self.task = asyncio.create_task(self._play(loop))
-        return self.task
+    async def _listener(self, reader):
+        while True:
+            line = await reader.readline()
+            data = json.loads(line) 
+            for key, value in data.items():
+                if key == 'request_id':
+                    request = self._requests.get(int(value))
+                    if request is not None:
+                        request[0].set()
+                        request[1] = data
+                elif key == 'event':
+                    if value == 'start-file':
+                        self._need_check_last_file.set()
+                    elif value == 'unpause':
+                        self.end.clear()
+                    elif value == 'idle':
+                        self.end.set()
+                    
+    async def _last_file_checking(self):
+        while True:
+            await self._need_check_last_file.wait()
+            try:
+                p = await self._request({'command' : ['get_property',
+                                                      'playlist-pos-1']})
+                n = await self._request({'command' : ['get_property',
+                                                      'playlist-count']})
+            except RuntimeError as e:
+                if str(e) != 'property unavailable':
+                    raise
+                await asyncio.sleep(0.1)
+            else:
+                await self._request({'command' : ['set_property', 'loop',
+                                                  (p == n) and self.loop_last]})
+                self._need_check_last_file.clear()
+    
+    def __create_request(self):
+        offset = 42
+        for request_id in range(offset, offset+len(self._requests)+1):
+            if request_id not in self._requests.keys():
+                return request_id, [asyncio.Event(), None]
+
+    async def _send(self, data: dict):
+        line = json.dumps(data)+'\n'
+        self._socket.write(line.encode())
+        await self._socket.drain()
+
+    async def _request(self, data: dict):
+        request_id, request = self.__create_request()
+        self._requests[request_id] = request
+
+        data['request_id'] = request_id
+        await self._send(data)
+        
+        await request[0].wait()
+        self._requests.pop(request_id)
+        response = request[1]
+        if response['error'] != 'success':
+            raise RuntimeError(response['error'])
+        return response.get('data')
+
+    async def append_files(self, files):
+        for file in files:
+            await self._request({'command' : ['loadfile', str(file), 'append']})
+        self._need_check_last_file.set()
+
+    async def _play(self):
+        await asyncio.gather(
+            self._request({'command' : ['set_property', 'loop', False]}),
+            self._request({'command' : ['set_property', 'loop-playlist',
+                                        self.loop]})
+            )
+        if self.end.is_set():
+            await self._request({'command' : ['seek', 0]})
+            self.end.clear()
+        await self._request({'command' : ['set_property', 'pause', False]})
+        self._need_check_last_file.set()
+        await self.end.wait()
+
+    def play(self):
+        return asyncio.create_task(self._play())
 
     async def stop(self):
-        self.stopped = True
-        self.task = None
-        if self.sp is not None:
-            self.sp.kill()
-            sp = self.sp
-            self.sp = None
-            return asyncio.create_task(sp.wait())
+        self.end.set()
+        await self._request({'command' : ['set_property', 'pause', True]})
 
-'''
-class Audio():
-    
-    def __init__(self, *args, **args):
-        self.mp = MediaPlayer(*args, **kwargs)
-        self.output = aa.PCM(aa.PCM_PLAYBACK, aa.PCM_NORMAL)    
-        #self.output.setformat(aa.PCM_FORMAT_S16_LE)
-        self.output.write(data)
-        self._playing = asyncio.Lock()
-        self._finished = asyncio.Event()
-
-    def play():
-
-        return self._finished.wait()
-
-    @property
-    def playing(self):
-        return self._playing.locked()
-
-'''
