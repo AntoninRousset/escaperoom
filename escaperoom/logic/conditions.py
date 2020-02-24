@@ -20,7 +20,7 @@ class Condition(BoolLogic):
     def __init__(self, name=None, func=None, *, desc=None, pos=None,
                  listens=set(), parents=set(), actions=set(), args=tuple(),
                  on_trues=set(), on_falses=set()):
-        super().__init__(name)
+        super().__init__(name, desc)
         self._checking = asyncio.Lock()
         self._failed = True
         self._desactivated = False
@@ -29,7 +29,6 @@ class Condition(BoolLogic):
         self._state = None
         self.func = func
         self.args = tuple(args)
-        self.desc = desc
         self.pos = pos
         self._listens = set()
         self.add_listens(set(ensure_iter(listens)))

@@ -17,10 +17,9 @@ class Action(Logic):
 
     def __init__(self, name=None, func=lambda: None, *, desc=None, task=False,
                  args=None):
-        super().__init__(name)
+        super().__init__(name, desc)
         self._running = asyncio.Lock()
         self._failed = asyncio.Event()
-        self.desc = desc
         self.func = func
         self.args = tuple() if args is None else args
         self._desactivated = asyncio.Event()

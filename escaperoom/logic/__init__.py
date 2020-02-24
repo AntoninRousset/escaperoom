@@ -22,8 +22,6 @@ class Logic(Registered):
     
     _logger = logger
 
-    def __init__(self, name):
-        super().__init__(name)
 
 class BoolLogic(Logic, ABC):
 

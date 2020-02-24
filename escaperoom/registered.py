@@ -25,6 +25,8 @@ class Registered(ABC):
     _groups = defaultdict(dict)
     _group_changeds = defaultdict(asyncio.Event)
 
+    descs = lambda self, name: name
+
     @classmethod
     def entries(cls):
         return cls._groups[cls].values()
@@ -40,8 +42,11 @@ class Registered(ABC):
     def group_changed(cls):
         return cls._group_changeds[cls]
 
-    def __init__(self, name):
+    def __init__(self, name, desc=None):
         self.name = name
+        if desc is None:
+            desc = self.descs(name)
+        self.desc = desc
         self.id = hex(id(self))
         self.changed = asyncio.Condition()
 
