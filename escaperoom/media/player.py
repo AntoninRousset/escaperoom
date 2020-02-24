@@ -105,7 +105,8 @@ class MediaPlayer(aiom.MediaPlayer):
 
 class Audio():
     
-    EXEC_NAME = 'mpv --input-ipc-server={socket} --idle --no-config --no-terminal --pause'
+    EXEC_NAME = 'mpv --input-ipc-server={socket} --idle --no-config '\
+                '--no-terminal --pause'
 
     def __init__(self, files, *, loop=False, loop_last=False):
         self.loop = loop
@@ -196,7 +197,7 @@ class Audio():
         return response.get('data')
 
     async def append_files(self, files):
-        for file in files:
+        for file in ensure_iter(files):
             await self._request({'command' : ['loadfile', str(file), 'append']})
         self._need_check_last_file.set()
 

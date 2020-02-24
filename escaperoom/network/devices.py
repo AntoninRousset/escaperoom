@@ -24,6 +24,7 @@ class NotReady(Exception):
 class Device(Network):
 
     _downloadings = defaultdict(asyncio.Lock)
+    descs = lambda name: name
 
     class Attribute():
 
@@ -156,13 +157,15 @@ class Device(Network):
     def __init__(self, name, *, desc=None, type='unknown', tasks={},
                  reset=False): 
         super().__init__(name)
+        if desc is None:
+            desc = self.descs(name)
         self.desc = desc
         self._attrs = None
         self._connected = asyncio.Event()
         self.type = type
         self.loc = None
         self._register(Device)
-        #if reset: asyncio.create_task(self.reset()) #TODO
+        #if reset: asyncio.create_task(self.reset()) #TODO?
         {asyncio.create_task(task(self)) for task in tasks}
 
     def __str__(self):
