@@ -16,6 +16,7 @@ from math import floor
 from copy import deepcopy
 
 from . import asyncio
+from ..network.devices import Device
 
 _packets = asyncio.Queue()
 
@@ -185,7 +186,7 @@ _devices_defaults = {
 _devices = deepcopy(_devices_defaults)
 
 COMPUTER_SEND_DELAY = 0
-ARDUINO_SEND_DELAY = 2
+ARDUINO_SEND_DELAY = 0
 
 async def listen():
     while True:
@@ -249,11 +250,31 @@ async def _events_creator():
         if game is not None:
             break
         await Game.group_changed().wait()
+    while True:
+        vessel = Device.find_entry('vessel')
+        if vessel is not None:
+            break
+        await Device.group_changed().wait()
     while not game:
         async with game.changed:
             await game.changed.wait()
+
     print('* starting events *')
-    await asyncio.sleep(80)
+    await asyncio.sleep(1)
+
+
+    print('* ignition *')
+    await vessel.set_value('ignition', True)
+    await asyncio.sleep(0.1)
+
+    print('* unignition *')
+    await vessel.set_value('ignition', False)
+    await asyncio.sleep(3)
+
+    print('* reignition *')
+    await vessel.set_value('ignition', True)
+    await asyncio.sleep(12)
+
 
     print('* Remove fuse 1 *')
     _devices[7]['attrs'][0]['value'] = '0'

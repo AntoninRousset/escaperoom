@@ -93,8 +93,9 @@ class LocalCamera(Camera):
         self.pcs.discard(pc)
 
     def close(self):
-        co = asyncio.gather(*{self._close_pc(pc) for pc in self.pcs})
-        return asyncio.create_task(co)
+        async def _close():
+            await asyncio.gather(*{self._close_pc(pc) for pc in self.pcs})
+        return asyncio.create_task(_close())
 
     @property
     def audio(self):

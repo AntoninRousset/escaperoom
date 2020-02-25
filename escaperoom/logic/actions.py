@@ -13,15 +13,19 @@
 from . import asyncio, Logic
 
 
+async def dummy(*args, **kwargs):
+    pass
+
 class Action(Logic):
 
-    def __init__(self, name=None, func=lambda: None, *, desc=None, task=False,
+    def __init__(self, name=None, func=None, *, desc=None, task=False,
                  args=None):
         super().__init__(name, desc)
         self._running = asyncio.Lock()
         self._failed = asyncio.Event()
         self.func = func
         self.args = tuple() if args is None else args
+        self._task = asyncio.create_task(dummy())
         self._desactivated = asyncio.Event()
         self._success = asyncio.Event()
         if task: asyncio.create_task(self())
@@ -43,10 +47,8 @@ class Action(Logic):
                 self._log_debug('start')
                 self.changed.notify_all()
                 try:
-                    if asyncio.iscoroutinefunction(self.func):
-                        await self.func(*self.args)
-                    else:
-                        self.func(*self.args)
+                    if self.func is not None:
+                        self._task = asyncio.create_task(self.func(*self.args))
                 except Exception as e:
                     self._failed.set()
                     self._success.clear()
@@ -56,6 +58,9 @@ class Action(Logic):
                     self._success.set()
                 self._log_debug('end')
                 self.changed.notify_all()
+
+    async def abort(self):
+        self._task.cancel()
 
     async def activate(self):
         async with self.changed:

@@ -107,8 +107,8 @@ class MediaPlayer(aiom.MediaPlayer):
 
 class Audio():
     
-    EXEC_ARGS = ['mpv', '--input-ipc-server={socket}', '--idle', '--no-config',
-                '--no-terminal', '--pause']
+    EXEC_ARGS = ['mpv', '--input-ipc-server={socket}', '--keep-open',
+                 '--no-config', '--no-terminal', '--pause', 'idle=once']
 
     def __init__(self, files, *, loop=False, loop_last=False):
         self.loop = loop
@@ -120,9 +120,6 @@ class Audio():
         asyncio.create_task(self._last_file_checking())
         asyncio.run_until_complete(self._open())
         asyncio.run_until_complete(self.append_files(files))
-
-    async def __await__(self):
-        return await self.sp.wait()
 
     async def _open(self):
         socket = '/tmp/mpv'+str(hex(id(self)))
@@ -152,17 +149,19 @@ class Audio():
                         self._need_check_last_file.set()
                     elif value == 'unpause':
                         self.end.clear()
-                    elif value == 'idle':
+                    elif value == 'pause':
                         self.end.set()
                     
+    async def __get_file_pos(self):
+        p = await self._request({'command': ['get_property', 'playlist-pos-1']})
+        n = await self._request({'command': ['get_property', 'playlist-count']})
+        return p, n
+
     async def _last_file_checking(self):
         while True:
             await self._need_check_last_file.wait()
             try:
-                p = await self._request({'command' : ['get_property',
-                                                      'playlist-pos-1']})
-                n = await self._request({'command' : ['get_property',
-                                                      'playlist-count']})
+                p, n = await self.__get_file_pos()
             except RuntimeError as e:
                 if str(e) != 'property unavailable':
                     raise
@@ -197,6 +196,14 @@ class Audio():
             raise RuntimeError(response['error'])
         return response.get('data')
 
+    async def _go_beginning(self):
+        try:
+            while True:
+                await self._request({'command' : ['playlist-prev']}),
+        except RuntimeError as e:
+            if str(e) != 'error running command':
+                raise
+
     async def append_files(self, files):
         for file in ensure_iter(files):
             await self._request({'command' : ['loadfile', str(file), 'append']})
@@ -209,7 +216,7 @@ class Audio():
                                         self.loop]})
             )
         if self.end.is_set():
-            await self._request({'command' : ['seek', 0]})
+            await self._go_beginning()
             self.end.clear()
         await self._request({'command' : ['set_property', 'pause', False]})
         self._need_check_last_file.set()
