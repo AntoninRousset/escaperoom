@@ -63,6 +63,7 @@ class LocalCluesDisplay(CluesDisplay):
     def __init__(self, name, game=None):
         super().__init__(name, game)
         self.start_display()
+        asyncio.create_task(self._display_executor())
 
     def start_display(self):
         from asyncio.subprocess import PIPE
@@ -70,8 +71,11 @@ class LocalCluesDisplay(CluesDisplay):
             co = asyncio.create_subprocess_shell(self.EXEC_NAME, stdin=PIPE)
             self.ps = asyncio.run_until_complete(co)
         except FileNotFoundError:
-            self._log_error(f'{self}: could not find escaperoom-display')
-            raise RuntimeError()
+            self._log_error(f'{self}: could not find {self.EXEC_NAME}')
+            raise
+
+    async def _display_executor(self):
+        await self.ps.wait()
 
     async def _write_to_process(self, data):
         try:
