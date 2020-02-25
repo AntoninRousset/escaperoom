@@ -13,24 +13,31 @@
 from abc import abstractmethod
 from aiortc import RTCPeerConnection, RTCSessionDescription
 import aiohttp
+import atexit
 import json
 
-from . import Misc
+from . import asyncio, Misc
 from ..media import MediaPlayer
 
 
 class Camera(Misc):
 
+    @classmethod
+    async def close_all(cls):
+        await asyncio.gather(*{entry.close() for entry in cls.entries()})
+
     def __init__(self, name):
         super().__init__(name)
         self.connected = False
-        self._register(Camera)
 
     def __str__(self):
         return f'camera "{self.name}"'
 
     @abstractmethod
     async def handle_sdp(self, sdp, type):
+        pass
+
+    async def close(self):
         pass
 
 
@@ -55,8 +62,7 @@ class LocalCamera(Camera):
         @pc.on('iceconnectionchanged')
         async def on_ice_connection_state_change():
             if pc.iceConnectionState == 'failed':
-                await pc.close()
-                self.pcs.discard(pc)
+                await self._close_pc(pc)
         return pc
 
     async def handle_sdp(self, sdp, type):
@@ -81,6 +87,14 @@ class LocalCamera(Camera):
         await pc.setLocalDescription(answer)
         return {'sdp': pc.localDescription.sdp,
                 'type': pc.localDescription.type}
+
+    async def _close_pc(self, pc):
+        pc.close()
+        self.pcs.discard(pc)
+
+    def close(self):
+        co = asyncio.gather(*{self._close_pc(pc) for pc in self.pcs})
+        return asyncio.create_task(co)
 
     @property
     def audio(self):

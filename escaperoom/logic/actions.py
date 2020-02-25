@@ -25,7 +25,6 @@ class Action(Logic):
         self._desactivated = asyncio.Event()
         self._success = asyncio.Event()
         if task: asyncio.create_task(self())
-        self._register(Action)
 
     def __str__(self):
         if self.running: state = 'running'

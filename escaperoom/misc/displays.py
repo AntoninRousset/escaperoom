@@ -14,6 +14,7 @@ import aiohttp, json, re
 from abc import ABC, abstractmethod
 
 from . import asyncio, Misc
+from ..subprocess import SubProcess
 
 class Display(Misc):
     pass
@@ -26,7 +27,6 @@ class CluesDisplay(Display):
         if game is not None:
             self.game = game
             self.create_task(self._chronometer_listener())
-        self._register(CluesDisplay)
 
     def __str__(self):
         return f'display "{self.name}"'
@@ -71,16 +71,16 @@ class LocalCluesDisplay(CluesDisplay):
     def start_display(self):
         from asyncio.subprocess import PIPE
         try:
-            co = asyncio.create_subprocess_shell(self.EXEC_NAME, stdin=PIPE)
-            self.ps = asyncio.run_until_complete(co)
+            self.sp = SubProcess(self.name, *self.EXEC_ARGS, stdin=PIPE)
+            asyncio.run_until_complete(self.sp.running) 
         except FileNotFoundError:
-            self._log_error(f'{self}: could not find escaperoom-display')
-            raise RuntimeError()
+            self._log_error(f'{self}: could not find {self.EXEC_NAME}')
+            raise
 
     async def _write_to_process(self, data):
         try:
-            self.ps.stdin.write(data)
-            await self.ps.stdin.drain()
+            self.sp.stdin.write(data)
+            await self.sp.stdin.drain()
         except AttributeError:
             await asyncio.sleep(1)
             await self._write_to_process(data)

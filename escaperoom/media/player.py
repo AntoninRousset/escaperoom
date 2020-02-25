@@ -16,6 +16,7 @@ import threading, json
 from tempfile import gettempdir
 
 from . import asyncio, logger
+from ..subprocess import SubProcess
 from ..utils import ensure_iter
 
 
@@ -126,9 +127,8 @@ class Audio():
 
     async def _open(self):
         socket = gettempdir() + '/mpv' + str(hex(id(self)))
-        await asyncio.create_subprocess_shell(
-            self.EXEC_NAME.format(socket=socket),
-        )
+        args = [arg.format(socket=socket) for arg in self.EXEC_ARGS]
+        await SubProcess(socket, *args).running
         while True:
             try:
                 accesses = await asyncio.open_unix_connection(socket)

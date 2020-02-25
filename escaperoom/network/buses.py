@@ -24,7 +24,6 @@ class Bus(Network):
         super().__init__(name)
         self.packet = None
         self.packet_changed = asyncio.Condition()
-        self._register(Bus)
 
 
 class SerialBus(Bus):
@@ -35,7 +34,6 @@ class SerialBus(Bus):
         asyncio.create_task(self._listener())
         self.sending = asyncio.Condition()
         self._connected = asyncio.Event()
-        self._register(SerialBus)
 
     def __str__(self):
         return f'[serialbus on {self.path}]'

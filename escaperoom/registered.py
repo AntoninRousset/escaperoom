@@ -28,15 +28,27 @@ class Registered(ABC):
     descs = lambda self, name: name
 
     @classmethod
+    def groups(cls):
+        yield cls._groups[cls]
+        for subcls in cls.__subclasses__():
+            if subcls in cls._groups:
+                yield cls._groups[subcls]
+
+    @classmethod
     def entries(cls):
-        return cls._groups[cls].values()
+        for group in cls.groups():
+            yield from group.values()
 
     @classmethod
     def find_entry(cls, name=None, *, id=None):
-        if id: return cls._groups[cls].get(id)
-        if name:
+        if id is not None:
+            for group in cls.groups():
+                if id in group:
+                    return group[id]
+        elif name is not None:
             for entry in cls.entries():
-                if entry.name and re.match(name, entry.name): return entry
+                if entry.name and re.match(name, entry.name):
+                    return entry
 
     @classmethod
     def group_changed(cls):
@@ -49,8 +61,10 @@ class Registered(ABC):
         self.desc = desc
         self.id = hex(id(self))
         self.changed = asyncio.Condition()
+        self._register()
 
-    def _register(self, cls):
+    def _register(self):
+        cls = self.__class__
         self._groups[cls][self.id] = self
         cls.group_changed().set()
         cls.group_changed().clear()
@@ -69,4 +83,5 @@ class Registered(ABC):
 
     def _log_error(self, msg):
         self._logger.error(f'{self}: {msg}')
+
 
