@@ -13,9 +13,11 @@
 import aiortc.contrib.media as aiom
 import threading, json
 #import alsaaudio as alsa
+from tempfile import gettempdir
 
 from . import asyncio, logger
 from ..utils import ensure_iter
+
 
 def effect_worker(loop, track_in, track_out, effect, quit_event):
 
@@ -104,7 +106,7 @@ class MediaPlayer(aiom.MediaPlayer):
 
 
 class Audio():
-    
+
     EXEC_NAME = 'mpv --input-ipc-server={socket} --idle --no-config '\
                 '--no-terminal --pause'
 
@@ -123,8 +125,8 @@ class Audio():
         return await self.sp.wait()
 
     async def _open(self):
-        socket = '/tmp/mpv'+str(hex(id(self)))
-        sp = await asyncio.create_subprocess_shell(
+        socket = gettempdir() + '/mpv' + str(hex(id(self)))
+        await asyncio.create_subprocess_shell(
             self.EXEC_NAME.format(socket=socket),
         )
         while True:
@@ -139,7 +141,7 @@ class Audio():
     async def _listener(self, reader):
         while True:
             line = await reader.readline()
-            data = json.loads(line) 
+            data = json.loads(line)
             for key, value in data.items():
                 if key == 'request_id':
                     request = self._requests.get(int(value))
@@ -153,24 +155,24 @@ class Audio():
                         self.end.clear()
                     elif value == 'idle':
                         self.end.set()
-                    
+
     async def _last_file_checking(self):
         while True:
             await self._need_check_last_file.wait()
             try:
-                p = await self._request({'command' : ['get_property',
-                                                      'playlist-pos-1']})
-                n = await self._request({'command' : ['get_property',
-                                                      'playlist-count']})
+                p = await self._request({'command': ['get_property',
+                                                     'playlist-pos-1']})
+                n = await self._request({'command': ['get_property',
+                                                     'playlist-count']})
             except RuntimeError as e:
                 if str(e) != 'property unavailable':
                     raise
                 await asyncio.sleep(0.1)
             else:
-                await self._request({'command' : ['set_property', 'loop',
-                                                  (p == n) and self.loop_last]})
+                await self._request({'command': ['set_property', 'loop',
+                                                 (p == n) and self.loop_last]})
                 self._need_check_last_file.clear()
-    
+
     def __create_request(self):
         offset = 42
         for request_id in range(offset, offset+len(self._requests)+1):
@@ -188,7 +190,7 @@ class Audio():
 
         data['request_id'] = request_id
         await self._send(data)
-        
+
         await request[0].wait()
         self._requests.pop(request_id)
         response = request[1]
@@ -198,19 +200,19 @@ class Audio():
 
     async def append_files(self, files):
         for file in ensure_iter(files):
-            await self._request({'command' : ['loadfile', str(file), 'append']})
+            await self._request({'command': ['loadfile', str(file), 'append']})
         self._need_check_last_file.set()
 
     async def _play(self):
         await asyncio.gather(
-            self._request({'command' : ['set_property', 'loop', False]}),
-            self._request({'command' : ['set_property', 'loop-playlist',
-                                        self.loop]})
+            self._request({'command': ['set_property', 'loop', False]}),
+            self._request({'command': ['set_property', 'loop-playlist',
+                                       self.loop]})
             )
         if self.end.is_set():
-            await self._request({'command' : ['seek', 0]})
+            await self._request({'command': ['seek', 0]})
             self.end.clear()
-        await self._request({'command' : ['set_property', 'pause', False]})
+        await self._request({'command': ['set_property', 'pause', False]})
         self._need_check_last_file.set()
         await self.end.wait()
 
@@ -219,5 +221,4 @@ class Audio():
 
     async def stop(self):
         self.end.set()
-        await self._request({'command' : ['set_property', 'pause', True]})
-
+        await self._request({'command': ['set_property', 'pause', True]})
