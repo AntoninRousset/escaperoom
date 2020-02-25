@@ -185,7 +185,7 @@ _devices_defaults = {
 _devices = deepcopy(_devices_defaults)
 
 COMPUTER_SEND_DELAY = 0
-ARDUINO_SEND_DELAY = 0
+ARDUINO_SEND_DELAY = 2
 
 async def listen():
     while True:
@@ -218,8 +218,8 @@ async def _device_answer(dest, msg):
     if re.match('\s*get\s+attr\s+\d+\s*', msg):
         attr_id = int(msg.split()[2])
         attr = attrs[attr_id]
-        name, type = attr['name'], attr['type']
-        return await _new_packet(dest, f'attr {attr_id} {name} {type}')
+        name, type, val = attr['name'], attr['type'], attr['value']
+        return await _new_packet(dest, f'attr {attr_id} {name} {type} {val}')
     if re.match('\s*get\s+val\s+\d+\s*', msg):
         attr_id = int(msg.split()[2])
         attr = attrs[attr_id]

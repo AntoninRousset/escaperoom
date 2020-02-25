@@ -374,7 +374,7 @@ class SerialDevice(Device):
                 for attr_id, attr in zip(range(self.n_attr), self._attrs):
                     if attr.name is None or attr.type is None:
                         cos.add(self._send(f'get attr {attr_id}'))
-                    if attr._value is None:
+                    elif attr._value is None:
                         cos.add(self._send(f'get val {attr_id}'))
                 if cos:
                     self._log_debug(f'incomplete attrs') 
@@ -406,11 +406,11 @@ class SerialDevice(Device):
         elif re.match('\s*attr\s+\d+\s+\w+\s+\w+\s*', msg):
             if self._attrs is not None:
                 self._log_debug(f'setting attribute from msg')
-                attr_id, name, type = int(words[1]), words[2], words[3]
-                attr = self._attrs[attr_id]
-                if attr.name != name or attr.type != type:
+                attr = self._attrs[int(words[1])]
+                name, type, val = words[2], words[3], words[4]
+                if attr.name != name or attr.type != type or attr.value != val:
                     async with self.changed:
-                        attr.name, attr.type = name, type
+                        attr.name, attr.type, attr.value = name, type, val
                         self.changed.notify_all()
         elif re.match('\s*val\s+\d+\s+\w+\s*', msg):
             if self._attrs is not None:
