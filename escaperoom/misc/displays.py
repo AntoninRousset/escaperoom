@@ -55,10 +55,14 @@ class CluesDisplay(Display):
     async def set_power(self, state: bool):
         pass
 
+    @abstractmethod
+    async def set_img(self, img: str):
+        pass
+
 
 class LocalCluesDisplay(CluesDisplay):
-    
-    EXEC_ARGS = ['escaperoom_cluesdisplay']
+
+    EXEC_NAME = 'escaperoom_cluesdisplay'
 
     def __init__(self, name, game=None):
         super().__init__(name, game)
@@ -101,6 +105,10 @@ class LocalCluesDisplay(CluesDisplay):
         msg = f'power {"on" if state else "off"}\n'
         await self._write_to_process(msg.encode())
 
+    async def set_img(self, img):
+        msg = f'image {img}\n'
+        await self._write_to_process(msg.encode())
+
 
 class RemoteCluesDisplay(CluesDisplay):
 
@@ -112,11 +120,14 @@ class RemoteCluesDisplay(CluesDisplay):
         self.remote_name = name
 
     async def set_chronometer(self, running, seconds):
-        data = {'type' : 'chronometer', 'running' : running, 'seconds' : seconds}
+        data = {'type': 'chronometer', 'running': running, 'seconds': seconds}
         await self._send(data)
 
     async def set_msg(self, msg):
-        await self._send({'type' : 'msg', 'msg' : msg})
+        await self._send({'type': 'msg', 'msg': msg})
+
+    async def set_img(self, img):
+        await self._send({'type': 'image', 'image': str(img)})
 
     async def _send(self, data):
         try:
