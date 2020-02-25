@@ -162,7 +162,6 @@ class Device(Network):
         self._connected = asyncio.Event()
         self.type = type
         self.loc = None
-        self._register(Device)
         #if reset: asyncio.create_task(self.reset()) #TODO?
         {asyncio.create_task(task(self)) for task in tasks}
 
@@ -348,7 +347,6 @@ class SerialDevice(Device):
         self._reset = asyncio.Event()
         self.addr = None
         if reset: asyncio.create_task(self.__reset_before_start())
-        self._register(SerialDevice)
 
     async def __reset_before_start(self):
         await self.reset()

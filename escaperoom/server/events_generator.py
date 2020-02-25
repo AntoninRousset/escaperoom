@@ -35,7 +35,8 @@ events_queues = dict()
 
 async def generator():
     events_queue = SharedQueue()
-    categories = {game_events, actions_events,chronometer_events, conditions_events, devices_events}
+    categories = {game_events, actions_events,chronometer_events,
+                  conditions_events, devices_events}
     for events in categories:
         asyncio.create_task(events(events_queue))
     while True:

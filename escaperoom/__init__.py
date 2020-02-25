@@ -10,7 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import configparser, os.path
+import configparser, os, os.path
 from pathlib import Path
 
 #TODO All config should be red in config.py
@@ -33,10 +33,18 @@ logging.config.fileConfig(config) #TODO per room logging
 
 from .game import Game
 from .logic import Action, action, Condition, condition
-from .misc import LocalCamera, RemoteCamera, LocalCluesDisplay, RemoteCluesDisplay, Chronometer
+from .misc import Camera, LocalCamera, RemoteCamera, LocalCluesDisplay, RemoteCluesDisplay, Chronometer
 from .media import Audio
 from .network import SerialBus, Device, device, SerialDevice
 from .server import HTTPServer
+from .subprocess import SubProcess 
 
 def loop():
     asyncio.get_event_loop().run_forever()
+
+def clean_up():
+    asyncio.run_until_complete(Camera.close_all())
+    asyncio.run_until_complete(SubProcess.terminate_all())
+
+import atexit
+atexit.register(clean_up)

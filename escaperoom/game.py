@@ -27,13 +27,12 @@ class Game(Registered):
         }
 
     def __init__(self, name, *, options={}, ready=False):
-        if Game.entries():
+        if set(Game.entries()):
             raise RuntimeError('There can be only one game running')
         super().__init__(name)
         self.options.update(options)
         self._ready = ready
-        self._chronometer = Chronometer()
-        self._register(Game)
+        self._chronometer = Chronometer('__game')
 
     def __str__(self):
         return f'game "{self.name}"'
@@ -47,14 +46,10 @@ class Game(Registered):
             self.changed.notify_all()
 
     async def start(self, options):
-        async with self._chronometer.changed:
-            self._chronometer.start()
-            self._chronometer.changed.notify_all()
+        await self._chronometer.start()
 
     async def stop(self, options):
-        async with self._chronometer.changed:
-            self._chronometer.stop()
-            self._chronometer.changed.notify_all()
+        await self._chronometer.stop()
 
     @property
     def ready(self):
@@ -62,4 +57,4 @@ class Game(Registered):
 
     @property
     def running(self):
-        return self._chronometer.is_running()
+        return self._chronometer.running

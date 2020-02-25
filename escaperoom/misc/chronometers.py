@@ -22,7 +22,6 @@ class Chronometer(Misc):
         super().__init__(name)
         self.start_time = None #TODO list of plays and pauses
         self.end_time = None
-        self._register(Chronometer)
 
     def __str__(self):
         return f'chronometer "{self.name}"'
@@ -70,7 +69,7 @@ class Timeout(Chronometer):
             async with self.changed:
                 if self:
                     try:
-                        wt = self.remaining().total_seconds()
+                        wt = self.remaining.total_seconds()
                         await asyncio.wait_for(self.changed.wait(), timeout=wt)
                     except TimeoutError:
                         pass

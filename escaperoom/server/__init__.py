@@ -17,7 +17,7 @@ from os.path import dirname
 
 from . import controls, events_generator, readers
 
-from .. import asyncio, logging
+from .. import asyncio, LocalCamera, logging
 from ..registered import Registered
 
 ROOT = dirname(__file__)
@@ -55,6 +55,7 @@ async def control(request):
     service = request.match_info['service']
     answer = await controls.control(await request.json(), service, request.query)
     return web.Response(content_type='application/json', text=json.dumps(answer))
+
 
 class HTTPServer(Server):
 

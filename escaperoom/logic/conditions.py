@@ -37,7 +37,6 @@ class Condition(BoolLogic):
         self.actions = set(ensure_iter(actions))
         self.on_trues = set(ensure_iter(on_trues))
         self.on_falses = set(ensure_iter(on_falses))
-        self._register(Condition)
 
     def __str__(self):
         state = 'satisfied' if self else 'unsatisfied'

@@ -15,7 +15,9 @@ import threading, json
 #import alsaaudio as alsa
 
 from . import asyncio, logger
+from ..subprocess import SubProcess
 from ..utils import ensure_iter
+
 
 def effect_worker(loop, track_in, track_out, effect, quit_event):
 
@@ -105,8 +107,8 @@ class MediaPlayer(aiom.MediaPlayer):
 
 class Audio():
     
-    EXEC_NAME = 'mpv --input-ipc-server={socket} --idle --no-config '\
-                '--no-terminal --pause'
+    EXEC_ARGS = ['mpv', '--input-ipc-server={socket}', '--idle', '--no-config',
+                '--no-terminal', '--pause']
 
     def __init__(self, files, *, loop=False, loop_last=False):
         self.loop = loop
@@ -124,9 +126,8 @@ class Audio():
 
     async def _open(self):
         socket = '/tmp/mpv'+str(hex(id(self)))
-        sp = await asyncio.create_subprocess_shell(
-            self.EXEC_NAME.format(socket=socket),
-        )
+        args = [arg.format(socket=socket) for arg in self.EXEC_ARGS]
+        await SubProcess(socket, *args).running
         while True:
             try:
                 accesses = await asyncio.open_unix_connection(socket)

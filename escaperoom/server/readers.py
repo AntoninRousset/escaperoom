@@ -76,8 +76,8 @@ async def chronometer_reader():
     chronometer = Chronometer.find_entry('timer')
     if chronometer is None: return ''
     return {
-            'running' : chronometer.is_running(),
-            'time' : chronometer.elapsed().total_seconds()*1000
+            'running' : chronometer.running,
+            'time' : chronometer.elapsed.total_seconds()*1000
             }
 
 async def conditions_reader():
