@@ -29,6 +29,13 @@ def get_args():
     return parser.parse_args()
 
 
+async def _room_exectutor(pythonpath, room_name):
+        room_env = os.environ.copy()
+        room_env['PYTHONPATH'] = ':'.join(p for p in pythonpath if p)
+        args = ['python', '-m', room_name]
+        co = await asyncio.create_subprocess_exec(*args, env=room_env)
+        await co.wait()
+
 def launch_rooms(rooms_re):
     rooms_dir = Path(config['DEFAULT']['rooms_dir']).expanduser()
     rooms = set()
@@ -38,12 +45,9 @@ def launch_rooms(rooms_re):
             continue
         if room_name in rooms:
             raise Exception('duplicated room\'s names "{room_name}"')
-        path = rooms_dir/child
-        room_env = os.environ.copy()
-        room_env['PYTHONPATH'] = ':'.join(x for x in [str(rooms_dir),str(ROOT.parent), *sys.path] if x)
-        co = asyncio.create_subprocess_shell(f'python -m {room_name}', env=room_env)
-        logger.info(f'launching room: {room_name}') #TODO doesnt do anything
-        asyncio.create_task(co)
+        pythonpath = [str(rooms_dir), str(ROOT.parent), *sys.path]
+        logger.info(f'launching room: {room_name}') #TODO it doesnt do anything
+        asyncio.create_task(_room_exectutor(pythonpath, room_name))
         rooms.add(room_name)
 
 #TODO master server that redirect each request to the slave server
