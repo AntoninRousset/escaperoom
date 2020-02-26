@@ -44,11 +44,18 @@ class Registered(ABC):
         if id is not None:
             for group in cls.groups():
                 if id in group:
-                    return group[id]
+                    return group.get(id)
         elif name is not None:
             for entry in cls.entries():
                 if entry.name and re.match(name, entry.name):
                     return entry
+
+    @classmethod
+    def __getitem__(self, key):
+        entry = self.find_entry(name=key)
+        if entry is None:
+            raise KeyError(key)
+        return entry
 
     @classmethod
     def group_changed(cls):

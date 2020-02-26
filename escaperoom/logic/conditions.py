@@ -55,7 +55,6 @@ class Condition(BoolLogic):
             return None
         for parent in self._parents:
             if not parent:
-                print(parent)
                 self._log_debug(f'parents are {ANSI["bold"]}{ANSI["red"]} bad')
                 self.msg = None #TODO? set self.msg from parent
                 return False
@@ -110,9 +109,14 @@ class Condition(BoolLogic):
         while listen in self._listens | self._parents:
             async with listen.changed:
                 await listen.changed.wait()
-                print(listen, 'changed')
                 await self._check()
     
+    async def abort_on_trues(self):
+        await asyncio.gather(*{on_true.abort() for on_true in self.on_trues})
+
+    async def abort_on_falses(self):
+        await asyncio.gather(*{on_false.abort() for on_false in self.on_falses})
+
     def add_parents(self, parents: BoolLogic):
         for parent in parents:
             if parent not in self._parents:
@@ -127,13 +131,10 @@ class Condition(BoolLogic):
                 self._listens.add(listen)
         asyncio.create_task(self._check())
 
-    async def _set_state(state):
+    async def set_state(state):
         async with self.changed:
             self._state = state
             self.changed.notify_all()
-
-    def set_state(self, state: bool):
-        return asyncio.create_task(self._set_state())
 
     async def force(self, state: bool):
         async with self.changed:

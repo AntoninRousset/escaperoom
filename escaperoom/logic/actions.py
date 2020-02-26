@@ -61,6 +61,7 @@ class Action(Logic):
 
     async def abort(self):
         self._task.cancel()
+        await asyncio.sleep(0)
 
     async def activate(self):
         async with self.changed:
