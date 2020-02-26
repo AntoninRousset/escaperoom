@@ -49,6 +49,9 @@ class Action(Logic):
                 try:
                     if self.func is not None:
                         self._task = asyncio.create_task(self.func(*self.args))
+                        await self._task
+                except asyncio.CancelledError:
+                    self._log_info('cancelled')
                 except Exception as e:
                     self._failed.set()
                     self._success.clear()

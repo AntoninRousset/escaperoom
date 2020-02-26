@@ -22,7 +22,7 @@ _packets = asyncio.Queue()
 
 _devices_defaults = {
         1 : {
-            'name' : 'lights_uv',
+            'name' : 'lights',
             'attrs' : {
                 0 : {
                     'name' : 'room1',
@@ -50,12 +50,12 @@ _devices_defaults = {
             'name' : 'base_cross',
             'attrs' : {
                 0 : {
-                    'name' : 'hall_state',
+                    'name' : 'hall',
                     'type' : 'bool',
                     'value' : '0'
                     },
                 1 : {
-                    'name' : 'light_state',
+                    'name' : 'light',
                     'type' : 'bool',
                     'value' : '0'
                     }
@@ -65,12 +65,12 @@ _devices_defaults = {
             'name' : 'base_hexagon',
             'attrs' : {
                 0 : {
-                    'name' : 'hall_state',
+                    'name' : 'hall',
                     'type' : 'bool',
                     'value' : '0'
                     },
                 1 : {
-                    'name' : 'light_state',
+                    'name' : 'light',
                     'type' : 'bool',
                     'value' : '0'
                     }
@@ -80,12 +80,22 @@ _devices_defaults = {
             'name' : 'base_triangle',
             'attrs' : {
                 0 : {
-                    'name' : 'hall_state',
+                    'name' : 'hall',
                     'type' : 'bool',
                     'value' : '0'
                     },
                 1 : {
-                    'name' : 'light_state',
+                    'name' : 'light',
+                    'type' : 'bool',
+                    'value' : '0'
+                    },
+                2 : {
+                    'name' : 'fuse',
+                    'type' : 'bool',
+                    'value' : '1'
+                    },
+                3 : {
+                    'name' : 'led',
                     'type' : 'bool',
                     'value' : '0'
                     }
@@ -95,34 +105,19 @@ _devices_defaults = {
             'name' : 'base_star',
             'attrs' : {
                 0 : {
-                    'name' : 'hall_state',
+                    'name' : 'hall',
                     'type' : 'bool',
                     'value' : '0'
                     },
                 1 : {
-                    'name' : 'light_state',
+                    'name' : 'light',
                     'type' : 'bool',
                     'value' : '0'
                     }
                 }
             },
         6 : {
-            'name' : 'vessel',
-            'attrs' : {
-                0 : {
-                    'name' : 'door1',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                1 : {
-                    'name' : 'door2',
-                    'type' : 'bool',
-                    'value' : '0'
-                    }
-                }
-            },
-        7 : {
-            'name' : 'vessel_box_connect',
+            'name' : 'box_connect',
             'attrs' : {
                 0 : {
                     'name' : 'fuse0',
@@ -140,17 +135,17 @@ _devices_defaults = {
                     'value' : '0'
                     },
                 3 : {
-                    'name' : 'fuse_led0',
+                    'name' : 'led0',
                     'type' : 'bool',
                     'value' : '0'
                     },
                 4 : {
-                    'name' : 'fuse_led1',
+                    'name' : 'led1',
                     'type' : 'bool',
                     'value' : '0'
                     },
                 5 : {
-                    'name' : 'fuse_led2',
+                    'name' : 'led2',
                     'type' : 'bool',
                     'value' : '0'
                     },
@@ -161,8 +156,8 @@ _devices_defaults = {
                     }
                 }
             },
-        8 : {
-            'name' : 'vessel_box_code',
+        7 : {
+            'name' : 'box_code',
             'attrs' : {
                 0 : {
                     'name' : 'state',
@@ -170,12 +165,17 @@ _devices_defaults = {
                     'value' : '0'
                     },
                 1 : {
-                    'name' : 'led_red',
+                    'name' : 'target',
+                    'type' : 'int',
+                    'value' : 1234
+                    },
+                2 : {
+                    'name' : 'red',
                     'type' : 'bool',
                     'value' : '0'
                     },
-                2 : {
-                    'name' : 'led_green',
+                3 : {
+                    'name' : 'green',
                     'type' : 'bool',
                     'value' : '0'
                     }
@@ -263,6 +263,12 @@ async def _events_creator():
     await asyncio.sleep(1)
 
 
+    print('* trying start *')
+    await vessel.set_value('start', True)
+    await asyncio.sleep(0.2) #TODO, or it misses it
+    await vessel.set_value('start', False)
+    await asyncio.sleep(2)
+
     print('* ignition *')
     await vessel.set_value('ignition', True)
     await asyncio.sleep(0.1)
@@ -273,42 +279,78 @@ async def _events_creator():
 
     print('* reignition *')
     await vessel.set_value('ignition', True)
-    await asyncio.sleep(12)
+    await asyncio.sleep(8)
+
+    print('* start *')
+    await vessel.set_value('start', True)
+    await asyncio.sleep(0.2) #TODO, or it misses it
+    await vessel.set_value('start', False)
+    await asyncio.sleep(2)
+
+    print('* unignition *')
+    await vessel.set_value('ignition', False)
+    await asyncio.sleep(5)
+
+    print('* reignition *')
+    await vessel.set_value('ignition', True)
+    await asyncio.sleep(5)
+
+    print('* start *')
+    await vessel.set_value('start', True)
+    await asyncio.sleep(0.2) #TODO, or it misses it
+    await vessel.set_value('start', False)
+    await asyncio.sleep(25)
+
+    print('* trying unignition *')
+    await vessel.set_value('ignition', False)
+    await asyncio.sleep(5)
+
+    print('* trying reignition *')
+    await vessel.set_value('ignition', True)
+    await asyncio.sleep(5)
+
+    print('* trying start *')
+    await vessel.set_value('start', True)
+    await asyncio.sleep(0.2) #TODO, or it misses it
+    await vessel.set_value('start', False)
+    await asyncio.sleep(2)
 
 
     print('* Remove fuse 1 *')
-    _devices[7]['attrs'][0]['value'] = '0'
-    await _new_packet(7, 'val 0 1')
+    _devices[6]['attrs'][0]['value'] = '0'
+    await _new_packet(6, 'val 0 1')
     await asyncio.sleep(2)
 
     print('* Put fuse 3 *')
-    _devices[7]['attrs'][2]['value'] = '1'
-    await _new_packet(7, 'val 2 1')
+    _devices[6]['attrs'][2]['value'] = '1'
+    await _new_packet(6, 'val 2 1')
     await asyncio.sleep(4)
 
     print('* Put fuse 1 *')
-    _devices[7]['attrs'][0]['value'] = '1'
-    await _new_packet(7, 'val 0 1')
+    _devices[6]['attrs'][0]['value'] = '1'
+    await _new_packet(6, 'val 0 1')
     await asyncio.sleep(2)
 
     print('* Jacks connected *')
-    _devices[7]['attrs'][6]['value'] = '1'
-    await _new_packet(7, 'val 6 1')
+    _devices[6]['attrs'][6]['value'] = '1'
+    await _new_packet(6, 'val 6 1')
     await asyncio.sleep(2)
 
     print('* Date entered *')
-    _devices[8]['attrs'][0]['value'] = '1'
-    await _new_packet(8, 'val 0 1')
-    await asyncio.sleep(8)
+    _devices[7]['attrs'][0]['value'] = '1'
+    await _new_packet(7, 'val 0 1')
+    await asyncio.sleep(7)
 
     print('* Date changed *')
-    _devices[8]['attrs'][0]['value'] = '0'
-    await _new_packet(7, 'val 6 0')
+    _devices[7]['attrs'][0]['value'] = '0'
+    await _new_packet(7, 'val 0 0')
     await asyncio.sleep(2)
 
+    return
+
     print('* Date entered *')
-    _devices[7]['attrs'][6]['value'] = '1'
-    await _new_packet(7, 'val 6 1')
+    _devices[7]['attrs'][0]['value'] = '1'
+    await _new_packet(7, 'val 0 1')
     await asyncio.sleep(8)
 
     for i in range(2, 5):

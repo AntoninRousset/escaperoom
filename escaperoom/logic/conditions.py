@@ -62,8 +62,6 @@ class Condition(BoolLogic):
         return True
 
     async def _check_func(self):
-        if self.func is None:
-            return None
         try:
             self.msg = await self.func(*self.args)
         except NotReady:
@@ -99,7 +97,7 @@ class Condition(BoolLogic):
                 self._log_debug('checking:')
                 self.changed.notify_all()
                 state = await self.__check_parents()
-                if state or state is None:
+                if ( state or state is None ) and self.func is not None:
                     state = await self._check_func()
                 if state is not None and state != self._state:
                     self._state = state
@@ -131,7 +129,7 @@ class Condition(BoolLogic):
                 self._listens.add(listen)
         asyncio.create_task(self._check())
 
-    async def set_state(state):
+    async def set_state(self, state):
         async with self.changed:
             self._state = state
             self.changed.notify_all()
