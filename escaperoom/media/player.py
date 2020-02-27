@@ -118,6 +118,7 @@ class Audio():
         self._requests = dict()
         self.end = asyncio.Event()
         self._need_check_last_file = asyncio.Event()
+        self.last_file = None
         asyncio.create_task(self._last_file_checking())
         asyncio.run_until_complete(self._open())
         asyncio.run_until_complete(self.append_files(files))
@@ -137,21 +138,25 @@ class Audio():
 
     async def _listener(self, reader):
         while True:
-            line = await reader.readline()
-            data = json.loads(line)
-            for key, value in data.items():
-                if key == 'request_id':
-                    request = self._requests.get(int(value))
-                    if request is not None:
-                        request[0].set()
-                        request[1] = data
-                elif key == 'event':
-                    if value == 'start-file':
-                        self._need_check_last_file.set()
-                    elif value == 'unpause':
-                        self.end.clear()
-                    elif value == 'pause':
-                        self.end.set()
+            try:
+                line = await reader.readline()
+                data = json.loads(line)
+                for key, value in data.items():
+                    if key == 'request_id':
+                        request = self._requests.get(int(value))
+                        if request is not None:
+                            request[0].set()
+                            request[1] = data
+                    elif key == 'event':
+                        if value == 'start-file':
+                            self._need_check_last_file.set()
+                        elif value == 'unpause':
+                            self.end.clear()
+                        elif value == 'pause':
+                            self.end.set()
+            except Exception as e:
+                #print('error while reading audio player', e)
+                pass
 
     async def __get_file_pos(self):
         p = await self._request({'command': ['get_property', 'playlist-pos-1']})
@@ -168,7 +173,7 @@ class Audio():
                     raise
                 await asyncio.sleep(0.1)
             else:
-                await self._request({'command': ['set_property', 'loop',
+                await self._request({'command': ['set_property', 'loop-file',
                                                  (p == n) and self.loop_last]})
                 self._need_check_last_file.clear()
 
@@ -208,6 +213,7 @@ class Audio():
     async def append_files(self, files):
         for file in ensure_iter(files):
             await self._request({'command': ['loadfile', str(file), 'append']})
+            self.last_file = file
         self._need_check_last_file.set()
 
     async def _play(self):

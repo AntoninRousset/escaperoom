@@ -31,9 +31,9 @@ class Condition(BoolLogic):
         self.args = tuple(args)
         self.pos = pos
         self._listens = set()
-        self.add_listens(set(ensure_iter(listens)))
+        self.add_listens(listens)
         self._parents = set()
-        self.add_parents(set(ensure_iter(parents)))
+        self.add_parents(parents)
         self.actions = set(ensure_iter(actions))
         self.on_trues = set(ensure_iter(on_trues))
         self.on_falses = set(ensure_iter(on_falses))
@@ -43,14 +43,9 @@ class Condition(BoolLogic):
         return f'condition "{self.name}" [{bool(self)}]'
 
     def __bool__(self):
-        if self._force is True:
-            return True
-        elif self._force is False:
-            return False
-        else:
-            return False if self._state is None else self._state
+        return self.state == True
 
-    async def __check_parents(self):
+    def __check_parents(self):
         if not self._parents:
             return None
         for parent in self._parents:
@@ -61,16 +56,18 @@ class Condition(BoolLogic):
         self._log_debug(f'parents are {ANSI["bold"]}{ANSI["green"]} good')
         return True
 
-    async def _check_func(self):
+    def _check_func(self):
         try:
-            self.msg = await self.func(*self.args)
+            self.msg = self.func(*self.args)
         except NotReady:
-            return self._log_debug(f'not ready to check')
+            self._log_debug(f'not ready to check')
+            return
         except Exception as e:
             self._log_warning(f'failed to check condition: {e}')
             if not self.failed:
                 self.changed.notify_all()
-            return self._failed.set()
+            self._failed.set()
+            return
         finally:
             color = 'green' if self.msg is None else 'red'
             state = 'good' if self.msg is None else 'bad'
@@ -80,34 +77,43 @@ class Condition(BoolLogic):
     async def _state_checking(self, previous_state):
         while True:
             async with self.changed:
-                if bool(self) == True:
+                if self.state == True:
                     if previous_state is None or previous_state == False:
+                        self._log_info(f'became {ANSI["green"]} good')
                         if not self.desactivated:
                             {asyncio.create_task(co()) for co in self.on_trues}
-                else:
+                if self.state == False:
                     if previous_state is None or previous_state == True:
+                        self._log_info(f'became {ANSI["red"]} bad')
                         if not self.desactivated:
                             {asyncio.create_task(co()) for co in self.on_falses}
-                previous_state = bool(self)
+                previous_state = self.state
                 await self.changed.wait()
 
-    async def _check(self):
-        async with self.changed:
+    async def _check(self, acquired=False):
+        if not acquired:
+            await self.changed.acquire()
+        try:
             async with self._checking:
                 self._log_debug('checking:')
                 self.changed.notify_all()
-                state = await self.__check_parents()
+                state = self.__check_parents()
                 if ( state or state is None ) and self.func is not None:
-                    state = await self._check_func()
+                    state = self._check_func()
                 if state is not None and state != self._state:
                     self._state = state
                     self.changed.notify_all()
+        except Exception:
+            pass
+        finally:
+            if not acquired:
+                self.changed.release()
 
     async def __listening(self, listen):
         while listen in self._listens | self._parents:
             async with listen.changed:
                 await listen.changed.wait()
-                await self._check()
+                await self._check(listen.changed == self.changed)
     
     async def abort_on_trues(self):
         await asyncio.gather(*{on_true.abort() for on_true in self.on_trues})
@@ -116,6 +122,7 @@ class Condition(BoolLogic):
         await asyncio.gather(*{on_false.abort() for on_false in self.on_falses})
 
     def add_parents(self, parents: BoolLogic):
+        parents = set(ensure_iter(parents))
         for parent in parents:
             if parent not in self._parents:
                 asyncio.create_task(self.__listening(parent))
@@ -123,6 +130,7 @@ class Condition(BoolLogic):
         asyncio.create_task(self._check())
 
     def add_listens(self, listens: BoolLogic):
+        listens = set(ensure_iter(listens))
         for listen in listens:
             if listen not in self._listens:
                 asyncio.create_task(self.__listening(listen))
@@ -171,6 +179,14 @@ class Condition(BoolLogic):
             self.actions.add(a)
             return a
         return decorator
+
+    @property
+    def state(self):
+        if self._force is True:
+            return True
+        if self._force is False:
+            return False
+        return self._state
 
     @property
     def checking(self):

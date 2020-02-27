@@ -181,7 +181,7 @@ class Device(Network):
                     return attr
         raise KeyError(f'Non existent attribute "{name}"')
 
-    async def get_value(self, name):
+    def get_value(self, name):
         return self._find_attr(name).value
 
     async def _set_value(self, name, value, *, type=None):
@@ -426,24 +426,33 @@ class SerialDevice(Device):
         await self._connected.wait()
         return await self.addr.bus.send(self.addr.device_id, msg)
 
-    async def _find_attr(self, name, *, wait):
+    async def _find_attr_wait(self, name):
         repeat = True
         while repeat:
             repeat = False
             while self._attrs is None:
-                if wait: await self.changed.wait()
-                else: raise NotReady('device is not ready')
+                await self.changed.wait()
             for attr_id, attr in zip(range(self.n_attr), self._attrs):
-                if attr.name == name: return attr_id, attr
+                if attr.name == name:
+                    return attr_id, attr
                 elif attr.name is None:
-                    if wait: repeat = True
-                    else: raise NotReady('attribute is not ready')
-            if wait: await self.changed.wait()
+                    repeat = True
+            await self.changed.wait()
         raise KeyError(f'Non existent attribute "{name}"')
 
-    async def get_value(self, name):
+    def _find_attr_nowait(self, name):
+        if self._attrs is None:
+            raise NotReady('device is not ready')
+        for attr_id, attr in zip(range(self.n_attr), self._attrs):
+            if attr.name == name:
+                return attr_id, attr
+            elif attr.name is None:
+                raise NotReady('attribute is not ready')
+        raise KeyError(f'Non existent attribute "{name}"')
+
+    def get_value(self, name):
         try:
-            _, attr = await self._find_attr(name, wait=False)
+            _, attr = self._find_attr_nowait(name)
             if attr.value is None: raise NotReady('attribute not ready')
         except NotReady: raise
         except KeyError as e:
@@ -451,13 +460,15 @@ class SerialDevice(Device):
             raise
         return attr.value
 
-    async def _set_value(self, name, value):
+    async def _set_value(self, name, value, *, force=False):
         async def wait_value(attr, value):
             while attr._value != value:
                 await self.changed.wait()
         try:
-            attr_id, attr = await self._find_attr(name, wait=True)
+            attr_id, attr = await self._find_attr_wait(name)
             value = attr.convert(value)
+            if attr._value == value and not force:
+                return
             await self._send(f'set val {attr_id} {value}')
             await asyncio.wait_for(wait_value(attr, value), timeout=60)
         except KeyError as e:

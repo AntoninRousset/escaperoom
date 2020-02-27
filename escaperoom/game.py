@@ -40,9 +40,9 @@ class Game(Registered):
     def __bool__(self):
         return self.running
 
-    async def set_ready(self):
+    async def set_ready(self, state=True):
         async with self.changed:
-            self._ready = True
+            self._ready = state
             self.changed.notify_all()
 
     async def start(self, options):
