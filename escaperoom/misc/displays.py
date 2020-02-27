@@ -44,26 +44,6 @@ class CluesDisplay(Display):
                 self.create_task(self.set_chronometer(runn, seconds))
                 await self.game.desc_changed.wait()
 
-    @abstractmethod
-    async def set_chronometer(self, running, seconds):
-        pass
-
-    @abstractmethod
-    async def set_msg(self, msg: str):
-        pass
-
-    @abstractmethod
-    async def set_color(self, color: str):
-        pass
-
-    @abstractmethod
-    async def set_power(self, state: bool):
-        pass
-
-    @abstractmethod
-    async def set_img(self, img: str):
-        pass
-
 
 class LocalCluesDisplay(CluesDisplay):
 
