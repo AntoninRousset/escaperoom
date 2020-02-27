@@ -16,8 +16,10 @@ from abc import ABC, abstractmethod
 from . import asyncio, Misc
 from ..subprocess import SubProcess
 
+
 class Display(Misc):
     pass
+
 
 class CluesDisplay(Display):
 
@@ -34,7 +36,8 @@ class CluesDisplay(Display):
     async def _chronometer_listener(self):
         while True:
             async with self.game.desc_changed:
-                runn = self.game.start_time is not None and self.game.end_time is None
+                runn = self.game.start_time is not None \
+                    and self.game.end_time is None
                 seconds = self.game.chronometer.total_seconds()
                 self.create_task(self.set_chronometer(runn, seconds))
                 await self.game.desc_changed.wait()
@@ -72,7 +75,7 @@ class LocalCluesDisplay(CluesDisplay):
         from asyncio.subprocess import PIPE
         try:
             self.sp = SubProcess(self.name, *self.EXEC_ARGS, stdin=PIPE)
-            asyncio.run_until_complete(self.sp.running) 
+            asyncio.run_until_complete(self.sp.running)
         except FileNotFoundError:
             self._log_error(f'{self}: could not find {self.EXEC_NAME}')
             raise
@@ -88,8 +91,16 @@ class LocalCluesDisplay(CluesDisplay):
             self._log_error(f'{self} is dead: {e}')
             raise RuntimeError()
 
-    async def set_chronometer(self, running, seconds):
-        msg = f'chronometer {int(running)} {seconds}\n'
+    async def set_layout(self, layout):
+        msg = 'layout ' + ' '.join(layout) + '\n'
+        await self._write_to_process(msg.encode())
+
+    async def set_msg_alignment(self, alignment):
+        msg = f'alignment {alignment}\n'
+        await self._write_to_process(msg.encode())
+
+    async def set_text_color(self, color):
+        msg = f'color {color}\n'
         await self._write_to_process(msg.encode())
 
     async def set_msg(self, msg):
@@ -97,16 +108,20 @@ class LocalCluesDisplay(CluesDisplay):
         msg = f'clue {msg}\n'
         await self._write_to_process(msg.encode())
 
-    async def set_color(self, color):
-        msg = f'color {color}\n'
+    async def set_timer(self, speed, seconds):
+        msg = f'timer {float(speed)} {seconds}\n'
+        await self._write_to_process(msg.encode())
+
+    async def set_image(self, image):
+        msg = f'image {image}\n'
+        await self._write_to_process(msg.encode())
+
+    async def set_background(self, bg):
+        msg = f'background {bg}\n'
         await self._write_to_process(msg.encode())
 
     async def set_power(self, state):
         msg = f'power {"on" if state else "off"}\n'
-        await self._write_to_process(msg.encode())
-
-    async def set_img(self, img):
-        msg = f'image {img}\n'
         await self._write_to_process(msg.encode())
 
 
