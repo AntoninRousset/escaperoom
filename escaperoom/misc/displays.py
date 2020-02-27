@@ -10,6 +10,8 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from asyncio.subprocess import PIPE
+from copy import copy
 import aiohttp, json, re
 from abc import ABC, abstractmethod
 
@@ -65,14 +67,17 @@ class CluesDisplay(Display):
 
 class LocalCluesDisplay(CluesDisplay):
 
-    EXEC_NAME = 'escaperoom_cluesdisplay'
+    EXEC_ARGS = ['escaperoom_cluesdisplay']
 
-    def __init__(self, name, game=None):
+    def __init__(self, name, game=None, **kwargs):
         super().__init__(name, game)
-        self.start_display()
+        self.start_display(**kwargs)
 
-    def start_display(self):
-        from asyncio.subprocess import PIPE
+    def start_display(self, power=True, color='green'):
+        args = copy(self.EXEC_ARGS)
+        if not power:
+            args.append('--poweroff')
+        args.append('--color='+color)
         try:
             self.sp = SubProcess(self.name, *self.EXEC_ARGS, stdin=PIPE)
             asyncio.run_until_complete(self.sp.running)
