@@ -197,7 +197,12 @@ customElements.define('conditions-list', ConditionsList);
 ConditionItem = class ConditionItem extends Subscriber {
   constructor() {
     super();
+    this.set_state = this.set_state.bind(this);
     this.apply_template();
+    this.state = null;
+    this.shadowRoot.querySelector('div').onclick = (event) => {
+      return this.set_state(!this.state);
+    };
   }
 
   select(id) {
@@ -208,6 +213,7 @@ ConditionItem = class ConditionItem extends Subscriber {
     var div;
     this.update_plugs(datas);
     div = this.shadowRoot.querySelector('div');
+    this.state = datas['state'];
     if (datas['state']) {
       div.style.backgroundColor = 'green';
     } else {
@@ -221,6 +227,25 @@ ConditionItem = class ConditionItem extends Subscriber {
     } else {
       return div.disabled = false;
     }
+  }
+
+  async set_state(state) {
+    var action, reponse;
+    boundMethodCheck(this, ConditionItem);
+    if (state) {
+      action = 'set_true';
+    } else {
+      action = 'set_false';
+    }
+    return reponse = (await fetch(this.loc, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        action: action
+      }),
+      method: 'POST'
+    }));
   }
 
 };

@@ -33,16 +33,18 @@ async def camera_control(params, query):
     camera = Camera.find_entry(**query)
     return await camera.handle_sdp(params['sdp'], params['type'])
 
-async def device_control(params, query):
-    device = Device.find_entry(**query)
-    if params['action'] == 'set_val':
-        try: await device.set_value(params['name'], params['value'])
-        except Exception as e: return {'result' : 'failed'}
-        finally: return {'result' : 'success'}
-    elif params['action'] == 'reset':
-        try: await device.reset()
-        except Exception as e: return {'result' : 'failed'}
-        finally: return {'result' : 'success'}
+async def condition_control(params, query):
+    condition = Condition.find_entry(**query)
+    if params['action'] == 'activate':
+        await condition.force(True)
+    elif params['action'] == 'desactivate':
+        await condition.force(True)
+    elif params['action'] == 'restore':
+        await condition.restore()
+    elif params['action'] == 'set_true':
+        await condition.set_state(True)
+    elif params['action'] == 'set_false':
+        await condition.set_state(False)
 
 async def cluesdisplay_control(params, query):
     if params['type'] == 'clue':
@@ -54,6 +56,17 @@ async def cluesdisplay_control(params, query):
         for display in CluesDisplay.displays.values():
             return await display.set_chronometer(params['running'],
                                                  params['seconds'])
+
+async def device_control(params, query):
+    device = Device.find_entry(**query)
+    if params['action'] == 'set_val':
+        try: await device.set_value(params['name'], params['value'])
+        except Exception as e: return {'result' : 'failed'}
+        finally: return {'result' : 'success'}
+    elif params['action'] == 'reset':
+        try: await device.reset()
+        except Exception as e: return {'result' : 'failed'}
+        finally: return {'result' : 'success'}
 
 async def game_control(params):
     game = Game.find_entry('.*')
@@ -67,13 +80,4 @@ async def game_control(params):
             await game.stop(options)
             game.changed.notify_all()
     return ''
-
-async def condition_control(params, query):
-    condition = Condition.find_entry(**query)
-    if params['action'] == 'activate':
-        await condition.force(True)
-    elif params['action'] == 'complete':
-        await condition.force(True)
-    elif params['action'] == 'restore':
-        await condition.restore()
 

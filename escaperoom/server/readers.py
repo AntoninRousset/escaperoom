@@ -84,6 +84,7 @@ async def conditions_reader():
     conditions = {
             condition.id : {
                 'name' : condition.name,
+                'msg' : condition.msg,
                 'state' : 'completed' if condition else 'active' if condition.active else 'inactive',
                 'desactivated' : condition.desactivated,
                 'row' : None if condition.pos is None else condition.pos[0],
@@ -116,6 +117,7 @@ async def condition_reader(query):
             'id' : condition.id,
             'name' : condition.name,
             'desc' : condition.name if condition.desc is None else condition.desc,
+            'msg' : condition.msg,
             'state' : bool(condition),
             'desactivated' : condition.desactivated,
             'description' : condition.desc,

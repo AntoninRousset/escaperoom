@@ -142,7 +142,6 @@ class ConditionsList extends Container
 		@appendChild(item)
 		item.shadowRoot.querySelector('condition-item').select(id)
 
-
 customElements.define('conditions-list', ConditionsList)
 
 
@@ -150,6 +149,9 @@ class ConditionItem extends Subscriber
 	constructor: () ->
 		super()
 		@apply_template()
+		@state = null
+		@shadowRoot.querySelector('div').onclick = (event) =>
+			@set_state(not @state)
 
 	select: (id) ->
 		@subscribe('?id='+id)
@@ -157,6 +159,7 @@ class ConditionItem extends Subscriber
 	update: (datas) ->
 		@update_plugs(datas)
 		div = @shadowRoot.querySelector('div')
+		@state = datas['state']
 		if datas['state']
 			div.style.backgroundColor = 'green'
 		else
@@ -168,6 +171,21 @@ class ConditionItem extends Subscriber
 			div.style.backgroundColor = 'gray'
 		else
 			div.disabled = false
+
+	set_state: (state) =>
+		if state
+			action = 'set_true'
+		else
+			action = 'set_false'
+		reponse = await fetch(@loc, {
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				action: action
+			}),
+			method: 'POST'
+		})
 
 customElements.define('condition-item', ConditionItem)
 

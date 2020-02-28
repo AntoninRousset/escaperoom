@@ -51,7 +51,7 @@ class Condition(BoolLogic):
         for parent in self._parents:
             if not parent:
                 self._log_debug(f'parents are {ANSI["bold"]}{ANSI["red"]} bad')
-                self.msg = None #TODO? set self.msg from parent
+                self.msg = f'parent "{parent.name}" pas prêt'
                 return False
         self._log_debug(f'parents are {ANSI["bold"]}{ANSI["green"]} good')
         return True
