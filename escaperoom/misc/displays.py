@@ -58,11 +58,8 @@ class LocalCluesDisplay(CluesDisplay):
         if not power:
             args.append('--poweroff')
         args.append('--color='+color)
-        try:
-            self.sp = SubProcess(self.name, *self.EXEC_ARGS, stdin=PIPE)
-            asyncio.run_until_complete(self.sp.running)
-        except FileNotFoundError:
-            self._log_error(f'{self}: could not find {self.EXEC_NAME}')
+        self.sp = SubProcess(self.name, *self.EXEC_ARGS, stdin=PIPE)
+        asyncio.run_until_complete(self.sp.running)
 
     async def _write_to_process(self, data):
         try:

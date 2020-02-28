@@ -27,14 +27,21 @@ class SubProcess(Registered):
         asyncio.create_task(self._start(*args, **kwargs))
 
     async def _start(self, *args, **kwargs):
-        self.sp = await asyncio.create_subprocess_exec(*args, **kwargs)
-        self._running.set()
-        await self.sp.wait()
-        self._running.clear()
+        try:
+            self.sp = await asyncio.create_subprocess_exec(*args, **kwargs)
+        except BaseException as e:
+            self._log_error('cannot exec: {e}')
+            self.sp = None
+            self._running.clear()
+        else:
+            self._running.set()
+            await self.sp.wait()
+            self._running.clear()
 
     def terminate(self):
-        self.sp.terminate()
-        return asyncio.create_task(self.sp.wait())
+        if self.sp is not None:
+            self.sp.terminate()
+            return asyncio.create_task(self.sp.wait())
 
     @property
     def running(self):
@@ -42,13 +49,16 @@ class SubProcess(Registered):
 
     @property
     def stdin(self):
-        return self.sp.stdin
+        if self.sp is not None:
+            return self.sp.stdin
 
     @property
     def stdout(self):
-        return self.sp.stdout
+        if self.sp is not None:
+            return self.sp.stdout
 
     @property
     def stderr(self):
-        return self.sp.stderr
+        if self.sp is not None:
+            return self.sp.stderr
 
