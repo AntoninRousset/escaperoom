@@ -203,12 +203,13 @@ class Audio():
         self._requests.pop(request_id)
         response = request[1]
         if response['error'] != 'success':
-            raise RuntimeError(response['error'])
+            raise RuntimeError(str(response['error']))
         return response.get('data')
 
     async def _go_beginning(self):
         try:
-            await self._request({'command' : ['playlist-pos', 0]}),
+            await self._request({'command' : ['set_property', 'playlist-pos',
+                                              0]}),
         except RuntimeError as e:
             if str(e) != 'error running command':
                 raise
