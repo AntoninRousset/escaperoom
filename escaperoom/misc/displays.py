@@ -63,7 +63,6 @@ class LocalCluesDisplay(CluesDisplay):
             asyncio.run_until_complete(self.sp.running)
         except FileNotFoundError:
             self._log_error(f'{self}: could not find {self.EXEC_NAME}')
-            raise
 
     async def _write_to_process(self, data):
         try:

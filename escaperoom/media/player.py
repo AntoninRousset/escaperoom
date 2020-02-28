@@ -123,6 +123,9 @@ class Audio():
         asyncio.run_until_complete(self._open())
         asyncio.run_until_complete(self.append_files(files))
 
+    def __bool__(self):
+        return not self.end.is_set()
+
     async def _open(self):
         socket = gettempdir() + '/mpv' + str(hex(id(self)))
         args = [arg.format(socket=socket) for arg in self.EXEC_ARGS]

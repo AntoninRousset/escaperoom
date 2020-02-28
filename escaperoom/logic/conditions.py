@@ -74,6 +74,7 @@ class Condition(BoolLogic):
             self._log_debug(f'function is {ANSI["bold"]} {ANSI[color]} {state}')
             return self.msg is None
 
+    #TODO more reactive, without async loop checker
     async def _state_checking(self, previous_state):
         while True:
             async with self.changed:

@@ -285,25 +285,11 @@ async def _events_creator():
     await vessel.set_value('start', True)
     await asyncio.sleep(0.2) #TODO, or it misses it
     await vessel.set_value('start', False)
-    await asyncio.sleep(2)
+    await asyncio.sleep(20)
 
     print('* unignition *')
     await vessel.set_value('ignition', False)
-    await asyncio.sleep(5)
-
-    print('* reignition *')
-    await vessel.set_value('ignition', True)
-    await asyncio.sleep(5)
-
-    print('* start *')
-    await vessel.set_value('start', True)
-    await asyncio.sleep(0.2) #TODO, or it misses it
-    await vessel.set_value('start', False)
-    await asyncio.sleep(25)
-
-    print('* trying unignition *')
-    await vessel.set_value('ignition', False)
-    await asyncio.sleep(5)
+    await asyncio.sleep(2)
 
     print('* trying reignition *')
     await vessel.set_value('ignition', True)
@@ -313,7 +299,7 @@ async def _events_creator():
     await vessel.set_value('start', True)
     await asyncio.sleep(0.2) #TODO, or it misses it
     await vessel.set_value('start', False)
-    await asyncio.sleep(2)
+    await asyncio.sleep(10)
 
 
     print('* Remove fuse 1 *')
