@@ -30,7 +30,7 @@ class SubProcess(Registered):
         try:
             self.sp = await asyncio.create_subprocess_exec(*args, **kwargs)
         except BaseException as e:
-            self._log_error('cannot exec: {e}')
+            self._log_error(f'cannot exec: {e}')
             self.sp = None
             self._running.clear()
         else:

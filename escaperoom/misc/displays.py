@@ -59,7 +59,6 @@ class LocalCluesDisplay(CluesDisplay):
             args.append('--poweroff')
         args.append('--color='+color)
         self.sp = SubProcess(self.name, *self.EXEC_ARGS, stdin=PIPE)
-        asyncio.run_until_complete(self.sp.running)
 
     async def _write_to_process(self, data):
         try:

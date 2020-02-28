@@ -15,6 +15,7 @@ from aiohttp_sse_client import client as sse_client
 from collections import defaultdict
 
 from . import asyncio, Network
+from ..utils import ensure_iter
 
 
 class NotReady(Exception):
@@ -160,8 +161,11 @@ class Device(Network):
         self._connected = asyncio.Event()
         self.type = type
         self.loc = None
+        self.add_tasks(tasks)
         #if reset: asyncio.create_task(self.reset()) #TODO?
-        {asyncio.create_task(task(self)) for task in tasks}
+
+    def add_tasks(self, tasks):
+        {asyncio.create_task(task(self)) for task in ensure_iter(tasks)}
 
     def __str__(self):
         return f'device "{self.name}"'

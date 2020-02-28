@@ -109,7 +109,7 @@ class MediaPlayer(aiom.MediaPlayer):
 class Audio():
     
     EXEC_ARGS = ['mpv', '--input-ipc-server={socket}', '--keep-open',
-                 '--no-config', '--no-terminal', '--pause', 'idle=once']
+                 '--no-config', '--no-terminal', '--idle=once']
 
     def __init__(self, files, *, loop=False, loop_last=False):
         self.loop = loop
@@ -120,15 +120,16 @@ class Audio():
         self._need_check_last_file = asyncio.Event()
         self.last_file = None
         asyncio.create_task(self._last_file_checking())
-        asyncio.run_until_complete(self._open())
-        asyncio.run_until_complete(self.append_files(files))
+        asyncio.run_until_complete(self._open(files))
 
     def __bool__(self):
         return not self.end.is_set()
 
-    async def _open(self):
+    async def _open(self, files):
         socket = gettempdir() + '/mpv' + str(hex(id(self)))
         args = [arg.format(socket=socket) for arg in self.EXEC_ARGS]
+        for file in ensure_iter(files):
+            args.append(str(file))
         await SubProcess(socket, *args).running
         while True:
             try:
@@ -207,24 +208,14 @@ class Audio():
 
     async def _go_beginning(self):
         try:
-            while True:
-                await self._request({'command' : ['playlist-prev']}),
+            await self._request({'command' : ['playlist-pos', 0]}),
         except RuntimeError as e:
             if str(e) != 'error running command':
                 raise
 
-    async def append_files(self, files):
-        for file in ensure_iter(files):
-            await self._request({'command': ['loadfile', str(file), 'append']})
-            self.last_file = file
-        self._need_check_last_file.set()
-
     async def _play(self):
-        await asyncio.gather(
-            self._request({'command': ['set_property', 'loop', False]}),
-            self._request({'command': ['set_property', 'loop-playlist',
-                                       self.loop]})
-            )
+        await self._request({'command': ['set_property', 'loop-playlist',
+                                         self.loop]})
         if self.end.is_set():
             await self._go_beginning()
             self.end.clear()
