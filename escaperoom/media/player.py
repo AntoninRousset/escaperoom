@@ -137,7 +137,7 @@ class Audio():
                 asyncio.create_task(self._listener(reader))
                 return
             except (FileNotFoundError, ConnectionRefusedError):
-                await asyncio.sleep(0)
+                await asyncio.sleep(0.1)
 
     async def _listener(self, reader):
         while True:
