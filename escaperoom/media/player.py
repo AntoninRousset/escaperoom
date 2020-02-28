@@ -109,7 +109,7 @@ class MediaPlayer(aiom.MediaPlayer):
 class Audio():
     
     EXEC_ARGS = ['mpv', '--input-ipc-server={socket}', '--keep-open',
-                 '--no-config', '--no-terminal', '--idle=once']
+                 '--no-config', '--no-terminal', '--pause', '--idle=once']
 
     def __init__(self, files, *, loop=False, loop_last=False):
         self.loop = loop
