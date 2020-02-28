@@ -25,8 +25,6 @@ class Device(Network):
 
     _downloadings = defaultdict(asyncio.Lock)
 
-    descs = lambda name: name
-
     class Attribute():
 
         def __init__(self, name=None, type=None, value=None): 
