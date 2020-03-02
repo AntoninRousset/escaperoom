@@ -110,9 +110,9 @@ class Audio():
     
     def __init__(self, files, *, loop=False, loop_last=False):
         import mpv
-        from threading import Event
         self.player = mpv.MPV('pause')
-        self.ended = Event()
+        self.ended = asyncio.Event()
+        self.__loop = asyncio.get_event_loop()
         self.player.observe_property('pause', self._playing)
         if loop_last:
             self.player.observe_property('playlist-pos-1', self._looping)
@@ -124,9 +124,9 @@ class Audio():
 
     def _playing(self, name, value):
         if value:
-            self.ended.set()
+            self.__loop.call_soon_threadsafe(self.ended.set)
         else:
-            self.ended.clear()
+            self.__loop.call_soon_threadsafe(self.ended.clear)
 
     def _looping(self, n, v):
         if v is not None:
