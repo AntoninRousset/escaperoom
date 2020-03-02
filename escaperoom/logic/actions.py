@@ -45,6 +45,7 @@ class Action(Logic):
                 if self.desactivated:
                     return
                 self._log_debug('start')
+                self._success.clear()
                 self.changed.notify_all()
                 try:
                     if self.func is not None:
@@ -54,7 +55,6 @@ class Action(Logic):
                     self._log_info('cancelled')
                 except Exception as e:
                     self._failed.set()
-                    self._success.clear()
                     self._log_warning(f'failed : {e}')
                 else:
                     self._failed.clear()

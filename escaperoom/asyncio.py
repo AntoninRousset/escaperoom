@@ -22,6 +22,9 @@ except NameError:
 def run_until_complete(*args, **kwargs):
     return get_event_loop().run_until_complete(*args, **kwargs)
 
+def run_in_executor(*args, **kwargs):
+    return get_event_loop().run_in_executor(*args, **kwargs)
+
 async def ensure_finished(cr):
     if isfuture(cr) or iscoroutine(cr):
         return await cr

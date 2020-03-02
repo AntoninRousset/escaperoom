@@ -108,125 +108,46 @@ class MediaPlayer(aiom.MediaPlayer):
 
 class Audio():
     
-    EXEC_ARGS = ['mpv', '--input-ipc-server={socket}', '--keep-open',
-                 '--no-config', '--no-terminal', '--pause', '--idle=once']
-
     def __init__(self, files, *, loop=False, loop_last=False):
-        self.loop = loop
-        self.loop_last = loop_last
-        self.socket = None
-        self._requests = dict()
-        self.end = asyncio.Event()
-        self._need_check_last_file = asyncio.Event()
-        self.last_file = None
-        asyncio.create_task(self._last_file_checking())
-        asyncio.run_until_complete(self._open(files))
+        import mpv
+        from threading import Event
+        self.player = mpv.MPV('pause')
+        self.ended = Event()
+        self.player.observe_property('pause', self._playing)
+        if loop_last:
+            self.player.observe_property('playlist-pos-1', self._looping)
+            self.player.observe_property('playlist-count', self._looping)
+        self._open(files)
 
     def __bool__(self):
-        return not self.end.is_set()
+        return not self.ended.is_set()
 
-    async def _open(self, files):
-        socket = gettempdir() + '/mpv' + str(hex(id(self)))
-        args = [arg.format(socket=socket) for arg in self.EXEC_ARGS]
+    def _playing(self, name, value):
+        if value:
+            self.ended.set()
+        else:
+            self.ended.clear()
+
+    def _looping(self, n, v):
+        if v is not None:
+            if n == 'playlist-pos-1' and v == self.player.playlist_count:
+                self.player.loop = True
+            elif n == 'playlist-count' and v == self.player.playlist_count: 
+                self.player.loop = True
+        else:
+            self.player.loop = False
+
+    def _open(self, files):
         for file in ensure_iter(files):
-            args.append(str(file))
-        await SubProcess(socket, *args).running
-        while True:
-            try:
-                accesses = await asyncio.open_unix_connection(socket)
-                reader, self._socket = accesses
-                asyncio.create_task(self._listener(reader))
-                return
-            except (FileNotFoundError, ConnectionRefusedError):
-                await asyncio.sleep(0.1)
-
-    async def _listener(self, reader):
-        while True:
-            try:
-                line = await reader.readline()
-                data = json.loads(line)
-                for key, value in data.items():
-                    if key == 'request_id':
-                        request = self._requests.get(int(value))
-                        if request is not None:
-                            request[0].set()
-                            request[1] = data
-                    elif key == 'event':
-                        if value == 'start-file':
-                            self._need_check_last_file.set()
-                        elif value == 'unpause':
-                            self.end.clear()
-                        elif value == 'pause':
-                            self.end.set()
-            except Exception as e:
-                #print('error while reading audio player', e)
-                pass
-
-    async def __get_file_pos(self):
-        p = await self._request({'command': ['get_property', 'playlist-pos-1']})
-        n = await self._request({'command': ['get_property', 'playlist-count']})
-        return p, n
-
-    async def _last_file_checking(self):
-        while True:
-            await self._need_check_last_file.wait()
-            try:
-                p, n = await self.__get_file_pos()
-            except RuntimeError as e:
-                if str(e) != 'property unavailable':
-                    raise
-                await asyncio.sleep(0.1)
-            else:
-                await self._request({'command': ['set_property', 'loop-file',
-                                                 (p == n) and self.loop_last]})
-                self._need_check_last_file.clear()
-
-    def __create_request(self):
-        offset = 42
-        for request_id in range(offset, offset+len(self._requests)+1):
-            if request_id not in self._requests.keys():
-                return request_id, [asyncio.Event(), None]
-
-    async def _send(self, data: dict):
-        line = json.dumps(data)+'\n'
-        self._socket.write(line.encode())
-        await self._socket.drain()
-
-    async def _request(self, data: dict):
-        request_id, request = self.__create_request()
-        self._requests[request_id] = request
-
-        data['request_id'] = request_id
-        await self._send(data)
-
-        await request[0].wait()
-        self._requests.pop(request_id)
-        response = request[1]
-        if response['error'] != 'success':
-            raise RuntimeError(str(response['error']))
-        return response.get('data')
-
-    async def _go_beginning(self):
-        try:
-            await self._request({'command' : ['set_property', 'playlist-pos',
-                                              0]}),
-        except RuntimeError as e:
-            if str(e) != 'error running command':
-                raise
-
-    async def _play(self):
-        await self._request({'command': ['set_property', 'loop-playlist',
-                                         self.loop]})
-        if self.end.is_set():
-            await self._go_beginning()
-            self.end.clear()
-        await self._request({'command': ['set_property', 'pause', False]})
-        self._need_check_last_file.set()
-        await self.end.wait()
+            self.player.playlist_append(str(file))
 
     def play(self):
-        return asyncio.create_task(self._play())
+        if self.ended:
+            self.player.playlist_pos = 0
+            self.ended.clear()
+        self.player.pause = False
+        return asyncio.create_task(self.ended.wait())
 
     async def stop(self):
-        self.end.set()
-        await self._request({'command': ['set_property', 'pause', True]})
+        self.player.pause = True
+        self.ended.set()

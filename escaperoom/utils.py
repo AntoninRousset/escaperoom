@@ -10,8 +10,14 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-def ensure_iter(obj):
+def ensure_iter(obj, *, exceptions=[str]):
+    for exception in exceptions:
+        if isinstance(obj, exception):
+            return obj
     if hasattr(obj, '__iter__'):
         return obj
     else:
         return (obj,)
+
+async def dummy_coroutine():
+    pass

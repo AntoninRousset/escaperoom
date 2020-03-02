@@ -269,6 +269,14 @@ async def _events_creator():
     await vessel.set_value('start', False)
     await asyncio.sleep(2)
 
+    print('* trying ignition *')
+    await vessel.set_value('ignition', True)
+    await asyncio.sleep(1)
+
+    print('* unignition *')
+    await vessel.set_value('ignition', False)
+    await asyncio.sleep(60)
+
     print('* ignition *')
     await vessel.set_value('ignition', True)
     await asyncio.sleep(1)
