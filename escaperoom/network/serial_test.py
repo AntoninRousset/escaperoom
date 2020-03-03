@@ -260,62 +260,24 @@ async def _events_creator():
             await game.changed.wait()
 
     print('* starting events *')
-    await asyncio.sleep(1)
-
-
-    print('* trying start *')
-    await vessel.set_value('start', True)
-    await asyncio.sleep(0.2) #TODO, or it misses it
-    await vessel.set_value('start', False)
-    await asyncio.sleep(2)
-
-    print('* trying ignition *')
-    await vessel.set_value('ignition', True)
-    await asyncio.sleep(1)
-
-    print('* unignition *')
-    await vessel.set_value('ignition', False)
-    await asyncio.sleep(60)
+    await asyncio.sleep(57)
 
     print('* ignition *')
     await vessel.set_value('ignition', True)
-    await asyncio.sleep(1)
+    await asyncio.sleep(0.5)
 
     print('* unignition *')
     await vessel.set_value('ignition', False)
-    await asyncio.sleep(3)
+    await asyncio.sleep(1)
 
-    print('* reignition *')
+    print('* ignition *')
     await vessel.set_value('ignition', True)
-    await asyncio.sleep(8)
+    await asyncio.sleep(4)
 
     print('* start *')
     await vessel.set_value('start', True)
-    await asyncio.sleep(0.2) #TODO, or it misses it
     await vessel.set_value('start', False)
-    await asyncio.sleep(1)
-
-    print('* trying start *')
-    await vessel.set_value('start', True)
-    await asyncio.sleep(0.2) #TODO, or it misses it
-    await vessel.set_value('start', False)
-    await asyncio.sleep(20)
-
-
-    print('* unignition *')
-    await vessel.set_value('ignition', False)
-    await asyncio.sleep(2)
-
-    print('* trying reignition *')
-    await vessel.set_value('ignition', True)
-    await asyncio.sleep(5)
-
-    print('* trying start *')
-    await vessel.set_value('start', True)
-    await asyncio.sleep(0.2) #TODO, or it misses it
-    await vessel.set_value('start', False)
-    await asyncio.sleep(10)
-
+    await asyncio.sleep(60)
 
     print('* Remove fuse 1 *')
     _devices[6]['attrs'][0]['value'] = '0'
@@ -342,6 +304,12 @@ async def _events_creator():
     await _new_packet(7, 'val 0 1')
     await asyncio.sleep(5)
 
+    print('* reignition *')
+    await vessel.set_value('ignition', False)
+    await asyncio.sleep(0.1) #TODO
+    await vessel.set_value('ignition', True)
+    await asyncio.sleep(4)
+
     print('* Date changed *')
     _devices[7]['attrs'][0]['value'] = '0'
     await _new_packet(7, 'val 0 0')
@@ -350,14 +318,11 @@ async def _events_creator():
     print('* Date entered *')
     _devices[7]['attrs'][0]['value'] = '1'
     await _new_packet(7, 'val 0 1')
-    await asyncio.sleep(5)
+    await asyncio.sleep(2)
 
-
-    print('* unignition *')
+    print('* reignition *')
     await vessel.set_value('ignition', False)
-    await asyncio.sleep(0.2)
-
-    print('* ignition *')
+    await asyncio.sleep(0.1) #TODO
     await vessel.set_value('ignition', True)
     await asyncio.sleep(5)
 

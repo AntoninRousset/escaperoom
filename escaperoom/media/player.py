@@ -115,15 +115,14 @@ class Audio():
         self.__loop = asyncio.get_event_loop()
         self.player.observe_property('pause', self._playing)
         if loop_last:
-            self.player.observe_property('playlist-pos-1', self._looping)
             self.player.observe_property('playlist-count', self._looping)
+            self.player.observe_property('playlist-pos-1', self._looping)
         self._open(files)
 
     def __bool__(self):
         return not self.ended.is_set()
 
     def _playing(self, name, value):
-        print(name, value)
         if value == True:
             self.__loop.call_soon_threadsafe(self.ended.set)
         elif value == False:

@@ -65,8 +65,8 @@ class Condition(BoolLogic):
         except Exception as e:
             self._log_warning(f'failed to check condition: {e}')
             if not self.failed:
+                self._failed.set()
                 self.changed.notify_all()
-            self._failed.set()
             return
         finally:
             color = 'green' if self.msg is None else 'red'
@@ -98,12 +98,14 @@ class Condition(BoolLogic):
             async with self._checking:
                 self._log_debug('checking:')
                 self.changed.notify_all()
+                await asyncio.sleep(0)
                 state = self.__check_parents()
                 if ( state or state is None ) and self.func is not None:
                     state = self._check_func()
                 if state is not None and state != self._state:
                     self._state = state
                     self.changed.notify_all()
+                await asyncio.sleep(0)
         except Exception:
             pass
         finally:
@@ -142,28 +144,33 @@ class Condition(BoolLogic):
         async with self.changed:
             self._state = state
             self.changed.notify_all()
+            await asyncio.sleep(0)
 
     async def force(self, state: bool):
         async with self.changed:
             self._force = state
             self.changed.notify_all()
+            await asyncio.sleep(0)
         await self._check()
 
     async def restore(self):
         async with self.changed:
             self._force = None
             self.changed.notify_all()
+            await asyncio.sleep(0)
         await self._check()
 
     async def activate(self):
         async with self.changed:
             self._desactivated = False
             self.changed.notify_all()
+            await asyncio.sleep(0)
 
     async def desactivate(self):
         async with self.changed:
             self._desactivated = True
             self.changed.notify_all()
+            await asyncio.sleep(0)
 
     def on_true(self, *args, **kwargs):
         def decorator(func):

@@ -92,7 +92,8 @@ class Device(Network):
             async with device.changed:
                 if data['attrs'] is None and device._attrs is not None:
                     device._attrs = None
-                    return device.changed.notify_all()
+                    device.changed.notify_all()
+                    return await asyncio.sleep(0)
                 elif data['attrs'] is not None and device._attrs is None:
                     device._attrs = list()
                     device.changed.notify_all()
@@ -103,6 +104,7 @@ class Device(Network):
                                                               attr['type'],
                                                               attr['value']))
                         device.changed.notify_all() 
+                        await asyncio.sleep(0)
                     else:
                         d_attr = device._attrs[i]
                         if ( d_attr.name != attr['name'] or
@@ -112,6 +114,7 @@ class Device(Network):
                         d_attr.name = attr['name']
                         d_attr.type = attr['type']
                         d_attr.value = attr['value']
+                        await asyncio.sleep(0)
 
     @classmethod
     async def _download(cls, host):
@@ -223,6 +226,7 @@ class Device(Network):
         async with self.changed:
             await self._set_value(name, value)
             self.changed.notify_all()
+            await asyncio.sleep(0)
 
     @property
     def n_attr(self):
@@ -325,6 +329,7 @@ class SerialDevice(Device):
                         device.addr = addr
                         device._connected.set()
                         device.changed.notify_all()
+                        await asyncio.sleep(0)
         device = cls._find_device(addr)
         if device is None:
             if cls.discover:
@@ -405,6 +410,7 @@ class SerialDevice(Device):
                     self.name = name
                     self._set_n_attr(n_attr)
                     self.changed.notify_all()
+                    await asyncio.sleep(0)
         elif re.match('\s*attr\s+\d+\s+\w+\s+\w+\s*', msg):
             if self._attrs is not None:
                 self._log_debug(f'setting attribute from msg')
@@ -414,6 +420,7 @@ class SerialDevice(Device):
                     async with self.changed:
                         attr.name, attr.type, attr.value = name, type, val
                         self.changed.notify_all()
+                        await asyncio.sleep(0)
         elif re.match('\s*val\s+\d+\s+\w+\s*', msg):
             if self._attrs is not None:
                 self._log_debug(f'setting attribute\'s value from msg')
@@ -423,6 +430,7 @@ class SerialDevice(Device):
                     async with self.changed:
                         attr.value = value
                         self.changed.notify_all()
+                        await asyncio.sleep(0)
 
     async def _send(self, msg):
         await self._connected.wait()
@@ -487,6 +495,7 @@ class SerialDevice(Device):
             self._reset.set()
             self._reset.clear()
             self.changed.notify_all()
+            await asyncio.sleep(0)
 
     @property
     def ready(self):
