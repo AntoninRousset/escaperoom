@@ -112,9 +112,11 @@ class Audio():
         import mpv
         self.player = mpv.MPV('pause', 'keep-open')
         self.ended = asyncio.Event()
+        self.ended.set()
         self.__loop = asyncio.get_event_loop()
         self.player.observe_property('pause', self._playing)
-        if loop_last:
+        self.loop_last = loop_last
+        if self.loop_last:
             self.player.observe_property('playlist-count', self._looping)
             self.player.observe_property('playlist-pos-1', self._looping)
         self._open(files)
@@ -132,7 +134,7 @@ class Audio():
         if v is not None:
             if n == 'playlist-pos-1' and v == self.player.playlist_count:
                 self.player.loop = True
-            elif n == 'playlist-count' and v == self.player.playlist_count: 
+            elif n == 'playlist-count' and v == self.player.playlist_pos_1: 
                 self.player.loop = True
         else:
             self.player.loop = False
@@ -145,6 +147,8 @@ class Audio():
         if self.ended:
             self.player.playlist_pos = 0
             self.ended.clear()
+        if self.loop_last:
+            self._looping('playlist-pos-1', self.player.playlist_pos_1)
         self.player.pause = False
         return asyncio.create_task(self.ended.wait())
 
