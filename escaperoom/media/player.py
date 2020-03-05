@@ -130,8 +130,12 @@ class Audio():
                 for group in cls._channels_groups:
                     if channel in group:
                         return group[channel]
-        player, sample = find_player(channel)
-        player._sample_ended(sample, channel)
+                raise KeyError(channel)
+        try:
+            player, sample = find_player(channel)
+            player._sample_ended(sample, channel)
+        except KeyError:
+            pass
 
     @classmethod
     def _create_channels_group(cls):
@@ -144,11 +148,16 @@ class Audio():
         self.__loop = asyncio.get_event_loop()
         self._samples = list()
         self.__group_id = self._create_channels_group()
+        self._stoping = False
         self._ended = asyncio.Event()
+        self._ended.set()
         self._open(files)
 
     def __bool__(self):
         return bool(self.__channels_group)
+
+    async def wait(self):
+        await self._ended.wait()
 
     @property
     def __channels_group(self):
@@ -156,6 +165,8 @@ class Audio():
 
     def _sample_ended(self, sample, channel):
         try:
+            if self._stoping:
+                raise StopIteration()
             samples = iter(self._samples)
             while True:
                 if next(samples) is sample:
@@ -189,9 +200,14 @@ class Audio():
         self._play(self._samples[0])
         return asyncio.create_task(self._ended.wait())
 
-    def stop(self):
+    async def _stop(self):
+        self._stoping = True
         Mix_HaltGroup(self.__group_id)
-        return asyncio.create_task(self._ended.wait())
+        await self._ended.wait()
+        self._stoping = False
+
+    def stop(self):
+        return asyncio.create_task(self._stop())
 
 
 c_wrapper = ctypes.CFUNCTYPE(None, ctypes.c_int)
