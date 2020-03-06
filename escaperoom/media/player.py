@@ -144,6 +144,7 @@ class Audio():
             return len(cls._channels_groups) - 1
 
     def __init__(self, files, *, loop=False, loop_last=False):
+        self.loop = loop
         self.loop_last = loop_last
         self.__loop = asyncio.get_event_loop()
         self._samples = list()
@@ -197,7 +198,7 @@ class Audio():
             self.__channels_group[channel] = (self, sample)
 
     def play(self):
-        self._play(self._samples[0])
+        self._play(self._samples[0], self.loop)
         return asyncio.create_task(self._ended.wait())
 
     async def _stop(self):

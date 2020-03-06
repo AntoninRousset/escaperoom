@@ -52,7 +52,7 @@ class Chronometer(Misc):
         return self.start_time is not None and self.end_time is None
 
 
-class Timeout(Chronometer):
+class Timer(Chronometer):
 
     def __init__(self, name, max_time):
         super().__init__(name)

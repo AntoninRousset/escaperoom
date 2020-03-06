@@ -52,4 +52,4 @@ atexit.register(clean_up)
 __all__ = ['Action', 'action', 'Condition', 'condition', 'Camera', 'asyncio',
            'LocalCamera', 'RemoteCamera', 'LocalCluesDisplay', 'Game', 'loop',
            'RemoteCluesDisplay', 'Chronometer', 'Audio', 'SerialBus', 'Device',
-           'device', 'SerialDevice', 'HTTPServer', 'SubProcess']
+           'device', 'SerialDevice', 'HTTPServer', 'SubProcess', 'Timer']

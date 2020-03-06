@@ -24,7 +24,7 @@ class Misc(Registered):
 
 
 from .cameras import Camera, LocalCamera, RemoteCamera
-from .chronometers import Chronometer
+from .chronometers import Chronometer, Timer
 from .displays import CluesDisplay, LocalCluesDisplay, RemoteCluesDisplay
 
 

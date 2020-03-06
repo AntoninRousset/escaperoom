@@ -87,6 +87,7 @@ class Registered(ABC):
 
     def _log_warning(self, msg):
         self._logger.warning(f'{self}: {msg}')
+        self._logger.exception(f'{self}: {msg}')
 
     def _log_error(self, msg):
         self._logger.error(f'{self}: {msg}')
