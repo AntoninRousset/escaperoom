@@ -480,10 +480,9 @@ class SerialDevice(Device):
             if attr._value == value and not force:
                 return
             await self._send(f'set val {attr_id} {value}')
-            await asyncio.wait_for(wait_value(attr, value), timeout=60)
+            await asyncio.wait_for(wait_value(attr, value), timeout=None)
         except KeyError as e:
             self._log_warning(f'cannot set value: {e}')
-            self._logger.exception(e)
             raise
         except TimeoutError: 
             self._log_warning(f'cannot set value: the attribute did not change')
