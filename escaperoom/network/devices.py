@@ -474,19 +474,22 @@ class SerialDevice(Device):
         async def wait_value(attr, value):
             while attr._value != value:
                 await self.changed.wait()
-        try:
-            attr_id, attr = await self._find_attr_wait(name)
-            value = attr.convert(value)
-            if attr._value == value and not force:
+        while True:
+            try:
+                attr_id, attr = await self._find_attr_wait(name)
+                value = attr.convert(value)
+                if attr._value == value and not force:
+                    return
+                await self._send(f'set val {attr_id} {value}')
+                await asyncio.wait_for(wait_value(attr, value), timeout=60)
                 return
-            await self._send(f'set val {attr_id} {value}')
-            await asyncio.wait_for(wait_value(attr, value), timeout=None)
-        except KeyError as e:
-            self._log_warning(f'cannot set value: {e}')
-            raise
-        except TimeoutError: 
-            self._log_warning(f'cannot set value: the attribute did not change')
-            raise
+            except KeyError as e:
+                self._log_warning(f'cannot set value: {e}')
+                if not self.changed.locked():
+                    await self.changed.acquire() #TODO, how to do it?
+                raise
+            except TimeoutError: 
+                self._log_warning('cannot set value: attribute did not change')
 
     async def reset(self):
         await self._send(f'reset')
