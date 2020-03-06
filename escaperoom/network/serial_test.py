@@ -276,6 +276,7 @@ async def _events_creator():
 
     print('* start *')
     await vessel.set_value('start', True)
+    await asyncio.sleep(0.1)
     await vessel.set_value('start', False)
     await asyncio.sleep(70)
 
@@ -308,7 +309,7 @@ async def _events_creator():
     await vessel.set_value('ignition', False)
     await asyncio.sleep(0.1) #TODO
     await vessel.set_value('ignition', True)
-    await asyncio.sleep(40)
+    await asyncio.sleep(20)
 
     print('* Date changed *')
     _devices[7]['attrs'][0]['value'] = '0'
@@ -328,7 +329,7 @@ async def _events_creator():
 
     print('* start *')
     await vessel.set_value('start', True)
-    await asyncio.sleep(0.2) #TODO, or it misses it
+    await asyncio.sleep(0.1) #TODO, or it misses it
     await vessel.set_value('start', False)
     await asyncio.sleep(30)
 
