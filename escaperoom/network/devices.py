@@ -483,10 +483,11 @@ class SerialDevice(Device):
             await asyncio.wait_for(wait_value(attr, value), timeout=60)
         except KeyError as e:
             self._log_warning(f'cannot set value: {e}')
-            raise e
+            self._logger.exception(e)
+            raise
         except TimeoutError: 
             self._log_warning(f'cannot set value: the attribute did not change')
-            raise e
+            raise
 
     async def reset(self):
         await self._send(f'reset')
