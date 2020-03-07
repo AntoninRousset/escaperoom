@@ -141,10 +141,13 @@ class Condition(BoolLogic):
         asyncio.create_task(self._check())
 
     async def set_state(self, state):
-        async with self.changed:
-            self._state = state
-            self.changed.notify_all()
-            await asyncio.sleep(0)
+        try:
+            async with self.changed:
+                self._state = state
+                self.changed.notify_all()
+                await asyncio.sleep(0)
+        except RuntimeError:
+            pass #TMP bypass the Lock is not acquired at atexit
 
     async def force(self, state: bool):
         async with self.changed:

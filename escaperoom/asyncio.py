@@ -30,3 +30,32 @@ async def ensure_finished(cr):
         return await cr
     else:
         return cr
+
+#Bypass asyncio bug
+async def wait_on_condition(condition: Condition, *, timeout=None):
+    loop = get_event_loop()
+    waiter = loop.create_future()
+
+    def release_waiter(*_):
+        if not waiter.done():
+            waiter.set_result(None)
+
+    if timeout is not None:
+            timeout_handle = loop.call_later(timeout, release_waiter)
+    wait_task = loop.create_task(condition.wait())
+    wait_task.add_done_callback(release_waiter)
+
+    try:
+        await waiter
+        if wait_task.done():
+            return True
+        else:
+            raise TimeoutError()
+    except (TimeoutError, CancelledError):
+        wait_task.remove_done_callback(release_waiter)
+        wait_task.cancel()
+        await wait([wait_task])
+        raise
+    finally:
+        if timeout is not None:
+            timeout_handle.cancel()
