@@ -12,7 +12,7 @@
 
 from .. import asyncio
 from ..game import Game
-from ..logic import Condition
+from ..logic import Action, Condition
 from ..misc import Camera, CluesDisplay
 from ..network import Device
 
@@ -48,14 +48,15 @@ async def condition_control(params, query):
 
 async def cluesdisplay_control(params, query):
     if params['type'] == 'clue':
-        #name = query['name'] if name in query else '.*'
-        name = '.*'
-        cluesdisplay = CluesDisplay.find_entry(name=name)
-        return await cluesdisplay.set_msg(params['text'])
-    elif params['type'] == 'chronometer':
-        for display in CluesDisplay.displays.values():
-            return await display.set_chronometer(params['running'],
-                                                 params['seconds'])
+        print_msg = Action.find_entry('print msg')
+        if print_msg is not None:
+            print_msg.args = (params['text'], None)
+            await print_msg()
+        else:
+            #name = query['name'] if 'name' in query else '.*'
+            name = '.*'
+            cluesdisplay = CluesDisplay.find_entry(name=name)
+            await cluesdisplay.set_msg(params['text'])
 
 async def device_control(params, query):
     device = Device.find_entry(**query)

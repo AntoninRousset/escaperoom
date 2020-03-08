@@ -51,18 +51,17 @@ class Chronometer(Misc):
     def running(self):
         return self.start_time is not None and self.end_time is None
 
+#TODO multiple timeouts (-> events)
 
 class Timer(Chronometer):
 
     def __init__(self, name, max_time):
         super().__init__(name)
-        if not isinstance(time, timedelta):
-            time = timedelta(time)
-        self._max_time = max_time
+        self._set_max_time(max_time)
         asyncio.create_task(self._timeout_checking())
 
     def __bool__(self):
-        return self.elapsed() < self._max_time
+        return self.elapsed < self._max_time
 
     async def _timeout_checking(self):
         while True:
@@ -70,7 +69,8 @@ class Timer(Chronometer):
                 if self:
                     try:
                         wt = self.remaining.total_seconds()
-                        await asyncio.wait_for(self.changed.wait(), timeout=wt)
+                        await asyncio.wait_on_condition(self.changed,
+                                                        timeout=wt)
                     except TimeoutError:
                         pass
                 else:
@@ -78,13 +78,23 @@ class Timer(Chronometer):
                     while self:
                         await self.changed.wait()
 
-    async def set_max_time(self, value):
+    def _set_max_time(self, max_time):
+        if not isinstance(max_time, timedelta):
+            max_time = timedelta(seconds=max_time)
+        self._max_time = max_time 
+
+
+    async def set_max_time(self, max_time):
         async with self.changed:
-            self._max_time = value
+            self._set_max_time(max_time)
             self.notify_all()
+
+    @property
+    def max_time(self):
+        return self._max_time
 
     @property
     def remaining(self):
         if not self:
             return timedelta()
-        return self._max_time - self.elapsed()
+        return self._max_time - self.elapsed

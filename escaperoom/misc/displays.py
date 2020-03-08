@@ -49,9 +49,12 @@ class LocalCluesDisplay(CluesDisplay):
 
     EXEC_ARGS = ['escaperoom_cluesdisplay']
 
-    def __init__(self, name, game=None, **kwargs):
-        super().__init__(name, game)
+    def __init__(self, name, *, timer=None, **kwargs):
+        super().__init__(name)
         self.start_display(**kwargs)
+        self.timer = None
+        if timer is not None:
+            self.set_timer(timer)
 
     def start_display(self, power=True, color='green'):
         args = copy(self.EXEC_ARGS)
@@ -71,6 +74,15 @@ class LocalCluesDisplay(CluesDisplay):
             self._log_error(f'{self} is dead: {e}')
             raise RuntimeError()
 
+    async def _timing(self, timer):
+        while timer is self.timer:
+            async with timer.changed:
+                speed = -float(timer.running)
+                seconds = timer.remaining.total_seconds()
+                msg = f'timer {speed} {seconds}\n'
+                asyncio.create_task(self._write_to_process(msg.encode()))
+                await timer.changed.wait()
+
     async def set_layout(self, layout):
         msg = 'layout ' + ' '.join(layout) + '\n'
         await self._write_to_process(msg.encode())
@@ -88,9 +100,9 @@ class LocalCluesDisplay(CluesDisplay):
         msg = f'clue {msg}\n'
         await self._write_to_process(msg.encode())
 
-    async def set_timer(self, speed, seconds):
-        msg = f'timer {float(speed)} {seconds}\n'
-        await self._write_to_process(msg.encode())
+    def set_timer(self, timer):
+        self.timer = timer
+        asyncio.create_task(self._timing(timer))
 
     async def set_image(self, image):
         msg = f'image {image}\n'

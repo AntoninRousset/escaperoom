@@ -279,6 +279,7 @@ async def _events_creator():
     await asyncio.sleep(0.1)
     await vessel.set_value('start', False)
     await asyncio.sleep(70)
+    await asyncio.sleep(1000)
 
     print('* Remove fuse 1 *')
     _devices[6]['attrs'][0]['value'] = '0'
