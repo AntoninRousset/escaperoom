@@ -33,7 +33,7 @@ class Condition(BoolLogic):
         self.add_listens(listens)
         self._parents = set()
         self.add_parents(parents)
-        asyncio.run_until_complete(self.reset())
+        asyncio.create_task(self.reset())
 
     def __str__(self):
         return f'condition "{self.name}" [{bool(self)}]'
@@ -123,7 +123,6 @@ class Condition(BoolLogic):
                 self._state = state
                 self._log_info(f'became {ANSI["green"]} good')
                 if not self.desactivated:
-                    print(self, 'self running on_trues', self.on_trues)
                     {asyncio.create_task(co()) for co in self.on_trues}
                 return True
         elif state == False:
@@ -131,7 +130,6 @@ class Condition(BoolLogic):
                 self._state = state
                 self._log_info(f'became {ANSI["red"]} bad')
                 if not self.desactivated:
-                    print(self, 'self running on_falses', self.on_falses)
                     {asyncio.create_task(co()) for co in self.on_falses}
                 return True
         return False
@@ -141,13 +139,17 @@ class Condition(BoolLogic):
             if await self._set_state(state):
                 self.changed.notify_all()
 
+    def _reset(self):
+        self._failed = False
+        self._desactivated = False
+        self._force = None
+        self.msg = None
+        self._state = self._initial_state
+
     async def reset(self):
         async with self.changed:
-            self._failed = False
-            self._desactivated = False
-            self._force = None
-            self.msg = None
-            self._state = self._initial_state
+            await self._reset()
+            self.changed.notify_all()
 
     async def force(self, state: bool):
         async with self.changed:
