@@ -148,7 +148,7 @@ class Condition(BoolLogic):
 
     async def reset(self):
         async with self.changed:
-            await self._reset()
+            self._reset()
             self.changed.notify_all()
 
     async def force(self, state: bool):
