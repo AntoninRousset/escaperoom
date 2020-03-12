@@ -26,13 +26,13 @@ class Condition(BoolLogic):
         self.func = func
         self.args = tuple(args)
         self.pos = pos
+        self.actions = set(ensure_iter(actions))
+        self.on_trues = set(ensure_iter(on_trues))
+        self.on_falses = set(ensure_iter(on_falses))
         self._listens = set()
         self.add_listens(listens)
         self._parents = set()
         self.add_parents(parents)
-        self.actions = set(ensure_iter(actions))
-        self.on_trues = set(ensure_iter(on_trues))
-        self.on_falses = set(ensure_iter(on_falses))
         asyncio.run_until_complete(self.reset())
 
     def __str__(self):
@@ -123,6 +123,7 @@ class Condition(BoolLogic):
                 self._state = state
                 self._log_info(f'became {ANSI["green"]} good')
                 if not self.desactivated:
+                    print(self, 'self running on_trues', self.on_trues)
                     {asyncio.create_task(co()) for co in self.on_trues}
                 return True
         elif state == False:
@@ -130,6 +131,7 @@ class Condition(BoolLogic):
                 self._state = state
                 self._log_info(f'became {ANSI["red"]} bad')
                 if not self.desactivated:
+                    print(self, 'self running on_falses', self.on_falses)
                     {asyncio.create_task(co()) for co in self.on_falses}
                 return True
         return False

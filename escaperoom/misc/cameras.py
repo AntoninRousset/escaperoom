@@ -142,5 +142,4 @@ class RemoteCamera(Camera):
                 async with s.post(address, data=json.dumps(data)) as r:
                     return await r.json()
         except aiohttp.ClientError:
-            self._log_warning('error while connecting to camera on '
-                              f'{self.address}')
+            self._log_warning(f'error while connecting to camera on {self.address}')
