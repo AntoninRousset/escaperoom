@@ -481,13 +481,16 @@ class SerialDevice(Device):
                 while attr._value != value:
                     await asyncio.wait_on_condition(self.changed, timeout=5)
                 return
+            except TimeoutError: 
+                self._log_warning('cannot set value: attribute did not change')
             except KeyError as e:
                 self._log_warning(f'cannot set value: {e}')
                 if not self.changed.locked():
                     await self.changed.acquire() #TODO, how to do it?
                 raise
-            except TimeoutError: 
-                self._log_warning('cannot set value: attribute did not change')
+            except Exception as e:
+                print('unhandled exception:', e)
+            print('retry')
 
     async def reset(self):
         await self._send(f'reset')

@@ -22,11 +22,7 @@ class Condition(BoolLogic):
                  on_trues=set(), on_falses=set(), state=None):
         super().__init__(name, desc)
         self._checking = asyncio.Lock()
-        self._failed = True
-        self._desactivated = False
-        self._force = None
-        self.msg = None
-        self._state = state
+        self._initial_state = state
         self.func = func
         self.args = tuple(args)
         self.pos = pos
@@ -37,6 +33,7 @@ class Condition(BoolLogic):
         self.actions = set(ensure_iter(actions))
         self.on_trues = set(ensure_iter(on_trues))
         self.on_falses = set(ensure_iter(on_falses))
+        asyncio.run_until_complete(self.reset())
 
     def __str__(self):
         return f'condition "{self.name}" [{bool(self)}]'
@@ -141,6 +138,14 @@ class Condition(BoolLogic):
         async with self.changed:
             if await self._set_state(state):
                 self.changed.notify_all()
+
+    async def reset(self):
+        async with self.changed:
+            self._failed = False
+            self._desactivated = False
+            self._force = None
+            self.msg = None
+            self._state = self._initial_state
 
     async def force(self, state: bool):
         async with self.changed:
