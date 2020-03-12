@@ -11,7 +11,7 @@
 '''
 
 import re
-from abc import ABC, abstractclassmethod
+from abc import ABC
 from collections import defaultdict
 
 from . import asyncio, logging
@@ -61,14 +61,15 @@ class Registered(ABC):
     def group_changed(cls):
         return cls._group_changeds[cls]
 
-    def __init__(self, name, desc=None):
+    def __init__(self, name, desc=None, *, register=True):
         self.name = name
         if desc is None:
             desc = self.descs(name)
         self.desc = desc
         self.id = hex(id(self))
         self.changed = asyncio.Condition()
-        self._register()
+        if register:
+            self._register()
 
     def _register(self):
         cls = self.__class__
@@ -90,5 +91,11 @@ class Registered(ABC):
 
     def _log_error(self, msg):
         self._logger.error(f'{self}: {msg}')
+
+    async def stop(self):
+        pass
+
+    async def reset(self):
+        pass
 
 

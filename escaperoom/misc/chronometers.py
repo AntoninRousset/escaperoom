@@ -37,6 +37,10 @@ class Chronometer(Misc):
             self.changed.notify_all()
 
     @property
+    def speed(self):
+        return 1 if self.running else 0
+
+    @property
     def elapsed(self):
         if self.start_time is None:
             return timedelta(0)
@@ -48,9 +52,14 @@ class Chronometer(Misc):
             raise RuntimeError()
 
     @property
+    def time(self):
+        return self.elapsed
+
+    @property
     def running(self):
         return self.start_time is not None and self.end_time is None
 
+#TODO speed
 #TODO multiple timeouts (-> events)
 
 class Timer(Chronometer):
@@ -87,7 +96,11 @@ class Timer(Chronometer):
     async def set_max_time(self, max_time):
         async with self.changed:
             self._set_max_time(max_time)
-            self.notify_all()
+            self.changed.notify_all()
+
+    @property
+    def speed(self):
+        return -1 if self.running else 0
 
     @property
     def max_time(self):
@@ -98,3 +111,7 @@ class Timer(Chronometer):
         if not self:
             return timedelta()
         return self._max_time - self.elapsed
+
+    @property
+    def time(self):
+        return self.remaining

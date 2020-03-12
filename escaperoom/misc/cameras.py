@@ -53,15 +53,18 @@ class LocalCamera(Camera):
                  v_file, v_format=None, v_options={}, v_effect=None,
                  a_file=None, a_format='alsa', a_options={}, a_effect=None):
         super().__init__(name)
-        self.v_player = MediaPlayer(v_file, v_format, v_options,
-                                    video_effect=v_effect,
-                                    audio_effect=a_effect)
-        self.codec_prefs = dict() if codec_prefs is None else codec_prefs
-        if a_file is None:
-            self.a_player = self.v_player
-        else:
-            self.a_player = MediaPlayer(a_file, a_format, a_options)
         self.pcs = set()
+        self.codec_prefs = dict() if codec_prefs is None else codec_prefs
+        try:
+            self.v_player = MediaPlayer(v_file, v_format, v_options,
+                                        video_effect=v_effect,
+                                        audio_effect=a_effect)
+            if a_file is None:
+                self.a_player = self.v_player
+            else:
+                self.a_player = MediaPlayer(a_file, a_format, a_options)
+        except Exception as e:
+            self._log_error(f'Cannot open camera {e}')
 
     def _create_peer_connection(self):
         pc = aiortc.RTCPeerConnection()

@@ -19,7 +19,7 @@ def datetime_to_string(datetime):
     if datetime is not None:
         return datetime.strftime('%H:%M')
 
-async def read(service, query=None):
+async def read(service, query=None, server=None):
     if service == 'actions':
         return await actions_reader()
     if service == 'action':
@@ -27,7 +27,7 @@ async def read(service, query=None):
     if service == 'cameras':
         return await cameras_reader()
     if service == 'chronometer':
-        return await chronometer_reader()
+        return await chronometer_reader(query, server)
     if service == 'device':
         return await device_reader(query)
     if service == 'devices':
@@ -72,12 +72,16 @@ async def cameras_reader():
             }
     return {'cameras' : cameras}
 
-async def chronometer_reader():
-    chronometer = Chronometer.find_entry('timer')
+async def chronometer_reader(query, server=None):
+    if 'name' in query or 'id' in query:
+        chronometer = Chronometer.find_entry(query.get('name'),
+                                             id=query.get('id'))
+    elif server is not None:
+        chronometer = server.main_chronometer
     if chronometer is None: return ''
     return {
-            'running' : chronometer.running,
-            'time' : chronometer.elapsed.total_seconds()*1000
+            'speed' : chronometer.speed,
+            'time' : chronometer.time.total_seconds()*1000
             }
 
 async def conditions_reader():

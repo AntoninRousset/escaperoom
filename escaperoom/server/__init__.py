@@ -10,7 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import aiohttp_jinja2, jinja2, json
+import json
 from aiohttp import web
 from aiohttp_sse import sse_response
 from os.path import dirname
@@ -34,8 +34,7 @@ class Server(Registered):
 
 @interface_routes.get('/')
 async def monitor(request):
-    context = {'game_name' : ''}
-    return aiohttp_jinja2.render_template('monitor.jinja2', request, context)
+    return web.FileResponse(f'{ROOT}/html/monitor.html')
 
 @routes.get('/events')
 async def events(request):
@@ -47,7 +46,7 @@ async def events(request):
 @routes.get('/{service}')
 async def reader(request):
     service = request.match_info['service']
-    data = await readers.read(service, request.query)
+    data = await readers.read(service, request.query, request.app)
     return web.Response(content_type='application/json', text=json.dumps(data))
 
 @routes.post('/{service}')
@@ -57,26 +56,27 @@ async def control(request):
     return web.Response(content_type='application/json', text=json.dumps(answer))
 
 
-class HTTPServer(Server):
+class HTTPServer(Server, web.Application):
 
     def __init__(self, host='0.0.0.0', port=8080, *, interface=False):
-        super().__init__(name=None)
-        self.app = web.Application()
+        Server.__init__(self, name=None)
+        web.Application.__init__(self)
         if interface:
             self._activate_interface()
-        self.app.add_routes(routes)
-        runner = web.AppRunner(self.app)
+        self.add_routes(routes)
+        runner = web.AppRunner(self)
         asyncio.run_until_complete(runner.setup())
         self.site = web.TCPSite(runner, host, port)
         self._start(host, port)
+        self.main_chronometer = None
+        self.clue_display = None
 
     def __str__(self):
         return f'server on {self.site._host}:{self.site._port}'
 
     def _activate_interface(self):
-        self.app.router.add_static('/ressources', f'{ROOT}/html/', append_version=True)
-        aiohttp_jinja2.setup(self.app, loader=jinja2.FileSystemLoader(f'{ROOT}/html/'))
-        self.app.add_routes(interface_routes)
+        self.router.add_static('/ressources', f'{ROOT}/html/', append_version=True)
+        self.add_routes(interface_routes)
 
     def _start(self, host, port):
         asyncio.run_until_complete(self.site.start())

@@ -49,7 +49,12 @@ class Game(Registered):
         await self._chronometer.start()
 
     async def stop(self, options):
-        await self._chronometer.stop()
+        pass
+        #await asyncio.wait(entry.stop() for entry in Registered.entries())
+
+    async def reset(self, options):
+        pass
+        #await asyncio.wait(entry.reset() for entry in Registered.entries())
 
     @property
     def ready(self):

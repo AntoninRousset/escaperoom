@@ -37,7 +37,6 @@ class Condition(BoolLogic):
         self.actions = set(ensure_iter(actions))
         self.on_trues = set(ensure_iter(on_trues))
         self.on_falses = set(ensure_iter(on_falses))
-        asyncio.create_task(self._state_checking(self._state))
 
     def __str__(self):
         return f'condition "{self.name}" [{bool(self)}]'
@@ -74,23 +73,6 @@ class Condition(BoolLogic):
             self._log_debug(f'function is {ANSI["bold"]} {ANSI[color]} {state}')
             return self.msg is None
 
-    #TODO more reactive, without async loop checker
-    async def _state_checking(self, previous_state):
-        while True:
-            async with self.changed:
-                if self.state == True:
-                    if previous_state is None or previous_state == False:
-                        self._log_info(f'became {ANSI["green"]} good')
-                        if not self.desactivated:
-                            {asyncio.create_task(co()) for co in self.on_trues}
-                if self.state == False:
-                    if previous_state is None or previous_state == True:
-                        self._log_info(f'became {ANSI["red"]} bad')
-                        if not self.desactivated:
-                            {asyncio.create_task(co()) for co in self.on_falses}
-                previous_state = self.state
-                await self.changed.wait()
-
     async def _check(self, acquired=False):
         if not acquired:
             await self.changed.acquire()
@@ -102,10 +84,8 @@ class Condition(BoolLogic):
                 state = self.__check_parents()
                 if ( state or state is None ) and self.func is not None:
                     state = self._check_func()
-                if state is not None and state != self._state:
-                    self._state = state
+                if state is not None and await self._set_state(state):
                     self.changed.notify_all()
-                await asyncio.sleep(0)
         except Exception:
             pass
         finally:
@@ -140,28 +120,37 @@ class Condition(BoolLogic):
                 self._listens.add(listen)
         asyncio.create_task(self._check())
 
-    async def set_state(self, state):
-        try:
-            async with self.changed:
+    async def _set_state(self, state):
+        if state == True:
+            if self.state is None or self.state == False:
                 self._state = state
+                self._log_info(f'became {ANSI["green"]} good')
+                if not self.desactivated:
+                    {asyncio.create_task(co()) for co in self.on_trues}
+                return True
+        elif state == False:
+            if self.state is None or self.state == True:
+                self._state = state
+                self._log_info(f'became {ANSI["red"]} bad')
+                if not self.desactivated:
+                    {asyncio.create_task(co()) for co in self.on_falses}
+                return True
+        return False
+
+    async def set_state(self, state):
+        async with self.changed:
+            if await self._set_state(state):
                 self.changed.notify_all()
-                await asyncio.sleep(0)
-        except RuntimeError:
-            pass #TMP bypass the Lock is not acquired at atexit
 
     async def force(self, state: bool):
         async with self.changed:
             self._force = state
-            self.changed.notify_all()
-            await asyncio.sleep(0)
-        await self._check()
+            await self._check(acquired=True)
 
     async def restore(self):
         async with self.changed:
             self._force = None
-            self.changed.notify_all()
-            await asyncio.sleep(0)
-        await self._check()
+            await self._check(acquired=True)
 
     async def activate(self):
         async with self.changed:

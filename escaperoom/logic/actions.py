@@ -63,6 +63,9 @@ class Action(Logic):
                 self.changed.notify_all()
 
     async def abort(self):
+        return await self.stop()
+
+    async def stop(self):
         self._task.cancel()
         await asyncio.sleep(0)
 

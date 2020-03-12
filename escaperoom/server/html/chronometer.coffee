@@ -10,19 +10,17 @@ class ChronometerDial extends Subscriber
 	update: (data) =>
 		@sync_time = Date.now()
 		@time = data['time']
-		@running = data['running']
+		@speed = data['speed']
 		@tick()
-		if @running
+		if @speed != 0
 			@clock = setInterval(@tick, @tick_period)
 		else if @clock?
 			clearInterval(@clock)
 
 	tick: () =>
 		if @time?
-			if @running
-				@textContent = @time_to_string(@time + Date.now() - @sync_time)
-			else
-				@textContent = @time_to_string(@time)
+			elapsed = Date.now() - @sync_time
+			@textContent = @time_to_string(@time + @speed*elapsed)
 		else
 			@textContent = @time_to_string(0)
 

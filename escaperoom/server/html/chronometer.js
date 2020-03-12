@@ -24,9 +24,9 @@ ChronometerDial = class ChronometerDial extends Subscriber {
     boundMethodCheck(this, ChronometerDial);
     this.sync_time = Date.now();
     this.time = data['time'];
-    this.running = data['running'];
+    this.speed = data['speed'];
     this.tick();
-    if (this.running) {
+    if (this.speed !== 0) {
       return this.clock = setInterval(this.tick, this.tick_period);
     } else if (this.clock != null) {
       return clearInterval(this.clock);
@@ -34,13 +34,11 @@ ChronometerDial = class ChronometerDial extends Subscriber {
   }
 
   tick() {
+    var elapsed;
     boundMethodCheck(this, ChronometerDial);
     if (this.time != null) {
-      if (this.running) {
-        return this.textContent = this.time_to_string(this.time + Date.now() - this.sync_time);
-      } else {
-        return this.textContent = this.time_to_string(this.time);
-      }
+      elapsed = Date.now() - this.sync_time;
+      return this.textContent = this.time_to_string(this.time + this.speed * elapsed);
     } else {
       return this.textContent = this.time_to_string(0);
     }

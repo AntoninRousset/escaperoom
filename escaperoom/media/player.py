@@ -51,8 +51,7 @@ class MediaPlayer(aiom.MediaPlayer):
 
         if self.__effect_audio_thread is None and self.__audio_effect is not None:
             if self.__audio is None:
-                logger.error('container has not audio track')
-                raise RuntimeError()
+                raise RuntimeError('container has not audio track')
             self.__log_debug('Starting audio effect worker thread')
             self.__effect_audio_thread_quit = threading.Event()
             args = (asyncio.get_event_loop(), self.__audio,
@@ -66,9 +65,8 @@ class MediaPlayer(aiom.MediaPlayer):
 
         if self.__effect_video_thread is None and self.__video_effect is not None:
             if self.__video is None:
-                logger.error('container has not video track')
-                raise RuntimeError()
-            self.__log_debug("Starting video effect worker thread")
+                raise RuntimeError('container has not video track')
+            self.__log_debug('Starting video effect worker thread')
             self.__effect_video_thread_quit = threading.Event()
             args = (asyncio.get_event_loop(), self.__video,
                     self.__video_with_effect,
