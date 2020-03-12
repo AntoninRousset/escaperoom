@@ -33,7 +33,7 @@ class Condition(BoolLogic):
         self.add_listens(listens)
         self._parents = set()
         self.add_parents(parents)
-        asyncio.create_task(self.reset())
+        self._reset()
 
     def __str__(self):
         return f'condition "{self.name}" [{bool(self)}]'
