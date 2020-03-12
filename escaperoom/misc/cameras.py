@@ -69,12 +69,11 @@ class LocalCamera(Camera):
     def _create_peer_connection(self):
         pc = aiortc.RTCPeerConnection()
 
-        @pc.on('iceconnectionchanged')
-        async def on_ice_connection_state_change():
+        @pc.on('iceconnectionstatechange')
+        async def on_iceconnectionstatechange():
             print('ice state:', pc.iceConnectionState)
             if pc.iceConnectionState == 'failed':
                 await self._close_pc(pc)
-                print('pc closed')
         return pc
 
     def _set_codec_preferences(self, transceiver):
@@ -108,7 +107,7 @@ class LocalCamera(Camera):
                 'type': pc.localDescription.type}
 
     async def _close_pc(self, pc):
-        pc.close()
+        await pc.close()
         self.pcs.discard(pc)
 
     def close(self):
@@ -142,4 +141,5 @@ class RemoteCamera(Camera):
                 async with s.post(address, data=json.dumps(data)) as r:
                     return await r.json()
         except aiohttp.ClientError:
-            self._log_warning(f'error while connecting to camera on {self.address}')
+            self._log_warning('error while connecting to camera on '+
+                              self.address)

@@ -103,6 +103,8 @@ class MediaPlayer(aiom.MediaPlayer):
             self.__effect_video_thread.join()
             self.__effect_video_thread = None
 
+        super()._stop(track)
+
 
 from sdl2 import *
 from sdl2.ext.compat import byteify
