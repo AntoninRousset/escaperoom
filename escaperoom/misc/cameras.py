@@ -71,8 +71,10 @@ class LocalCamera(Camera):
 
         @pc.on('iceconnectionchanged')
         async def on_ice_connection_state_change():
+            print('ice state:', pc.iceConnectionState)
             if pc.iceConnectionState == 'failed':
                 await self._close_pc(pc)
+                print('pc closed')
         return pc
 
     def _set_codec_preferences(self, transceiver):
