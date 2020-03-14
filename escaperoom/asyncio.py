@@ -13,11 +13,11 @@
 from asyncio import *
 from asyncio import subprocess
 
-try:
-    create_task
-except NameError:
-    def create_task(*args, **kwargs):
-        return get_event_loop().create_task(*args, **kwargs)
+def call_soon(*args, **kwargs):
+    return get_event_loop().call_soon(*args, **kwargs)
+
+def create_task(*args, **kwargs):
+    return get_event_loop().create_task(*args, **kwargs)
 
 def run_until_complete(*args, **kwargs):
     return get_event_loop().run_until_complete(*args, **kwargs)

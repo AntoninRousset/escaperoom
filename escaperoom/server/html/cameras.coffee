@@ -1,5 +1,5 @@
 import {Subscriber, Container} from './monitor.js'
-import {is_empty} from './monitor.js'
+import {is_empty, post_control} from './monitor.js'
 
 
 class CamerasBox extends Subscriber
@@ -85,22 +85,14 @@ class CameraVideo extends HTMLElement
 
 	send_offer: () ->
 		offer = @pc.localDescription
-		response = await fetch(@loc, {
-			body: JSON.stringify({
-				sdp: offer.sdp,
-				type: offer.type,
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			method: 'POST'
-		})
-		@pc.setRemoteDescription(await response.json())
+		data = await post_control(@loc, {sdp: offer.sdp, type: offer.type})
+		@pc.setRemoteDescription(data)
 
 	got_tracks: (event) =>
 		if event.track.kind is 'audio'
 			@video.srcObject = event.streams[0]
 		else if event.track.kind is 'video'
 			@video.srcObject = event.streams[0]
+
 
 customElements.define('camera-video', CameraVideo)

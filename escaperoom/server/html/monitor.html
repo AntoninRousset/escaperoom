@@ -68,9 +68,9 @@
 							</div>
 						</fieldset>
 						<div id='game-controls'>
-							<button class='game-control' id='stop-game' dangerous>Arrêter la partie</button>
-							<input class='game-control' type='submit' id='new-game' value='Nouvelle partie'>
-							<button class='game-control' id='back-to-game'>Continuer</button>
+							<button class='game-control' id='stop-game' dangerous disabled>Arrêter la partie</button>
+							<input class='game-control' type='submit' id='new-game' value='Nouvelle partie' hidden>
+							<button class='game-control' id='back-to-game' hidden>Continuer</button>
 						</div>
 					</game-menu>
 				</div>
@@ -96,11 +96,17 @@
 										<h2>Conditions</h2>
 										<conditions-list>
 											<template class='item selectable'>
+												<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
 												<condition-item src='/condition'>
 													<template>
 														<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
-														<div>
-															<slot name='desc'></slot>
+														<div class='condition-item'>
+															<div>
+																<slot name='desc'></slot>
+															</div>
+															<button>
+																Restore
+															</button>
 														</div>
 													</template>
 												</condition-item>
@@ -123,7 +129,9 @@
 										<p>Un puzzle est complété lorsque, actif, toutes ses conditions sont satisfaites.</p>
 										<div id='puzzle-controls'>
 											<button class='puzzle-control' id='puzzle-activate' dangerous>Activer</button>
-											<button class='puzzle-control' id='puzzle-complete' dangerous>Completer</button>
+											<button class='puzzle-control' id='puzzle-desactivate' dangerous>Désactiver</button>
+											<button class='puzzle-control' id='puzzle-complete' dangerous>Compléter</button>
+											<button class='puzzle-control' id='puzzle-uncomplete' dangerous>Décompléter</button>
 											<button class='puzzle-control' id='puzzle-restore' dangerous>Restaurer</button>
 										</div>
 									</div>

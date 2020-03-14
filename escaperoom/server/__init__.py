@@ -52,13 +52,15 @@ async def reader(request):
 @routes.post('/{service}')
 async def control(request):
     service = request.match_info['service']
-    answer = await controls.control(await request.json(), service, request.query)
-    return web.Response(content_type='application/json', text=json.dumps(answer))
+    ans = await controls.control(await request.json(), service, request.query,
+                                 server=request.app)
+    return web.Response(content_type='application/json', text=json.dumps(ans))
 
 
 class HTTPServer(Server, web.Application):
 
-    def __init__(self, host='0.0.0.0', port=8080, *, interface=False):
+    def __init__(self, host='0.0.0.0', port=8080, *, interface=False,
+                 main_chronometer=None, give_clue=None):
         Server.__init__(self, name=None)
         web.Application.__init__(self)
         if interface:
@@ -68,8 +70,8 @@ class HTTPServer(Server, web.Application):
         asyncio.run_until_complete(runner.setup())
         self.site = web.TCPSite(runner, host, port)
         self._start(host, port)
-        self.main_chronometer = None
-        self.clue_display = None
+        self.main_chronometer = main_chronometer 
+        self.give_clue = give_clue 
 
     def __str__(self):
         return f'server on {self.site._host}:{self.site._port}'

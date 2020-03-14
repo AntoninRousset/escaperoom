@@ -1,5 +1,5 @@
 import {Subscriber, Container} from './monitor.js'
-import {is_empty} from './monitor.js'
+import {is_empty, post_control} from './monitor.js'
 
 
 class DevicesBox extends Subscriber
@@ -97,17 +97,10 @@ class DeviceAttributes extends Container
 	set_value: (event) ->
 		attr_name = event.target.parentNode.querySelector('slot[name="name"]').assignedNodes()[0].textContent
 		device_info = document.querySelector('devices-box').shadowRoot.querySelector('device-info')
-		loc = device_info.loc
-		response = await fetch(loc,  {
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				action: 'set_val',
-				name: attr_name,
-				value: event.target.value
-			}),
-			method: 'POST'
+		post_control(device_info.loc, {
+			action: 'set_val',
+			name: attr_name,
+			value: event.target.value
 		})
 
 	update_plug: (slot, data, node) ->

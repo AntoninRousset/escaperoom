@@ -7,7 +7,8 @@ import {
 } from './monitor.js';
 
 import {
-  is_empty
+  is_empty,
+  post_control
 } from './monitor.js';
 
 DevicesBox = class DevicesBox extends Subscriber {
@@ -131,22 +132,15 @@ DeviceAttributes = class DeviceAttributes extends Container {
     return this.appendChild(item);
   }
 
-  async set_value(event) {
-    var attr_name, device_info, loc, response;
+  set_value(event) {
+    var attr_name, device_info;
     attr_name = event.target.parentNode.querySelector('slot[name="name"]').assignedNodes()[0].textContent;
     device_info = document.querySelector('devices-box').shadowRoot.querySelector('device-info');
-    loc = device_info.loc;
-    return response = (await fetch(loc, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        action: 'set_val',
-        name: attr_name,
-        value: event.target.value
-      }),
-      method: 'POST'
-    }));
+    return post_control(device_info.loc, {
+      action: 'set_val',
+      name: attr_name,
+      value: event.target.value
+    });
   }
 
   update_plug(slot, data, node) {

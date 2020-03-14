@@ -8,7 +8,8 @@ import {
 } from './monitor.js';
 
 import {
-  is_empty
+  is_empty,
+  post_control
 } from './monitor.js';
 
 GameBox = class GameBox extends Subscriber {
@@ -110,25 +111,18 @@ GameMenu = class GameMenu extends HTMLElement {
   }
 
   async new_game() {
-    var reponse;
     boundMethodCheck(this, GameMenu);
     this.querySelector('#game-options').disabled = true;
-    reponse = (await fetch(this.getAttribute('src'), {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        action: 'new_game',
-        options: {
-          status: this.querySelector('#game-option-status').value,
-          n_player: this.querySelector('#game-option-number-player').value,
-          children_mode: this.querySelector('#game-option-children').checked,
-          timeout_enabled: this.querySelector('#game-option-timeout-enabled').value,
-          timeout: '00:' + this.querySelector('#game-option-timeout-h').value.padStart(2, '0') + ':' + this.querySelector('#game-option-timeout-m').value.padStart(2, '0')
-        }
-      }),
-      method: 'POST'
-    }));
+    await post_control(this.getAttribute('src'), {
+      action: 'new_game',
+      options: {
+        status: this.querySelector('#game-option-status').value,
+        n_player: this.querySelector('#game-option-number-player').value,
+        children_mode: this.querySelector('#game-option-children').checked,
+        timeout_enabled: this.querySelector('#game-option-timeout-enabled').value,
+        timeout: '00:' + this.querySelector('#game-option-timeout-h').value.padStart(2, '0') + ':' + this.querySelector('#game-option-timeout-m').value.padStart(2, '0')
+      }
+    });
     return document.querySelector('game-box').current_screen = 'puzzles';
   }
 
@@ -140,18 +134,11 @@ GameMenu = class GameMenu extends HTMLElement {
     return game_box.set_screen(game_box.current_screen);
   }
 
-  async stop_game() {
-    var reponse;
+  stop_game() {
     boundMethodCheck(this, GameMenu);
-    return reponse = (await fetch(this.getAttribute('src'), {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        action: 'stop_game'
-      }),
-      method: 'POST'
-    }));
+    return post_control(this.getAttribute('src'), {
+      action: 'stop_game'
+    });
   }
 
 };

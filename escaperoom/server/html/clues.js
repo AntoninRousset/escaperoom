@@ -8,7 +8,8 @@ import {
 } from './monitor.js';
 
 import {
-  is_empty
+  is_empty,
+  post_control
 } from './monitor.js';
 
 CluesBox = class CluesBox extends HTMLElement {
@@ -18,20 +19,14 @@ CluesBox = class CluesBox extends HTMLElement {
     this.querySelector('button').onclick = this.send_clue;
   }
 
-  async send_clue(event) {
-    var reponse, text;
+  send_clue(event) {
+    var text;
     boundMethodCheck(this, CluesBox);
     text = event.target.parentNode.querySelector('textarea').value;
-    return reponse = (await fetch('/display?name=clues', {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        type: 'clue',
-        text: text
-      }),
-      method: 'POST'
-    }));
+    return post_control('/display', {
+      action: 'clue',
+      text: text
+    });
   }
 
 };

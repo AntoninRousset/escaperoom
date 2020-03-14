@@ -26,6 +26,10 @@ class Game(Registered):
             'timeout' : '01:00:00'
         }
 
+    @classmethod
+    def get(cls):
+        return next(cls.entries())
+
     def __init__(self, name, *, options={}, ready=False):
         if set(Game.entries()):
             raise RuntimeError('There can be only one game running')
@@ -33,6 +37,8 @@ class Game(Registered):
         self.options.update(options)
         self._ready = ready
         self._chronometer = Chronometer('__game')
+        self.main_chronometer = None
+        self.give_clue = None
 
     def __str__(self):
         return f'game "{self.name}"'
@@ -46,7 +52,9 @@ class Game(Registered):
             self.changed.notify_all()
 
     async def start(self, options):
-        await self._chronometer.start()
+        async with self.changed:
+            await self._chronometer.start()
+            self.changed.notify_all()
 
     async def stop(self, options):
         pass

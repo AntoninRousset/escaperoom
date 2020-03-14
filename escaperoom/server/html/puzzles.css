@@ -75,3 +75,11 @@ puzzle-info {
 	min-width: 100px;
 }
 
+.condition-item {
+	display: flex;
+	flex-flow: row;
+}
+
+.condition-item div {
+	flex: 1;
+}

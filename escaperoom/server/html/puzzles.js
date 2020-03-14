@@ -8,7 +8,8 @@ import {
 } from './monitor.js';
 
 import {
-  is_empty
+  is_empty,
+  post_control
 } from './monitor.js';
 
 PuzzlesBox = class PuzzlesBox extends Subscriber {
@@ -97,13 +98,24 @@ customElements.define('puzzles-graph', PuzzlesGraph);
 PuzzleInfo = class PuzzleInfo extends Subscriber {
   constructor() {
     super();
-    this.activate = this.activate.bind(this);
-    this.complete = this.complete.bind(this);
+    this.set_force = this.set_force.bind(this);
     this.restore = this.restore.bind(this);
+    this.set_active = this.set_active.bind(this);
     this.apply_template();
-    this.shadowRoot.querySelector('#puzzle-activate').onclick = this.activate;
-    this.shadowRoot.querySelector('#puzzle-complete').onclick = this.complete;
+    this.state = null;
+    this.shadowRoot.querySelector('#puzzle-complete').onclick = (event) => {
+      return this.set_force(true);
+    };
+    this.shadowRoot.querySelector('#puzzle-uncomplete').onclick = (event) => {
+      return this.set_force(false);
+    };
     this.shadowRoot.querySelector('#puzzle-restore').onclick = this.restore;
+    this.shadowRoot.querySelector('#puzzle-activate').onclick = (event) => {
+      return this.set_active(true);
+    };
+    this.shadowRoot.querySelector('#puzzle-desactivate').onclick = (event) => {
+      return this.set_active(false);
+    };
     this.set_screen('empty');
     this.conditions_list = this.shadowRoot.querySelector('conditions-list');
     this.actions_list = this.shadowRoot.querySelector('actions-list');
@@ -115,63 +127,53 @@ PuzzleInfo = class PuzzleInfo extends Subscriber {
 
   update(data) {
     this.update_plugs(data);
-    //if data.state == 'inactive'
-    //	@shadowRoot.querySelector('#puzzle-activate').hidden = false
-    //	@shadowRoot.querySelector('#puzzle-activate').disable = false
-    //	@shadowRoot.querySelector('#puzzle-complete').hidden = true
     if (data['state']) {
-      this.shadowRoot.querySelector('#puzzle-activate').hidden = true;
       this.shadowRoot.querySelector('#puzzle-complete').hidden = true;
+      this.shadowRoot.querySelector('#puzzle-uncomplete').hidden = false;
+    } else {
+      this.shadowRoot.querySelector('#puzzle-complete').hidden = false;
+      this.shadowRoot.querySelector('#puzzle-uncomplete').hidden = true;
+    }
+    if (data['forced']) {
+      this.shadowRoot.querySelector('#puzzle-complete').hidden = true;
+      this.shadowRoot.querySelector('#puzzle-uncomplete').hidden = true;
+      this.shadowRoot.querySelector('#puzzle-restore').hidden = false;
+    } else {
+      this.shadowRoot.querySelector('#puzzle-restore').hidden = true;
+    }
+    if (data['desactivated']) {
+      this.shadowRoot.querySelector('#puzzle-activate').hidden = false;
+      this.shadowRoot.querySelector('#puzzle-desactivate').hidden = true;
     } else {
       this.shadowRoot.querySelector('#puzzle-activate').hidden = true;
-      this.shadowRoot.querySelector('#puzzle-complete').hidden = false;
-      this.shadowRoot.querySelector('#puzzle-complete').disabled = false;
+      this.shadowRoot.querySelector('#puzzle-desactivate').hidden = false;
     }
     this.conditions_list.read_items(data.siblings);
     this.actions_list.read_items(data.actions);
     return this.set_screen('info');
   }
 
-  async activate() {
-    var reponse;
+  set_force(state) {
     boundMethodCheck(this, PuzzleInfo);
-    return reponse = (await fetch(this.loc, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        action: 'activate'
-      }),
-      method: 'POST'
-    }));
+    return post_control(this.loc, {
+      action: 'force',
+      state: state
+    });
   }
 
-  async complete() {
-    var reponse;
+  restore() {
     boundMethodCheck(this, PuzzleInfo);
-    return reponse = (await fetch(this.loc, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        action: 'complete'
-      }),
-      method: 'POST'
-    }));
+    return post_control(this.loc, {
+      action: 'restore'
+    });
   }
 
-  async restore() {
-    var reponse;
+  set_active(state) {
     boundMethodCheck(this, PuzzleInfo);
-    return reponse = (await fetch(this.loc, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        action: 'restore'
-      }),
-      method: 'POST'
-    }));
+    return post_control(this.loc, {
+      action: 'set_active',
+      state: state
+    });
   }
 
 };
@@ -197,11 +199,15 @@ customElements.define('conditions-list', ConditionsList);
 ConditionItem = class ConditionItem extends Subscriber {
   constructor() {
     super();
-    this.set_state = this.set_state.bind(this);
+    this.force = this.force.bind(this);
+    this.restore = this.restore.bind(this);
     this.apply_template();
     this.state = null;
-    this.shadowRoot.querySelector('div').onclick = (event) => {
-      return this.set_state(!this.state);
+    this.shadowRoot.querySelector('div').querySelector('div').onclick = (event) => {
+      return this.force(!this.state);
+    };
+    this.shadowRoot.querySelector('div').querySelector('button').onclick = (event) => {
+      return this.restore();
     };
   }
 
@@ -210,17 +216,24 @@ ConditionItem = class ConditionItem extends Subscriber {
   }
 
   update(datas) {
-    var div;
+    var button, div;
     this.update_plugs(datas);
     div = this.shadowRoot.querySelector('div');
+    button = this.shadowRoot.querySelector('div').querySelector('button');
     this.state = datas['state'];
-    if (datas['state']) {
+    console.log(datas.state);
+    if (datas.state == null) {
+      div.style.backgroundColor = 'orange';
+    } else if (datas['state']) {
       div.style.backgroundColor = 'green';
     } else {
       div.style.backgroundColor = 'red';
     }
-    //else if datas['state'] == 'active'
-    //	div.style.backgroundColor = 'orange'
+    if (datas['forced']) {
+      button.disabled = false;
+    } else {
+      button.disabled = true;
+    }
     if (datas['desactivated']) {
       div.disabled = true;
       return div.style.backgroundColor = 'gray';
@@ -229,23 +242,19 @@ ConditionItem = class ConditionItem extends Subscriber {
     }
   }
 
-  async set_state(state) {
-    var action, reponse;
+  force(state) {
     boundMethodCheck(this, ConditionItem);
-    if (state) {
-      action = 'set_true';
-    } else {
-      action = 'set_false';
-    }
-    return reponse = (await fetch(this.loc, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        action: action
-      }),
-      method: 'POST'
-    }));
+    return post_control(this.loc, {
+      action: 'force',
+      state: state
+    });
+  }
+
+  restore() {
+    boundMethodCheck(this, ConditionItem);
+    return post_control(this.loc, {
+      action: 'restore'
+    });
   }
 
 };

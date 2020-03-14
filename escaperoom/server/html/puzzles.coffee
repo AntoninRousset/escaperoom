@@ -1,5 +1,5 @@
 import {Subscriber, Container} from './monitor.js'
-import {is_empty} from './monitor.js'
+import {is_empty, post_control} from './monitor.js'
 
 
 class PuzzlesBox extends Subscriber
@@ -70,9 +70,16 @@ class PuzzleInfo extends Subscriber
 	constructor: () ->
 		super()
 		@apply_template()
-		@shadowRoot.querySelector('#puzzle-activate').onclick = @activate
-		@shadowRoot.querySelector('#puzzle-complete').onclick = @complete
+		@state = null
+		@shadowRoot.querySelector('#puzzle-complete').onclick = (event) =>
+			@set_force(true)
+		@shadowRoot.querySelector('#puzzle-uncomplete').onclick = (event) =>
+			@set_force(false)
 		@shadowRoot.querySelector('#puzzle-restore').onclick = @restore
+		@shadowRoot.querySelector('#puzzle-activate').onclick = (event) =>
+			@set_active(true)
+		@shadowRoot.querySelector('#puzzle-desactivate').onclick = (event) =>
+			@set_active(false)
 		@set_screen('empty')
 		@conditions_list = @shadowRoot.querySelector('conditions-list')
 		@actions_list = @shadowRoot.querySelector('actions-list')
@@ -82,53 +89,37 @@ class PuzzleInfo extends Subscriber
 
 	update: (data) ->
 		@update_plugs(data)
-		#if data.state == 'inactive'
-		#	@shadowRoot.querySelector('#puzzle-activate').hidden = false
-		#	@shadowRoot.querySelector('#puzzle-activate').disable = false
-		#	@shadowRoot.querySelector('#puzzle-complete').hidden = true
 		if data['state']
-			@shadowRoot.querySelector('#puzzle-activate').hidden = true
 			@shadowRoot.querySelector('#puzzle-complete').hidden = true
+			@shadowRoot.querySelector('#puzzle-uncomplete').hidden = false
+		else
+			@shadowRoot.querySelector('#puzzle-complete').hidden = false
+			@shadowRoot.querySelector('#puzzle-uncomplete').hidden = true
+		if data['forced']
+			@shadowRoot.querySelector('#puzzle-complete').hidden = true
+			@shadowRoot.querySelector('#puzzle-uncomplete').hidden = true
+			@shadowRoot.querySelector('#puzzle-restore').hidden = false
+		else
+			@shadowRoot.querySelector('#puzzle-restore').hidden = true
+		if data['desactivated']
+			@shadowRoot.querySelector('#puzzle-activate').hidden = false
+			@shadowRoot.querySelector('#puzzle-desactivate').hidden = true
 		else
 			@shadowRoot.querySelector('#puzzle-activate').hidden = true
-			@shadowRoot.querySelector('#puzzle-complete').hidden = false
-			@shadowRoot.querySelector('#puzzle-complete').disabled = false
+			@shadowRoot.querySelector('#puzzle-desactivate').hidden = false
 		@conditions_list.read_items(data.siblings)
 		@actions_list.read_items(data.actions)
 		@set_screen('info')
 
-	activate: () =>
-		reponse = await fetch(@loc, {
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				action: 'activate'
-			}),
-			method: 'POST'
-		})
-
-	complete: () =>
-		reponse = await fetch(@loc, {
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				action: 'complete'
-			}),
-			method: 'POST'
-		})
+	set_force: (state) =>
+		post_control(@loc, {action: 'force', state: state})
 
 	restore: () =>
-		reponse = await fetch(@loc, {
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				action: 'restore'
-			}),
-			method: 'POST'
-		})
+		post_control(@loc, {action: 'restore'})
+
+	set_active: (state) =>
+		post_control(@loc, {action: 'set_active', state: state})
+
 
 customElements.define('puzzle-info', PuzzleInfo)
 
@@ -150,8 +141,10 @@ class ConditionItem extends Subscriber
 		super()
 		@apply_template()
 		@state = null
-		@shadowRoot.querySelector('div').onclick = (event) =>
-			@set_state(not @state)
+		@shadowRoot.querySelector('div').querySelector('div').onclick = (event) =>
+			@force(not @state)
+		@shadowRoot.querySelector('div').querySelector('button').onclick = (event) =>
+			@restore()
 
 	select: (id) ->
 		@subscribe('?id='+id)
@@ -159,33 +152,31 @@ class ConditionItem extends Subscriber
 	update: (datas) ->
 		@update_plugs(datas)
 		div = @shadowRoot.querySelector('div')
+		button = @shadowRoot.querySelector('div').querySelector('button')
 		@state = datas['state']
-		if datas['state']
+		console.log(datas.state)
+		if not datas.state?
+			div.style.backgroundColor = 'orange'
+		else if datas['state']
 			div.style.backgroundColor = 'green'
 		else
 			div.style.backgroundColor = 'red'
-		#else if datas['state'] == 'active'
-		#	div.style.backgroundColor = 'orange'
+		if datas['forced']
+			button.disabled = false
+		else
+			button.disabled = true
 		if datas['desactivated']
 			div.disabled = true
 			div.style.backgroundColor = 'gray'
 		else
 			div.disabled = false
 
-	set_state: (state) =>
-		if state
-			action = 'set_true'
-		else
-			action = 'set_false'
-		reponse = await fetch(@loc, {
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				action: action
-			}),
-			method: 'POST'
-		})
+	force: (state) =>
+		post_control(@loc, {action: 'force', state: state})
+
+	restore: () =>
+		post_control(@loc, {action: 'restore'})
+
 
 customElements.define('condition-item', ConditionItem)
 

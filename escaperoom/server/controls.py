@@ -17,68 +17,77 @@ from ..misc import Camera, CluesDisplay
 from ..network import Device
 
 
-async def control(params, service, query=None):
-    if service == 'camera':
-        return await camera_control(params, query)
-    if service == 'device':
-        return await device_control(params, query)
-    if service == 'display':
-        return await cluesdisplay_control(params, query)
-    if service == 'game':
-        return await game_control(params)
-    if service == 'condition':
-        return await condition_control(params, query)
+async def control(params, service, query=None, server=None):
+    try:
+        if service == 'camera':
+            data = await camera_control(params, query)
+        elif service == 'device':
+            data = await device_control(params, query)
+        elif service == 'display':
+            data = await cluesdisplay_control(params, query, server)
+        elif service == 'game':
+            data = await game_control(params)
+        elif service == 'condition':
+            data = await condition_control(params, query)
+        else:
+            raise RuntimeError('service not found: '+service)
+        if data is None:
+            return {'state': 'success'}
+        return {'state': 'success', 'data': data}
+    except Exception as error:
+        return {'state': 'failed', 'reason': str(error)}
 
 async def camera_control(params, query):
     camera = Camera.find_entry(**query)
+    if camera is None:
+        raise RuntimeError('camera not found')
     return await camera.handle_sdp(params['sdp'], params['type'])
 
 async def condition_control(params, query):
     condition = Condition.find_entry(**query)
-    if params['action'] == 'activate':
-        await condition.force(True)
-    elif params['action'] == 'desactivate':
-        await condition.force(True)
+    if condition is None:
+        raise KeyError('condition not found')
+    if params['action'] == 'force':
+        await condition.force(params['state'])
     elif params['action'] == 'restore':
         await condition.restore()
-    elif params['action'] == 'set_true':
-        await condition.set_state(True)
-    elif params['action'] == 'set_false':
-        await condition.set_state(False)
+    elif params['action'] == 'set_state':
+        await condition.set_state(params['state'])
+    elif params['action'] == 'set_active':
+        await condition.set_active(params['state'])
+    else:
+        raise RuntimeError('action not implemented: '+params['action'])
 
-async def cluesdisplay_control(params, query):
-    if params['type'] == 'clue':
-        print_msg = Action.find_entry('print msg')
-        if print_msg is not None:
-            print_msg.args = (params['text'], None)
-            await print_msg()
-        else:
-            #name = query['name'] if 'name' in query else '.*'
-            name = '.*'
-            cluesdisplay = CluesDisplay.find_entry(name=name)
-            await cluesdisplay.set_msg(params['text'])
+async def cluesdisplay_control(params, query, server):
+    if params['action'] == 'clue':
+        give_clue = server.give_clue
+        if give_clue is None:
+            raise RuntimeError('giving clue is not implemented by the room')
+        await give_clue(params['text'])
+    else:
+        raise RuntimeError('action not implemented: '+params['action'])
 
 async def device_control(params, query):
     device = Device.find_entry(**query)
+    if device is None:
+        raise KeyError('device not found')
     if params['action'] == 'set_val':
-        try: await device.set_value(params['name'], params['value'])
-        except Exception as e: return {'result' : 'failed'}
-        finally: return {'result' : 'success'}
+        await device.set_value(params['name'], params['value'])
     elif params['action'] == 'reset':
-        try: await device.reset()
-        except Exception as e: return {'result' : 'failed'}
-        finally: return {'result' : 'success'}
+        await device.reset()
+    else:
+        raise RuntimeError('action not implemented: '+params['action'])
 
 async def game_control(params):
-    game = Game.find_entry('.*')
+    try:
+        game = Game.get()
+    except StopIteration:
+        raise KeyError('no game defined for the room')
     if params['action'] == 'new_game':
         options = params['options']
-        async with game.changed:
-            await game.start(options)
-            game.changed.notify_all()
+        await game.start(options)
     elif params['action'] == 'stop_game':
-        async with game.changed:
-            await game.stop(options)
-            game.changed.notify_all()
-    return ''
+        await game.stop(options)
+    else:
+        raise RuntimeError('action not implemented: '+params['action'])
 

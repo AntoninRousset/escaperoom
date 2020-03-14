@@ -3,6 +3,20 @@ export is_empty = (obj) ->
 		return false
 	return true
 
+export post_control = (loc, data) ->
+	response = await fetch(loc, {
+		headers: {'Content-Type': 'application/json'},
+		body: JSON.stringify(data),
+		method: 'POST'
+	})
+	datas = await response.json()
+	if datas.state == 'failed'
+		if datas.reason?
+			throw 'failed to post control: '+datas.reason
+		else
+			throw 'failed to post control'
+	datas.data
+
 class Templated extends HTMLElement
 	constructor: () ->
 		super()

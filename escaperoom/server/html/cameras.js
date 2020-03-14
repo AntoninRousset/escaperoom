@@ -8,7 +8,8 @@ import {
 } from './monitor.js';
 
 import {
-  is_empty
+  is_empty,
+  post_control
 } from './monitor.js';
 
 CamerasBox = class CamerasBox extends Subscriber {
@@ -123,19 +124,13 @@ CameraVideo = class CameraVideo extends HTMLElement {
   }
 
   async send_offer() {
-    var offer, response;
+    var data, offer;
     offer = this.pc.localDescription;
-    response = (await fetch(this.loc, {
-      body: JSON.stringify({
-        sdp: offer.sdp,
-        type: offer.type
-      }),
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      method: 'POST'
+    data = (await post_control(this.loc, {
+      sdp: offer.sdp,
+      type: offer.type
     }));
-    return this.pc.setRemoteDescription((await response.json()));
+    return this.pc.setRemoteDescription(data);
   }
 
   got_tracks(event) {

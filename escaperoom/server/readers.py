@@ -88,15 +88,13 @@ async def conditions_reader():
     conditions = {
             condition.id : {
                 'name' : condition.name,
-                'msg' : condition.msg,
-                'state' : 'completed' if condition else 'active' if condition.active else 'inactive',
-                'desactivated' : condition.desactivated,
+                'state' : condition.state,
+                'forced': condition.forced,
                 'row' : None if condition.pos is None else condition.pos[0],
                 'col' : None if condition.pos is None else condition.pos[1],
                 } for condition in Condition.entries()
             }
     return {'conditions' : conditions}
-
 
 async def condition_reader(query):
     condition = Condition.find_entry(**query)
@@ -109,13 +107,18 @@ async def condition_reader(query):
                 'failed' : action.failed
                 } for action in condition.actions
             }
+
+    c_siblings = condition.siblings
+    if c_siblings is None:
+        c_siblings = {s for s in condition._listens | condition._parents if
+                      isinstance(s, Condition)}
     siblings = {
             sibling.id : {
                 'name' : sibling.name,
                 'desc' : sibling.name if sibling.desc is None else sibling.desc,
                 'state' : bool(sibling),
                 'desactivated' : sibling.desactivated,
-                } for sibling in condition._listens | condition._parents if isinstance(sibling, Condition)
+                } for sibling in c_siblings
             }
     return {
             'id' : condition.id,
@@ -124,21 +127,11 @@ async def condition_reader(query):
             'msg' : condition.msg,
             'state' : bool(condition),
             'desactivated' : condition.desactivated,
+            'forced': condition.forced,
             'description' : condition.desc,
             'siblings' : siblings,
             'actions' : actions,
             }
-
-async def conditions_reader():
-    conditions = {
-            condition.id : {
-                'name' : condition.name,
-                'state' : bool(condition),
-                'row' : None if condition.pos is None else condition.pos[0],
-                'col' : None if condition.pos is None else condition.pos[1],
-                } for condition in Condition.entries()
-            }
-    return {'conditions' : conditions}
 
 async def device_reader(query):
     device = Device.find_entry(**query)

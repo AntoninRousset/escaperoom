@@ -11,6 +11,26 @@ export var is_empty = function(obj) {
   return true;
 };
 
+export var post_control = async function(loc, data) {
+  var datas, response;
+  response = (await fetch(loc, {
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data),
+    method: 'POST'
+  }));
+  datas = (await response.json());
+  if (datas.state === 'failed') {
+    if (datas.reason != null) {
+      throw 'failed to post control: ' + datas.reason;
+    } else {
+      throw 'failed to post control';
+    }
+  }
+  return datas.data;
+};
+
 Templated = class Templated extends HTMLElement {
   constructor() {
     var slot, slots;

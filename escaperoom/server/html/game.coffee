@@ -1,5 +1,5 @@
 import {Subscriber, Container} from './monitor.js'
-import {is_empty} from './monitor.js'
+import {is_empty, post_control} from './monitor.js'
 
 class GameBox extends Subscriber
 	constructor: () ->
@@ -74,21 +74,15 @@ class GameMenu extends HTMLElement
 
 	new_game: () =>
 		@querySelector('#game-options').disabled = true
-		reponse = await fetch(@getAttribute('src'), {
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				action: 'new_game',
-				options: {
-					status: @querySelector('#game-option-status').value,
-					n_player: @querySelector('#game-option-number-player').value,
-					children_mode: @querySelector('#game-option-children').checked,
-					timeout_enabled: @querySelector('#game-option-timeout-enabled').value,
-					timeout: '00:'+@querySelector('#game-option-timeout-h').value.padStart(2, '0')+':'+@querySelector('#game-option-timeout-m').value.padStart(2, '0')
-				}
-			}),
-			method: 'POST'
+		await post_control(@getAttribute('src'), {
+			action: 'new_game',
+			options: {
+				status: @querySelector('#game-option-status').value,
+				n_player: @querySelector('#game-option-number-player').value,
+				children_mode: @querySelector('#game-option-children').checked,
+				timeout_enabled: @querySelector('#game-option-timeout-enabled').value,
+				timeout: '00:'+@querySelector('#game-option-timeout-h').value.padStart(2, '0')+':'+@querySelector('#game-option-timeout-m').value.padStart(2, '0')
+			}
 		})
 		document.querySelector('game-box').current_screen = 'puzzles'
 
@@ -98,15 +92,7 @@ class GameMenu extends HTMLElement
 		game_box.set_screen(game_box.current_screen)
 
 	stop_game: () =>
-		reponse = await fetch(@getAttribute('src'), {
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				action: 'stop_game'
-			}),
-			method: 'POST'
-		})
+		post_control(@getAttribute('src'), {action: 'stop_game'})
 
 customElements.define('game-menu', GameMenu)
 
