@@ -10,20 +10,39 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from . import asyncio
-from .misc import Chronometer
+from .misc import Chronometer, History
 from .registered import Registered
 
-from datetime import datetime, timedelta
+from pathlib import Path
+import sys
+
+
+class Cache:
+
+    def __init__(self, subdir):
+        self.directory = self._get_cache_dir() / subdir
+        self.directory.mkdir(parents=True, exist_ok=True)
+
+    def _get_cache_dir(self):
+        dirname = 'escaperoom'
+
+        if sys.platform == 'linux':
+            from xdg.BaseDirectory import xdg_cache_home
+            return Path(xdg_cache_home) / dirname
+
+        if sys.platform == 'darin':
+            return Path.home() / 'Library' / 'Caches'
+
+        raise SystemError(f'Not implemented platform: {sys.platform}')
 
 
 class Game(Registered):
 
     options = {
-            'status' : 'official',
-            'n_player' : 4,
-            'timeout_enabled' : True,
-            'timeout' : '01:00:00'
+            'status': 'official',
+            'n_player': 4,
+            'timeout_enabled': True,
+            'timeout': '01:00:00'
         }
 
     @classmethod
@@ -36,9 +55,11 @@ class Game(Registered):
         super().__init__(name)
         self.options.update(options)
         self._ready = ready
+        self._cache = Cache(subdir=self.name)
         self._chronometer = Chronometer('__game')
         self.main_chronometer = None
         self.give_clue = None
+        self._clue_history = History(self._cache.directory / 'clues.hist')
 
     def __str__(self):
         return f'game "{self.name}"'
