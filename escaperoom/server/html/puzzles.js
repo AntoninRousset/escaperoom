@@ -280,7 +280,15 @@ customElements.define('actions-list', ActionsList);
 ActionItem = class ActionItem extends Subscriber {
   constructor() {
     super();
+    this.call = this.call.bind(this);
+    this.abort = this.abort.bind(this);
     this.apply_template();
+    this.shadowRoot.querySelector('div').querySelector('div').onclick = (event) => {
+      return this.call();
+    };
+    this.shadowRoot.querySelector('div').querySelector('button').onclick = (event) => {
+      return this.abort();
+    };
   }
 
   select(id) {
@@ -304,6 +312,20 @@ ActionItem = class ActionItem extends Subscriber {
     } else {
       return div.disabled = false;
     }
+  }
+
+  call() {
+    boundMethodCheck(this, ActionItem);
+    return post_control(this.loc, {
+      action: 'call'
+    });
+  }
+
+  abort() {
+    boundMethodCheck(this, ActionItem);
+    return post_control(this.loc, {
+      action: 'abort'
+    });
   }
 
 };

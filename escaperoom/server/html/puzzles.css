@@ -83,3 +83,12 @@ puzzle-info {
 .condition-item div {
 	flex: 1;
 }
+
+.action-item {
+	display: flex;
+	flex-flow: row;
+}
+
+.action-item div {
+	flex: 1;
+}

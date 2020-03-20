@@ -190,6 +190,7 @@ class ActionsList extends Container
 		@appendChild(item)
 		item.shadowRoot.querySelector('action-item').select(id)
 
+
 customElements.define('actions-list', ActionsList)
 
 
@@ -197,6 +198,10 @@ class ActionItem extends Subscriber
 	constructor: () ->
 		super()
 		@apply_template()
+		@shadowRoot.querySelector('div').querySelector('div').onclick = (event) =>
+			@call()
+		@shadowRoot.querySelector('div').querySelector('button').onclick = (event) =>
+			@abort()
 
 	select: (id) ->
 		@subscribe('?id='+id)
@@ -215,6 +220,13 @@ class ActionItem extends Subscriber
 			div.style.backgroundColor = 'gray'
 		else
 			div.disabled = false
+
+	call: () =>
+		post_control(@loc, {action: 'call'})
+
+	abort: () =>
+		post_control(@loc, {action: 'abort'})
+
 
 customElements.define('action-item', ActionItem)
 

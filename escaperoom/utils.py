@@ -13,7 +13,7 @@
 def ensure_iter(obj, *, exceptions=[str]):
     for exception in exceptions:
         if isinstance(obj, exception):
-            return obj
+            return (obj,)
     if hasattr(obj, '__iter__'):
         return obj
     else:

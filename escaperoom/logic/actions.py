@@ -39,7 +39,7 @@ class Action(Logic):
     def __bool__(self):
         return self._success.is_set()
 
-    async def __call__(self):
+    async def _call(self):
         async with self._running:
             async with self.changed:
                 if self.desactivated:
@@ -61,6 +61,12 @@ class Action(Logic):
                     self._success.set()
                 self._log_debug('end')
                 self.changed.notify_all()
+
+    async def __call__(self):
+        return await self._call()
+
+    def call(self):
+        return asyncio.create_task(self._call())
 
     async def abort(self):
         return await self.stop()

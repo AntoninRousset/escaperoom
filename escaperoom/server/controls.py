@@ -19,7 +19,9 @@ from ..network import Device
 
 async def control(params, service, query=None, server=None):
     try:
-        if service == 'camera':
+        if service == 'action':
+            data = await action_control(params, query)
+        elif service == 'camera':
             data = await camera_control(params, query)
         elif service == 'device':
             data = await device_control(params, query)
@@ -35,7 +37,19 @@ async def control(params, service, query=None, server=None):
             return {'state': 'success'}
         return {'state': 'success', 'data': data}
     except Exception as error:
+        #TODO server logger
         return {'state': 'failed', 'reason': str(error)}
+
+async def action_control(params, query):
+    action = Action.find_entry(**query)
+    if action is None:
+        raise RuntimeError('camera not found')
+    if params['action'] == 'call':
+        action.call()
+    elif params['action'] == 'abort':
+        await action.abort()
+    else:
+        raise RuntimeError('action not implemented: '+params['action'])
 
 async def camera_control(params, query):
     camera = Camera.find_entry(**query)
