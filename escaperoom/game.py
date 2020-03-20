@@ -19,8 +19,8 @@ import sys
 
 class Cache:
 
-    def __init__(self):
-        self.directory = self._get_cache_dir()
+    def __init__(self, subdir):
+        self.directory = self._get_cache_dir() / subdir
         self.directory.mkdir(parents=True, exist_ok=True)
 
     def _get_cache_dir(self):
@@ -51,10 +51,9 @@ class Game(Registered):
         super().__init__(name)
         self.options.update(options)
         self._ready = ready
-        self._cache = Cache()
+        self._cache = Cache(subdir=self.name)
         self._chronometer = Chronometer('__game')
-        self._clue_history = History(self._cache.directory
-                                     / f'{self.name}_clues.hist')
+        self._clue_history = History(self._cache.directory / 'clues.hist')
 
     def __str__(self):
         return f'game "{self.name}"'
