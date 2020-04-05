@@ -10,50 +10,47 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import logging, logging.config
+import logging
 from collections import defaultdict
 
-from . import config
-
-
 ANSI = {
-    'reset' : '\033[0m',
-    'bold' : '\033[1m',
-    'black' : '\033[30m',
-    'red' : '\033[31m',
-    'green' : '\033[32m',
-    'yellow' : '\033[33m',
-    'blue' : '\033[34m',
-    'magenta' : '\033[35m',
-    'cyan' : '\033[36m',
-    'white' : '\033[37m',
-    'bright_black' : '\033[90m',
-    'bright_red' : '\033[91m',
-    'bright_green' : '\033[92m',
-    'bright_yellow' : '\033[93m',
-    'bright_blue' : '\033[94m',
-    'bright_magenta' : '\033[95m',
-    'bright_cyan' : '\033[96m',
-    'bright_white' : '\033[97m'
+    'reset': '\033[0m',
+    'bold': '\033[1m',
+    'black': '\033[30m',
+    'red': '\033[31m',
+    'green': '\033[32m',
+    'yellow': '\033[33m',
+    'blue': '\033[34m',
+    'magenta': '\033[35m',
+    'cyan': '\033[36m',
+    'white': '\033[37m',
+    'bright_black': '\033[90m',
+    'bright_red': '\033[91m',
+    'bright_green': '\033[92m',
+    'bright_yellow': '\033[93m',
+    'bright_blue': '\033[94m',
+    'bright_magenta': '\033[95m',
+    'bright_cyan': '\033[96m',
+    'bright_white': '\033[97m'
 }
 
 
 class ColoredFormatter(logging.Formatter):
 
     levelcolors = {
-            'ERROR' : ANSI['bold']+ANSI['bright_red'],
-            'WARNING' : ANSI['bold']+ANSI['bright_yellow'],
-            'INFO' : ANSI['bold']+ANSI['bright_black'],
-            'DEBUG' : ANSI['bold']+ANSI['bright_blue']
-        }
+        'ERROR': ANSI['bold'] + ANSI['bright_red'],
+        'WARNING': ANSI['bold'] + ANSI['bright_yellow'],
+        'INFO': ANSI['bold'] + ANSI['bright_black'],
+        'DEBUG': ANSI['bold'] + ANSI['bright_blue']
+    }
 
     _prefix = 'escaperoom.'
     namecolor = defaultdict(lambda: '', {
-            _prefix+'logic' : ANSI['cyan'],
-            _prefix+'misc' : ANSI['magenta'],
-            _prefix+'network' : ANSI['yellow'],
-            _prefix+'server' : ANSI['green']
-        })
+        _prefix + 'logic': ANSI['cyan'],
+        _prefix + 'misc': ANSI['magenta'],
+        _prefix + 'network': ANSI['yellow'],
+        _prefix + 'server': ANSI['green']
+    })
 
     def __init__(self, fmt=None, datefmt=None, style='%'):
         super().__init__(fmt=fmt, datefmt=datefmt, style=style)
@@ -64,4 +61,3 @@ class ColoredFormatter(logging.Formatter):
         record.levelname_pad = record.levelname.ljust(7)
         record.namecolor = self.namecolor[record.name]
         return super().format(record)
-

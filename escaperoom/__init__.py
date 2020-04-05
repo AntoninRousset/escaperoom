@@ -39,8 +39,24 @@ from .network import SerialBus, Device, device, SerialDevice
 from .server import HTTPServer
 from .subprocess import SubProcess 
 
+import signal
+
+def ask_exit(signame):
+    print("got signal %s: exit" % signame)
+    asyncio.get_event_loop().stop()
+
 def loop():
-    asyncio.get_event_loop().run_forever()
+
+    loop = asyncio.get_event_loop()
+
+    for signame in ('SIGINT', 'SIGTERM'):
+        loop.add_signal_handler(getattr(signal, signame),
+                                functools.partial(ask_exit, signame))
+
+    try:
+        loop.run_forever()
+    finally:
+        loop.close()
 
 def clean_up():
     asyncio.run_until_complete(Camera.close_all())
