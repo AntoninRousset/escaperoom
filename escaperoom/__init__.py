@@ -10,7 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import configparser, os, os.path
+import configparser, functools, os, os.path
 from pathlib import Path
 
 #TODO All config should be red in config.py
@@ -39,8 +39,17 @@ from .network import SerialBus, Device, device, SerialDevice
 from .server import HTTPServer
 from .subprocess import SubProcess 
 
+import signal
+
+def ask_exit(signame):
+    print("got signal %s: exit" % signame)
+    asyncio.get_event_loop().stop()
+
 def loop():
     loop = asyncio.get_event_loop()
+    for signame in ('SIGINT', 'SIGTERM'):
+        loop.add_signal_handler(getattr(signal, signame),
+                                functools.partial(ask_exit, signame))
     try:
         loop.run_forever()
     finally:
