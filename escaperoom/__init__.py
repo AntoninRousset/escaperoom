@@ -40,7 +40,12 @@ from .server import HTTPServer
 from .subprocess import SubProcess 
 
 def loop():
-    asyncio.get_event_loop().run_forever()
+    loop = asyncio.get_event_loop()
+    try:
+        loop.run_forever()
+    finally:
+        loop.run_until_complete(loop.shutdown_asyncgens())
+        loop.close()
 
 def clean_up():
     asyncio.run_until_complete(Camera.close_all())

@@ -101,7 +101,12 @@ async def game_control(params):
         options = params['options']
         await game.start(options)
     elif params['action'] == 'stop_game':
-        await game.stop(options)
+        print('stop game')
+        try:
+            await game.stop()
+        except Exception as e:
+            print('###', e)
+        print('game stopped')
     else:
         raise RuntimeError('action not implemented: '+params['action'])
 

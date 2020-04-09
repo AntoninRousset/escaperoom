@@ -23,8 +23,9 @@ setuptools.setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
-    python_requires='>=3.6, <3.7',
+    python_requires='>=3.6, <3.8',
     install_requires=[
         'aiortc>=0.9.22'
         'aiohttp>=3.6.1'

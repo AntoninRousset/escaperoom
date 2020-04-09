@@ -167,7 +167,7 @@ async def devices_reader():
     return {'devices' : devices}
 
 async def game_reader():
-    game = Game.find_entry('.*')
+    game = Game.get()
     return {
             'running' : game.running,
             'name' : game.name,

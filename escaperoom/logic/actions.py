@@ -47,23 +47,33 @@ class Action(Logic):
                 self._log_debug('start')
                 self._success.clear()
                 self.changed.notify_all()
-                try:
-                    if self.func is not None:
-                        self._task = asyncio.create_task(self.func(*self.args))
-                        await self._task
-                except asyncio.CancelledError:
-                    self._log_info('cancelled')
-                except Exception as e:
+            try:
+                if self.func is not None:
+                    self._task = asyncio.create_task(self.func(*self.args))
+                    await self._task
+            except asyncio.CancelledError:
+                self._log_info('cancelled')
+            except Exception as e:
+                async with self.changed:
                     self._failed.set()
                     self._log_warning(f'failed : {e}')
-                else:
+                    self.changed.notify_all()
+            else:
+                async with self.changed:
                     self._failed.clear()
                     self._success.set()
-                self._log_debug('end')
-                self.changed.notify_all()
+                    self.changed.notify_all()
+            self._log_debug('end')
 
     async def __call__(self):
         return await self._call()
+
+    async def _reset(self):
+        await self.stop()
+        try:
+            await self._task
+        except asyncio.CancelledError:
+            pass
 
     def call(self):
         return asyncio.create_task(self._call())

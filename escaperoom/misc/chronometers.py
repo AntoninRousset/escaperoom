@@ -36,6 +36,10 @@ class Chronometer(Misc):
             self.end_time = datetime.today()
             self.changed.notify_all()
 
+    async def _reset(self):
+        self.start_time = None
+        self.end_time = None
+
     @property
     def speed(self):
         return 1 if self.running else 0
@@ -115,3 +119,4 @@ class Timer(Chronometer):
     @property
     def time(self):
         return self.remaining
+

@@ -47,7 +47,7 @@ async def generator():
         yield event
 
 async def game_events(events_queue):
-    game = Game.find_entry('.*')
+    game = Game.get()
     while True:
         async with game.changed:
             await game.changed.wait()

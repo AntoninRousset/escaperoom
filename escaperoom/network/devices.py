@@ -351,7 +351,7 @@ class SerialDevice(Device):
 
     def __init__(self, name, *, desc=None, type='unknown', reset=False):
         super().__init__(name, desc=desc, type=type, reset=reset)
-        self._reset = asyncio.Event()
+        self._has_reset = asyncio.Event()
         self.addr = None
         if reset: asyncio.create_task(self.__reset_before_start())
 
@@ -365,7 +365,7 @@ class SerialDevice(Device):
             if self.name is None or self._attrs is None:
                 self._log_debug(f'incomplete desc') 
                 await self._send(f'get desc')
-                await asyncio.wait({asyncio.sleep(10), self._reset.wait()},
+                await asyncio.wait({asyncio.sleep(10), self._has_reset.wait()},
                                    return_when=asyncio.FIRST_COMPLETED)
             else:
                 async with self.changed:
@@ -386,7 +386,7 @@ class SerialDevice(Device):
                 if cos:
                     self._log_debug(f'incomplete attrs') 
                     await asyncio.gather(*cos)
-                    await asyncio.wait({asyncio.sleep(10), self._reset.wait()},
+                    await asyncio.wait({asyncio.sleep(10), self._has_reset.wait()},
                                        return_when=asyncio.FIRST_COMPLETED)
                 else:
                     async with self.changed:
@@ -496,8 +496,8 @@ class SerialDevice(Device):
         await self._send(f'reset')
         async with self.changed:
             self._attrs = None
-            self._reset.set()
-            self._reset.clear()
+            self._has_reset.set()
+            self._has_reset.clear()
             self.changed.notify_all()
             await asyncio.sleep(0)
 

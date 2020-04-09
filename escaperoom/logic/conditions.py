@@ -33,7 +33,13 @@ class Condition(BoolLogic):
         self.add_listens(listens)
         self._parents = set()
         self.add_parents(parents)
-        self._reset()
+
+        self._failed = False
+        self._desactivated = False
+        self.msg = None
+        self._force = None
+        self._state = self._initial_state
+
         asyncio.create_task(self.check())
 
     def __str__(self):
@@ -133,7 +139,7 @@ class Condition(BoolLogic):
             if self._set_state(state):
                 self.changed.notify_all()
 
-    def _reset(self):
+    async def _reset(self):
         self._failed = False
         self._desactivated = False
         self.msg = None

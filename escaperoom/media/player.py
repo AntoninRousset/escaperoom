@@ -15,7 +15,7 @@ import threading, json
 #import alsaaudio as alsa
 from tempfile import gettempdir
 
-from . import asyncio, logger
+from . import asyncio, logger, Media
 from ..subprocess import SubProcess
 from ..utils import ensure_iter
 
@@ -113,7 +113,7 @@ from sdl2.sdlmixer import *
 import ctypes
 import threading 
 
-class Audio():
+class Audio(Media):
 
     _channels_groups_lock = threading.Lock()
     _channels_groups = list()
@@ -144,6 +144,8 @@ class Audio():
             return len(cls._channels_groups) - 1
 
     def __init__(self, files, *, loop=False, loop_last=False):
+        files = ensure_iter(files)
+        super().__init__(', '.join(map(str, files)))
         self.loop = loop
         self.loop_last = loop_last
         self.__loop = asyncio.get_event_loop()
@@ -156,6 +158,9 @@ class Audio():
 
     def __bool__(self):
         return bool(self.__channels_group)
+
+    def __str__(self):
+        return f'sound "{self.name}"'
 
     async def wait(self):
         await self._ended.wait()
@@ -183,7 +188,7 @@ class Audio():
                 self.__loop.call_soon_threadsafe(self._ended.set)
 
     def _open(self, files):
-        for file in ensure_iter(files):
+        for file in files:
             sample = Mix_LoadWAV(byteify(str(file), 'utf-8'))
             if sample is None:
                 raise RuntimeError('Cannot open audio file: '+Mix_GetError())
@@ -201,14 +206,14 @@ class Audio():
         self._play(self._samples[0], loop=self.loop)
         return asyncio.create_task(self._ended.wait())
 
-    async def _stop(self):
+    async def _reset(self):
         self._stoping = True
         Mix_HaltGroup(self.__group_id)
         await self._ended.wait()
         self._stoping = False
 
     def stop(self):
-        return asyncio.create_task(self._stop())
+        return asyncio.create_task(self._reset())
 
 
 c_wrapper = ctypes.CFUNCTYPE(None, ctypes.c_int)

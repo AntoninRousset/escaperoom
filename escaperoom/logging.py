@@ -10,10 +10,8 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import logging, logging.config
+from logging import *
 from collections import defaultdict
-
-from . import config
 
 
 ANSI = {
@@ -38,7 +36,7 @@ ANSI = {
 }
 
 
-class ColoredFormatter(logging.Formatter):
+class ColoredFormatter(Formatter):
 
     levelcolors = {
             'ERROR' : ANSI['bold']+ANSI['bright_red'],

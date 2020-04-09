@@ -246,10 +246,10 @@ async def _new_packet(src, msg, *, random_wait=True):
 async def _events_creator():
     from .. import Game
     while True:
-        game = Game.find_entry('.*')
+        game = Game.get()
         if game is not None:
             break
-        await Game.group_changed().wait()
+        await asyncio.sleep(1)
     while True:
         vessel = Device.find_entry('vessel')
         if vessel is not None:
@@ -261,7 +261,6 @@ async def _events_creator():
 
     print('* starting events *')
     await asyncio.sleep(57)
-    await asyncio.sleep(1000000)
 
     print('* ignition *')
     await vessel.set_value('ignition', True)
@@ -278,7 +277,7 @@ async def _events_creator():
     print('* start *')
     await vessel.set_value('start', True)
     await vessel.set_value('start', False)
-    await asyncio.sleep(70)
+    await asyncio.sleep(100)
 
     print('* Remove fuse 1 *')
     _devices[6]['attrs'][0]['value'] = '0'

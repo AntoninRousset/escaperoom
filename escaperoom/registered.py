@@ -31,8 +31,7 @@ class Registered(ABC):
     def groups(cls):
         yield cls._groups[cls]
         for subcls in cls.__subclasses__():
-            if subcls in cls._groups:
-                yield cls._groups[subcls]
+            yield from subcls.groups()
 
     @classmethod
     def entries(cls):
@@ -92,10 +91,6 @@ class Registered(ABC):
     def _log_error(self, msg):
         self._logger.error(f'{self}: {msg}')
 
-    async def stop(self):
+    async def _reset(self):
         pass
-
-    async def reset(self):
-        pass
-
 

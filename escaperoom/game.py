@@ -10,6 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from . import asyncio
 from .misc import Chronometer, History
 from .registered import Registered
 
@@ -20,6 +21,8 @@ import sys
 class Cache:
 
     def __init__(self, subdir):
+        print(self._get_cache_dir())
+        print(subdir)
         self.directory = self._get_cache_dir() / subdir
         self.directory.mkdir(parents=True, exist_ok=True)
 
@@ -38,6 +41,8 @@ class Cache:
 
 class Game(Registered):
 
+    _current = None
+
     options = {
             'status': 'official',
             'n_player': 4,
@@ -47,12 +52,12 @@ class Game(Registered):
 
     @classmethod
     def get(cls):
-        return next(cls.entries())
+        return cls._current
 
     def __init__(self, name, *, options={}, ready=False):
-        if set(Game.entries()):
+        if self._current is not None:
             raise RuntimeError('There can be only one game running')
-        super().__init__(name)
+        super().__init__(name, register=False)
         self.options.update(options)
         self._ready = ready
         self._cache = Cache(subdir=self.name)
@@ -60,6 +65,7 @@ class Game(Registered):
         self.main_chronometer = None
         self.give_clue = None
         self._clue_history = History(self._cache.directory / 'clues.hist')
+        Game._current = self
 
     def __str__(self):
         return f'game "{self.name}"'
@@ -77,13 +83,15 @@ class Game(Registered):
             await self._chronometer.start()
             self.changed.notify_all()
 
-    async def stop(self, options):
-        pass
-        #await asyncio.wait(entry.stop() for entry in Registered.entries())
+    async def _reset(self):
+        await asyncio.wait({e.changed.acquire() for e in Registered.entries()})
+        await asyncio.wait({entry._reset() for entry in Registered.entries()})
+        {entry.changed.release() for entry in Registered.entries()}
 
-    async def reset(self, options):
-        pass
-        #await asyncio.wait(entry.reset() for entry in Registered.entries())
+    async def stop(self):
+        async with self.changed:
+            await self._reset()
+            self.changed.notify_all()
 
     @property
     def ready(self):
