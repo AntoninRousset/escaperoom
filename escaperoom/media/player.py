@@ -20,6 +20,8 @@ from ..subprocess import SubProcess
 from ..utils import ensure_iter
 
 
+aiom.MediaStreamTrack.stop = lambda: None #TMP, TODO
+
 def effect_worker(loop, track_in, track_out, effect, quit_event):
 
     while not quit_event.is_set():
@@ -35,7 +37,6 @@ class MediaPlayer(aiom.MediaPlayer):
                  video_effect=None):
 
         super().__init__(file, format, options)
-
         self.__audio_effect = audio_effect
         self.__video_effect = video_effect
         self.__audio_with_effect = aiom.PlayerStreamTrack(self, kind='audio')

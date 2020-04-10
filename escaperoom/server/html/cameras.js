@@ -68,22 +68,31 @@ CameraVideo = class CameraVideo extends HTMLElement {
     var error;
     super();
     this.got_tracks = this.got_tracks.bind(this);
+    this.video = this.create_video();
     try {
-      this.pc = new RTCPeerConnection();
-      this.pc.onnegotiationneeded = (event) => {
-        return this.negotiate();
-      };
-      this.pc.onicegatheringstatechange = (event) => {
-        if (this.pc.iceGatheringState === 'complete') {
-          return this.send_offer();
-        }
-      };
-      this.pc.ontrack = this.got_tracks;
+      this.pc = this.create_pc();
     } catch (error1) {
       error = error1;
       this.set_screen(error);
     }
-    this.video = this.create_video();
+  }
+
+  create_pc() {
+    var config, pc;
+    config = {
+      sdpSementics: 'unified-plan'
+    };
+    pc = new RTCPeerConnection();
+    pc.onnegotiationneeded = (event) => {
+      return this.negotiate();
+    };
+    pc.onicegatheringstatechange = (event) => {
+      if (pc.iceGatheringState === 'complete') {
+        return this.send_offer();
+      }
+    };
+    pc.ontrack = this.got_tracks;
+    return pc;
   }
 
   create_video() {
