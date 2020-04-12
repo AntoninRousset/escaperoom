@@ -12,6 +12,11 @@ class CamerasBox extends Subscriber
 			@cameras_list.setAttribute('visible', 'true')
 		@onmouseout = (event) ->
 			@cameras_list.setAttribute('visible', 'false')
+		@shadowRoot.querySelector('#buzzer').onclick = (event) ->
+			await post_control('/game', {action: 'buzzer'})
+
+	buzz: () ->
+
 
 	update: (datas) ->
 		@update_plugs(datas)

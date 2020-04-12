@@ -24,7 +24,14 @@ CamerasBox = class CamerasBox extends Subscriber {
     this.onmouseout = function(event) {
       return this.cameras_list.setAttribute('visible', 'false');
     };
+    this.shadowRoot.querySelector('#buzzer').onclick = async function(event) {
+      return (await post_control('/game', {
+        action: 'buzzer'
+      }));
+    };
   }
+
+  buzz() {}
 
   update(datas) {
     this.update_plugs(datas);
