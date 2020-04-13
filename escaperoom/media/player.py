@@ -44,7 +44,7 @@ class MediaPlayer(aiom.MediaPlayer):
     def __init__(self, file, format=None, options={}, audio_effect=None,
                  video_effect=None):
 
-        super().__init__(file, format, options)
+        super().__init__(str(file), format, options)
 
         self.__audio_effect = audio_effect
         self.__video_effect = video_effect
@@ -229,4 +229,3 @@ class Audio(Media):
 c_wrapper = ctypes.CFUNCTYPE(None, ctypes.c_int)
 c_func = c_wrapper(Audio._channel_finished)
 Mix_ChannelFinished(c_func)
-    
