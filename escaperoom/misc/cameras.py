@@ -89,7 +89,7 @@ class LocalCamera(Camera):
         async def on_iceconnectionstatechange():
             print('ice state:', pc.iceConnectionState)
             if pc.iceConnectionState == 'failed':
-                await self.close_pc(pc)
+                await self._close_pc(pc)
         return pc
 
     def _set_codec_preferences(self, transceiver):
@@ -122,9 +122,13 @@ class LocalCamera(Camera):
         return {'sdp': pc.localDescription.sdp,
                 'type': pc.localDescription.type}
 
-    async def close(self):
+
+    async def _close_pc(self, pc):
         await pc.close()
         self.pcs.discard(pc)
+
+    async def close(self):
+        await asyncio.wait({self._close_pc(pc) for pc in self.pcs})
 
     @property
     def audio(self):
