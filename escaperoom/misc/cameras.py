@@ -15,10 +15,12 @@ import aiortc
 import aiohttp
 import atexit
 import json
+import logging
 
 from . import asyncio, Misc
 from ..media import MediaPlayer
 
+logger = logging.getLogger('escaperoom.misc.cameras')
 
 
 class Camera(Misc):
@@ -51,10 +53,15 @@ class LocalCamera(Camera):
 
     def __init__(self, name, *, codec_prefs=None,
                  v_file, v_format=None, v_options={}, v_effect=None,
-                 a_file=None, a_format='alsa', a_options={}, a_effect=None):
+                 a_file=None, a_format='alsa', a_options={}, a_effect=None,
+                 v4l2_ctl=None):
         super().__init__(name)
         self.pcs = set()
         self.codec_prefs = dict() if codec_prefs is None else codec_prefs
+
+        if v4l2_ctl:
+            self.set_v4l2_ctl(v_file, v4l2_ctl)
+
         try:
             self.v_player = MediaPlayer(v_file, v_format, v_options,
                                         video_effect=v_effect,
@@ -65,6 +72,19 @@ class LocalCamera(Camera):
                 self.a_player = MediaPlayer(a_file, a_format, a_options)
         except Exception as e:
             self._log_error(f'Cannot open camera {e}')
+
+    @staticmethod
+    def set_v4l2_ctl(devfile, ctl):
+        from subprocess import run, PIPE, CalledProcessError
+        for k, v in ctl.items():
+            try:
+                run(['v4l2-ctl', '-d', str(devfile), '-c', f'{k}={v}'],
+                    stdout=PIPE, stderr=PIPE, check=True)
+            except CalledProcessError as e:
+                logger.exception(f'Failed to set v4l2-ctl {k}={v}:\n'
+                                 f'{e.stderr.decode()}')
+            except BaseException:
+                logger.exception(f'Failed to set v4l2-ctl {k}={v}')
 
     def _create_peer_connection(self):
         pc = aiortc.RTCPeerConnection()
