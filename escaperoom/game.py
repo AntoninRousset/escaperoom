@@ -86,7 +86,9 @@ class Game(Registered):
     async def _reset(self):
         await asyncio.wait({e.changed.acquire() for e in Registered.entries()})
         await asyncio.wait({entry._reset() for entry in Registered.entries()})
-        {entry.changed.release() for entry in Registered.entries()}
+        for entry in Registered.entries():
+            entry.changed.notify_all()
+            entry.changed.release()
 
     async def stop(self):
         async with self.changed:

@@ -12,6 +12,11 @@ class CamerasBox extends Subscriber
 			@cameras_list.setAttribute('visible', 'true')
 		@onmouseout = (event) ->
 			@cameras_list.setAttribute('visible', 'false')
+		@shadowRoot.querySelector('#buzzer').onclick = (event) ->
+			await post_control('/game', {action: 'buzzer'})
+
+	buzz: () ->
+
 
 	update: (datas) ->
 		@update_plugs(datas)
@@ -46,16 +51,23 @@ customElements.define('cameras-list', CamerasList)
 class CameraVideo extends HTMLElement
 	constructor: () ->
 		super()
+		@video = @create_video()
 		try
-			@pc = new RTCPeerConnection()
-			@pc.onnegotiationneeded = (event) => @negotiate()
-			@pc.onicegatheringstatechange = (event) =>
-				if @pc.iceGatheringState is 'complete'
-					@send_offer()
-			@pc.ontrack = @got_tracks
+			@pc = @create_pc()
 		catch error
 			@set_screen(error)
-		@video = @create_video()
+
+	create_pc: () ->
+		config = {
+			sdpSementics: 'unified-plan'
+		}
+		pc = new RTCPeerConnection()
+		pc.onnegotiationneeded = (event) => @negotiate()
+		pc.onicegatheringstatechange = (event) =>
+			if pc.iceGatheringState is 'complete'
+				@send_offer()
+		pc.ontrack = @got_tracks
+		pc
 
 	create_video: () ->
 		video = document.createElement('video')

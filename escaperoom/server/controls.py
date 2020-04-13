@@ -74,10 +74,9 @@ async def condition_control(params, query):
 
 async def cluesdisplay_control(params, query, server):
     if params['action'] == 'clue':
-        give_clue = server.give_clue
-        if give_clue is None:
+        if server.give_clue is None:
             raise RuntimeError('giving clue is not implemented by the room')
-        await give_clue(params['text'])
+        await server.give_clue(params['text'])
     else:
         raise RuntimeError('action not implemented: '+params['action'])
 
@@ -93,20 +92,18 @@ async def device_control(params, query):
         raise RuntimeError('action not implemented: '+params['action'])
 
 async def game_control(params):
-    try:
-        game = Game.get()
-    except StopIteration:
+    game = Game.get()
+    if game is None:
         raise KeyError('no game defined for the room')
     if params['action'] == 'new_game':
         options = params['options']
         await game.start(options)
     elif params['action'] == 'stop_game':
-        print('stop game')
-        try:
-            await game.stop()
-        except Exception as e:
-            print('###', e)
-        print('game stopped')
+        await game.stop()
+    elif params['action'] == 'buzzer':
+        if server.buzzer is None:
+            raise RuntimeError('buzzer is not implemented by the room')
+        await self.buzzer()
     else:
         raise RuntimeError('action not implemented: '+params['action'])
 

@@ -53,3 +53,9 @@ camera-video video:hover {
 #bigscreen {
 	flex: 1;
 }
+
+#buzzer {
+	position: absolute;
+	bottom: 1em;
+	right: 1em;
+}

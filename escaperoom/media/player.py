@@ -20,6 +20,8 @@ from ..subprocess import SubProcess
 from ..utils import ensure_iter
 
 
+aiom.MediaStreamTrack.stop = lambda: None #TMP, TODO
+
 def effect_worker(loop, track_in, track_out, effect, quit_event):
 
     print_warning = True
