@@ -24,10 +24,20 @@ aiom.MediaStreamTrack.stop = lambda: None #TMP, TODO
 
 def effect_worker(loop, track_in, track_out, effect, quit_event):
 
+    print_warning = True
+
     while not quit_event.is_set():
         future = asyncio.run_coroutine_threadsafe(track_in._queue.get(), loop)
         frame = future.result()
-        frame = effect(loop, frame)
+
+        try:
+            frame = effect(loop, frame)
+            print_warning = True
+        except BaseException:
+            if print_warning:
+                logger.exception('Failed to apply video effect')
+                print_warning = False
+
         asyncio.run_coroutine_threadsafe(track_out._queue.put(frame), loop)
 
 
@@ -36,7 +46,8 @@ class MediaPlayer(aiom.MediaPlayer):
     def __init__(self, file, format=None, options={}, audio_effect=None,
                  video_effect=None):
 
-        super().__init__(file, format, options)
+        super().__init__(str(file), format, options)
+
         self.__audio_effect = audio_effect
         self.__video_effect = video_effect
         self.__audio_with_effect = aiom.PlayerStreamTrack(self, kind='audio')
@@ -220,4 +231,3 @@ class Audio(Media):
 c_wrapper = ctypes.CFUNCTYPE(None, ctypes.c_int)
 c_func = c_wrapper(Audio._channel_finished)
 Mix_ChannelFinished(c_func)
-    
