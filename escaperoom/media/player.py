@@ -22,10 +22,19 @@ from ..utils import ensure_iter
 
 def effect_worker(loop, track_in, track_out, effect, quit_event):
 
+    apply_effect = True
+
     while not quit_event.is_set():
         future = asyncio.run_coroutine_threadsafe(track_in._queue.get(), loop)
         frame = future.result()
-        frame = effect(loop, frame)
+
+        if apply_effect:
+            try:
+                frame = effect(loop, frame)
+            except BaseException:
+                logger.exception('Failed to apply video effect')
+                apply_effect = False
+
         asyncio.run_coroutine_threadsafe(track_out._queue.put(frame), loop)
 
 
