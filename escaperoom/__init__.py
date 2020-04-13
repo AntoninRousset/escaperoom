@@ -36,32 +36,40 @@ from .logic import Action, action, Condition, condition
 from .misc import Camera, LocalCamera, RemoteCamera, LocalCluesDisplay, RemoteCluesDisplay, Chronometer, Timer
 from .media import Audio
 from .network import SerialBus, Device, device, SerialDevice
+from .registered import Registered
 from .server import HTTPServer
 from .subprocess import SubProcess 
 
-import signal
-
-def ask_exit(signame):
-    print("got signal %s: exit" % signame)
-    asyncio.get_event_loop().stop()
-
-def loop():
+def loop(*, debug=False): 
     loop = asyncio.get_event_loop()
-    for signame in ('SIGINT', 'SIGTERM'):
-        loop.add_signal_handler(getattr(signal, signame),
-                                functools.partial(ask_exit, signame))
     try:
+        loop.set_debug(debug)
         loop.run_forever()
+    except KeyboardInterrupt:
+        print('Keyboard interrupt')
     finally:
-        loop.run_until_complete(loop.shutdown_asyncgens())
-        loop.close()
+        try:
+            print('Attempting graceful shutdown', flush=True)
+            entries = asyncio.wait({e.close() for e in  Registered.entries()})
+            loop.run_until_complete(entries)
 
-def clean_up():
-    asyncio.run_until_complete(Camera.close_all())
-    asyncio.run_until_complete(SubProcess.terminate_all())
+            tasks = asyncio.gather(*asyncio.Task.all_tasks(loop),
+                                       return_exceptions=True)
+            import contextlib
+            with contextlib.suppress(asyncio.CancelledError):
+                tasks.cancel()
+                loop.run_until_complete(tasks)
+            loop.run_until_complete(loop.shutdown_asyncgens())
+        except Exception as e:
+            print('Graceful shutdown failed:', e.__repr__())
+            print('Hard shutdown')
+        finally:
+            loop.close()
 
-import atexit
-atexit.register(clean_up)
+
+async def clean_up():
+
+    await SubProcess.terminate_all()
 
 __all__ = ['Action', 'action', 'Condition', 'condition', 'Camera', 'asyncio',
            'LocalCamera', 'RemoteCamera', 'LocalCluesDisplay', 'Game', 'loop',

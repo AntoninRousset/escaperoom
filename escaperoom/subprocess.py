@@ -16,10 +16,6 @@ from .registered import Registered
 
 class SubProcess(Registered):
 
-    @classmethod
-    async def terminate_all(cls):
-        await asyncio.gather(*{entry.terminate() for entry in cls.entries()})
-
     def __init__(self, name, *args, **kwargs):
         super().__init__(name)
         self.sp = None
@@ -38,7 +34,7 @@ class SubProcess(Registered):
             await self.sp.wait()
             self._running.clear()
 
-    def terminate(self):
+    async def close(self):
         if self.sp is not None:
             self.sp.terminate()
             return asyncio.create_task(self.sp.wait())

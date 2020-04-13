@@ -94,3 +94,6 @@ class Registered(ABC):
     async def _reset(self):
         pass
 
+    async def close(self):
+        pass
+

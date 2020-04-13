@@ -23,10 +23,6 @@ from ..media import MediaPlayer
 
 class Camera(Misc):
 
-    @classmethod
-    async def close_all(cls):
-        await asyncio.gather(*{entry.close() for entry in cls.entries()})
-
     def __init__(self, name):
         super().__init__(name)
         self.connected = False
@@ -73,7 +69,7 @@ class LocalCamera(Camera):
         async def on_iceconnectionstatechange():
             print('ice state:', pc.iceConnectionState)
             if pc.iceConnectionState == 'failed':
-                await self._close_pc(pc)
+                await self.close_pc(pc)
         return pc
 
     def _set_codec_preferences(self, transceiver):
@@ -106,14 +102,9 @@ class LocalCamera(Camera):
         return {'sdp': pc.localDescription.sdp,
                 'type': pc.localDescription.type}
 
-    async def _close_pc(self, pc):
+    async def close(self):
         await pc.close()
         self.pcs.discard(pc)
-
-    def close(self):
-        async def _close():
-            await asyncio.gather(*{self._close_pc(pc) for pc in self.pcs})
-        return asyncio.create_task(_close())
 
     @property
     def audio(self):
