@@ -65,6 +65,7 @@ class Game(Registered):
         self.main_chronometer = None
         self.give_clue = None
         self._clue_history = History(self._cache.directory / 'clues.hist')
+        self.ended = asyncio.Event()
         Game._current = self
 
     def __str__(self):
@@ -94,6 +95,9 @@ class Game(Registered):
         async with self.changed:
             await self._reset()
             self.changed.notify_all()
+
+    async def end(self):
+        self.ended.set()
 
     @property
     def ready(self):

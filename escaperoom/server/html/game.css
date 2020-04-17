@@ -87,3 +87,8 @@ game-menu {
 	position: absolute;
 	margin: 15px;
 }
+
+#restart-button {
+	display: block;
+	margin: 10px;
+}

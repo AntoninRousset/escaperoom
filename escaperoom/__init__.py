@@ -44,7 +44,11 @@ def loop(*, debug=False):
     loop = asyncio.get_event_loop()
     try:
         loop.set_debug(debug)
-        loop.run_forever()
+        game = Game.get()
+        if game is None:
+            loop.run_forever()
+        else:
+            loop.run_until_complete(game.ended.wait())
     except KeyboardInterrupt:
         print('Keyboard interrupt')
     finally:

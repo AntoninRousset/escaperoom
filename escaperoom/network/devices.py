@@ -118,6 +118,7 @@ class Device(Network):
 
     @classmethod
     async def _download(cls, host):
+        loc = host+'/devices'
         async def fetch(loc):
             while True:
                 try:
@@ -126,7 +127,6 @@ class Device(Network):
                             return await resp.json()
                 except aiohttp.ClientConnectorError:
                     await asyncio.sleep(1)
-        loc = host+'/devices'
         async with cls._downloadings[loc]:
             data = await fetch(loc)
             for id in data['devices'].keys():
