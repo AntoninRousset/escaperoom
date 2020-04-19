@@ -17,7 +17,7 @@ from os.path import dirname
 
 from . import controls, events_generator, readers
 
-from .. import asyncio, LocalCamera, logging
+from .. import asyncio, logging
 from ..registered import Registered
 
 ROOT = dirname(__file__)
@@ -27,6 +27,7 @@ logger = logging.getLogger('escaperoom.server')
 routes = web.RouteTableDef()
 interface_routes = web.RouteTableDef()
 
+
 class Server(Registered):
 
     _logger = logger
@@ -35,6 +36,10 @@ class Server(Registered):
 @interface_routes.get('/')
 async def monitor(request):
     return web.FileResponse(f'{ROOT}/html/monitor.html')
+
+@routes.get('/favicon.svg')
+async def favicon(request):
+    return web.FileResponse(f'{ROOT}/html/icons/favicon.svg')
 
 @routes.get('/events')
 async def events(request):
