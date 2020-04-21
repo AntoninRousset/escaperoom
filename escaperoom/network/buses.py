@@ -10,8 +10,8 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from . import config
-if config['DEFAULT'].getboolean('test'):
+from . import storage
+if storage.config['DEFAULT'].getboolean('test'):
     from . import serial_test as serial
 else:
     import PJON_daemon_client as serial

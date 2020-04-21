@@ -10,37 +10,26 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import configparser, functools, os, os.path
-from pathlib import Path
+from . import storage
 
-#TODO All config should be red in config.py
-config = configparser.ConfigParser()
-ROOT = Path(os.path.dirname(__file__))
-config.read(Path(ROOT/'escaperoom.conf').resolve(), encoding='utf-8')
-
-for path in config['DEFAULT']['escaperoom_dir'], config['DEFAULT']['rooms_dir']:
-    try:
-        Path(path).expanduser().mkdir(parents=True, exist_ok=True)
-    except FileExistsError:
-        pass
-
-config.read(Path(config['DEFAULT']['conf_file']).expanduser(), encoding='utf-8')
-
+import logging
 from .logging import ColoredFormatter
-
-import logging.config
-logging.config.fileConfig(config) #TODO per room logging
-
 from .game import Game
 from .logic import Action, action, Condition, condition
-from .misc import Camera, LocalCamera, RemoteCamera, LocalCluesDisplay, RemoteCluesDisplay, Chronometer, Timer
+from .misc import Camera, LocalCamera, RemoteCamera, LocalCluesDisplay, \
+    RemoteCluesDisplay, Chronometer, Timer
 from .media import Audio
 from .network import SerialBus, Device, device, SerialDevice
 from .registered import Registered
 from .server import HTTPServer
-from .subprocess import SubProcess 
+from .subprocess import SubProcess
 
-def loop(*, debug=False): 
+import logging.config
+# TODO per room logging
+logging.config.fileConfig(storage.config)
+
+
+def loop(*, debug=False):
     loop = asyncio.get_event_loop()
     try:
         loop.set_debug(debug)
@@ -50,11 +39,11 @@ def loop(*, debug=False):
     finally:
         try:
             print('Attempting graceful shutdown', flush=True)
-            entries = asyncio.wait({e.close() for e in  Registered.entries()})
+            entries = asyncio.wait({e.close() for e in Registered.entries()})
             loop.run_until_complete(entries)
 
             tasks = asyncio.gather(*asyncio.Task.all_tasks(loop),
-                                       return_exceptions=True)
+                                   return_exceptions=True)
             import contextlib
             with contextlib.suppress(asyncio.CancelledError):
                 tasks.cancel()

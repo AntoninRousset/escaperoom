@@ -11,19 +11,23 @@
 '''
 
 from asyncio import *
-from asyncio import subprocess
+
 
 def call_soon(*args, **kwargs):
     return get_event_loop().call_soon(*args, **kwargs)
 
+
 def create_task(*args, **kwargs):
     return get_event_loop().create_task(*args, **kwargs)
+
 
 def run_until_complete(*args, **kwargs):
     return get_event_loop().run_until_complete(*args, **kwargs)
 
+
 def run_in_executor(*args, **kwargs):
     return get_event_loop().run_in_executor(*args, **kwargs)
+
 
 async def ensure_finished(cr):
     if isfuture(cr) or iscoroutine(cr):
@@ -31,8 +35,9 @@ async def ensure_finished(cr):
     else:
         return cr
 
-#Bypass asyncio bug
-async def wait_on_condition(condition: Condition, *, timeout=None):
+
+# Bypass asyncio bug
+async def wait_on_condition(condition, *, timeout=None):
     loop = get_event_loop()
     waiter = loop.create_future()
 
@@ -41,7 +46,7 @@ async def wait_on_condition(condition: Condition, *, timeout=None):
             waiter.set_result(None)
 
     if timeout is not None:
-            timeout_handle = loop.call_later(timeout, release_waiter)
+        timeout_handle = loop.call_later(timeout, release_waiter)
     wait_task = loop.create_task(condition.wait())
     wait_task.add_done_callback(release_waiter)
 

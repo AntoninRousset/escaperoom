@@ -10,7 +10,8 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from .. import asyncio, config, logging
+from .. import storage
+from .. import asyncio, logging
 from ..registered import Registered
 
 

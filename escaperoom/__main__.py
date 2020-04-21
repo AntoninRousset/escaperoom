@@ -15,7 +15,8 @@ from argparse import ArgumentParser
 from contextlib import contextmanager
 from pathlib import Path
 
-from . import asyncio, config, loop
+from . import storage
+from . import asyncio, loop
 from .subprocess import SubProcess
 
 ROOT = Path(os.path.dirname(__file__))
@@ -39,7 +40,7 @@ async def _room_executor(pythonpath, room_name):
 
 
 def launch_rooms(rooms_re):
-    rooms_dir = Path(config['DEFAULT']['rooms_dir']).expanduser()
+    rooms_dir = Path(storage.config['DEFAULT']['rooms_dir']).expanduser()
     rooms = set()
     for child in Path(rooms_dir).iterdir():
         room_name = child.stem
@@ -63,6 +64,7 @@ def main():
     args = get_args()
     rooms = launch_rooms('.*')
     loop()
+
 
 if __name__ == '__main__':
     main()
