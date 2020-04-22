@@ -35,7 +35,7 @@ from .game import Game
 from .logic import Action, action, Condition, condition
 from .misc import Camera, LocalCamera, RemoteCamera, LocalCluesDisplay, RemoteCluesDisplay, Chronometer, Timer
 from .media import Audio
-from .network import SerialBus, Device, device, SerialDevice
+from .network import SerialBus, Device, device, SerialDevice, Cluster
 from .registered import Registered
 from .server import HTTPServer
 from .subprocess import SubProcess 
