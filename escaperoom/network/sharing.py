@@ -22,6 +22,8 @@ from ..subprocess import SubProcess
 
 class Cluster(Network):
 
+    _locks = dict()
+
     class _Etcdctl():
 
         def __init__(self, *args, env=dict(), wait_terminate=False):
@@ -86,19 +88,15 @@ class Cluster(Network):
                 pass
             return asyncio.create_task(self.sp.wait())
 
-    class Lock():
-
-        # TODO Class-wide watching mechanism
-        # TODO Remove unverlying_lock when no more needed
-
-        _underlying_locks = defaultdict(asyncio.Lock)
+    class _Lock():
 
         def __init__(self, key):
-            self.key = Cluster.normalize_key(key)
+            self.key = key
 
             self._client = None
             self._lease_id = None
             self._locked = asyncio.Event()
+            self._underlying_lock = asyncio.Lock()
 
             asyncio.create_task(self._watching(self.lock_key))
 
@@ -130,17 +128,24 @@ class Cluster(Network):
                         print('error reading ttl:', repr(e))
 
         async def acquire(self):
-            async with self._underlying_lock:
+            await self._underlying_lock.acquire()
+            try:
                 self._client = await Cluster._Etcdctl('lock', str(self.key))
                 async for r in self._client.responses():
                     key, lease_id = r['kvs'][0]['key'].rsplit('/', 1)
                     if key == self.key:
                         await Cluster.set(self.lock_key, lease_id)
                         return await self._locked.wait()
+            except Exception:
+                if self._client is not None:
+                    self._client.terminate()
+                self._underlying_lock.release()
+                raise
 
         async def _release(self):
             await self._client.terminate()
             await Cluster.rem(self.lock_key)
+            self._underlying_lock.release()
 
         def release(self):
             if not self.locked():
@@ -151,10 +156,6 @@ class Cluster(Network):
 
         def locked(self):
             return self._locked.is_set()
-
-        @property
-        def _underlying_lock(self):
-            return self._underlying_locks[self.lock_key]
 
         @property
         def lock_key(self):
@@ -321,19 +322,26 @@ class Cluster(Network):
         if not key:
             raise RuntimeError('key cannot be empty')
 
-        if first:
-            try:
-                yield await Cluster.get(key)
-            except KeyError:
-                pass
-
         async with Cluster._Etcdctl('watch', str(key)) as client:
+            if first:
+                try:
+                    yield await Cluster.get(key)
+                except KeyError:
+                    pass
+
             async for r in client.responses(timeout=timeout):
                 for event in r['Events']:
                     if 'kv' in event:
                         kv = event['kv']
                         if 'key' in kv and kv['key'] == key:
                             yield kv.get('value')
+
+    @classmethod
+    def Lock(cls, key):
+        key = cls.normalize_key(key)
+        if key not in cls._locks:
+            cls._locks[key] = cls._Lock(key)
+        return cls._locks[key]
 
     @property
     def _etcd_listen_client_urls(self):
