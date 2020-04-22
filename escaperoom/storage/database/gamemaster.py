@@ -23,11 +23,11 @@ class GamemastersTable(DataTable):
 
         Parameters
         ----------
-        firstname: str
+        firstname : str
             The first name of the gamemaster.
-        lastname: str
+        lastname : str
             The last name of the gamemaster.
-        email: str
+        email : str
             The email adress of the gamemaster.
 
         Returns
@@ -35,9 +35,31 @@ class GamemastersTable(DataTable):
         gamemaster: GamemasterData
             The created gamemaster accessor.
         """
-        return await super().new(firstname=firstname,
+        return await super().new(email=email,
+                                 firstname=firstname,
                                  lastname=lastname,
-                                 email=email)
+                                 )
+
+    async def get_all(self):
+        """
+        Get all informations about all gamemasters.
+
+        Returns
+        -------
+        gamemasters : dict email -> dict('email', firstname', 'lastname')
+            All gamemasters informations
+        """
+
+        query = self.db.gamemasters.select()
+
+        def pack(email, firstname, lastname):
+            return {
+                'email': email,
+                'firstname': firstname,
+                'lastname': lastname,
+            }
+
+        return {info[0]: pack(*info) async for info in self.db.iterate(query)}
 
 
 class GamemasterData(DataRow):

@@ -38,6 +38,8 @@ async def read(service, query=None, server=None):
         return await condition_reader(query)
     if service == 'conditions':
         return await conditions_reader()
+    if service == 'gamemasters':
+        return await gamemasters_reader()
     raise KeyError(service)
 
 #TODO a reader should take a set of entries, like actions so it can be reused
@@ -155,24 +157,30 @@ async def device_reader(query):
             'type' : device.type,
             }
 
+
 async def devices_reader():
     devices = {
-            device.id : {
-                'name' : device.name,
-                'desc' : device.name if device.desc is None else device.desc,
-                'type' : '?' if device.type == 'unknown' else device.type,
-                'n_attr' : device.n_attr
+            device.id: {
+                'name': device.name,
+                'desc': device.name if device.desc is None else device.desc,
+                'type': '?' if device.type == 'unknown' else device.type,
+                'n_attr': device.n_attr
                 } for device in Device.entries()
             }
-    return {'devices' : devices}
+    return {'devices': devices}
+
 
 async def game_reader():
     game = Game.get()
     return {
-            'running' : game.running,
-            'name' : game.name,
-            'start_time' : datetime_to_string(game._chronometer.start_time),
-            'end_time' : datetime_to_string(game._chronometer.end_time),
-            'options' : game.options
+            'running': game.running,
+            'name': game.name,
+            'start_time': datetime_to_string(game._chronometer.start_time),
+            'end_time': datetime_to_string(game._chronometer.end_time),
+            'options': game.options,
             }
 
+
+async def gamemasters_reader():
+    from .. import storage
+    return await storage.data.db.gamemasters.get_all()

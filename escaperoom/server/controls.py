@@ -98,6 +98,9 @@ async def game_control(params):
     if params['action'] == 'new_game':
         options = params['options']
         await game.start(options)
+    elif params['action'] == 'update_game_options':
+        print(params)
+        await game.update_options(params['options'])
     elif params['action'] == 'stop_game':
         await game.stop()
     elif params['action'] == 'buzzer':

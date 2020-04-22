@@ -25,7 +25,7 @@ class GamesTable(DataTable):
 
                                Column('game_id', Integer, primary_key=True),
                                Column('room_name', String),
-                               Column('gamemaster_id', Integer),
+                               Column('gamemaster_email', String),
 
                                Column('group_name', String),
                                Column('group_size', Integer),
@@ -70,7 +70,7 @@ class GamesTable(DataTable):
                 raise ValueError(f'{ref} does not exists')
 
         return await super().new(room_name=room.room_name,
-                                 gamemaster_id=gamemaster.gamemaster_id,
+                                 gamemaster_email=gamemaster.gamemaster_email,
                                  creation_date=datetime.now())
 
 
@@ -117,7 +117,7 @@ class GameData(DataRow):
         gamemaster: GamemasterData
             Accessor the gamemaster responsible of this game.
         """
-        return self.db.gamemasters[await self.get('gamemaster_id')]
+        return self.db.gamemasters[await self.get('gamemaster_email')]
 
     async def new_clue(self, content):
         """

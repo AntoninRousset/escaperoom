@@ -26,73 +26,79 @@ class GameIssues extends Container
 customElements.define('game-issues', GameIssues)
 
 class GameMenu extends HTMLElement
-	constructor: () ->
-		super()
-		@querySelector('#game-option-timeout-enabled').onchange = (event) =>
-			@timeout_enabled_changed()
-		@querySelector('#game-option-reset').onclick = (event) =>
-			@read_options(@options)
-		@querySelector('#new-game').onclick = @new_game
-		@querySelector('#back-to-game').onclick = @back_to_game
-		@querySelector('#stop-game').onclick = @stop_game
+  constructor: () ->
+    super()
+    @querySelector('#game-option-test').onchange = (event) =>
+      console.log(event)
+    @querySelector('#game-option-reset').onclick = (event) =>
+      @read_options(@options)
+    @querySelector('#new-game').onclick = @new_game
+    @querySelector('#back-to-game').onclick = @back_to_game
+    @querySelector('#stop-game').onclick = @stop_game
 
-	update: (datas) ->
-		if not @options?
-			@read_options(datas.options)
-		@options = datas.options
-		if datas.running
-			@querySelector('#new-game').setAttribute('hidden', '')
-			@querySelector('#back-to-game').removeAttribute('hidden')
-			@querySelector('#stop-game').disabled = false
-			@querySelector('#game-options').disabled = true
-		else
-			@querySelector('#new-game').removeAttribute('hidden')
-			@querySelector('#back-to-game').setAttribute('hidden', '')
-			@querySelector('#stop-game').disabled = true
-			@querySelector('#game-options').disabled = false
+  update: (datas) ->
+    if not @options?
+      @read_options(datas.options)
+    @options = datas.options
+    if datas.running
+      @querySelector('#new-game').setAttribute('hidden', '')
+      @querySelector('#back-to-game').removeAttribute('hidden')
+      @querySelector('#stop-game').disabled = false
+      @querySelector('#game-options').disabled = true
+    else
+      @querySelector('#new-game').removeAttribute('hidden')
+      @querySelector('#back-to-game').setAttribute('hidden', '')
+      @querySelector('#stop-game').disabled = true
+      @querySelector('#game-options').disabled = false
 
-	timeout_enabled_changed: () ->
-		timeout_div = @querySelector('#game-option-timeout')
-		if timeout_div.querySelector('#game-option-timeout-enabled').checked
-			timeout_div.removeAttribute('disabled')
-			for node in timeout_div.children
-				node.removeAttribute('disabled')
-		else
-			timeout_div.setAttribute('disabled', true)
-			for node in timeout_div.children
-				node.setAttribute('disabled', true)
-		timeout_div.querySelector('#game-option-timeout-enabled').disabled = false
+  timeout_enabled_changed: () ->
+    timeout_div = @querySelector('#game-option-timeout')
+    if timeout_div.querySelector('#game-option-timeout-enabled').checked
+      timeout_div.removeAttribute('disabled')
+      for node in timeout_div.children
+        node.removeAttribute('disabled')
+    else
+      timeout_div.setAttribute('disabled', true)
+      for node in timeout_div.children
+        node.setAttribute('disabled', true)
+    timeout_div.querySelector('#game-option-timeout-enabled').disabled = false
 
-	read_options: (data) ->
-		@querySelector('#game-option-status').value = data.status
-		@querySelector('#game-option-number-player').value = data.n_player
-		@querySelector('#game-option-children').value = data.children_mode
-		@querySelector('#game-option-timeout-enabled').checked = data.timeout_enabled
-		@querySelector('#game-option-timeout-h').value = data.timeout.split(':')[0]
-		@querySelector('#game-option-timeout-m').value = data.timeout.split(':')[1]
-		@timeout_enabled_changed()
+  read_options: (data) ->
+    @querySelector('#game-option-status').value = data.status
+    @querySelector('#game-option-number-player').value = data.n_player
+    @querySelector('#game-option-children').value = data.children_mode
+    @querySelector('#game-option-timeout-enabled').checked = data.timeout_enabled
+    @querySelector('#game-option-timeout-h').value = data.timeout.split(':')[0]
+    @querySelector('#game-option-timeout-m').value = data.timeout.split(':')[1]
+    @timeout_enabled_changed()
 
-	new_game: () =>
-		@querySelector('#game-options').disabled = true
-		await post_control(@getAttribute('src'), {
-			action: 'new_game',
-			options: {
-				status: @querySelector('#game-option-status').value,
-				n_player: @querySelector('#game-option-number-player').value,
-				children_mode: @querySelector('#game-option-children').checked,
-				timeout_enabled: @querySelector('#game-option-timeout-enabled').value,
-				timeout: '00:'+@querySelector('#game-option-timeout-h').value.padStart(2, '0')+':'+@querySelector('#game-option-timeout-m').value.padStart(2, '0')
-			}
-		})
-		document.querySelector('game-box').current_screen = 'puzzles'
+  update_options: () ->
+    @querySelector('#game-option-test').value = data.status
+    @querySelector('#game-option-numberb-players').value = data.status
+    @querySelector('#game-option-gamemaster').value = data.status
+    @
 
-	back_to_game: () =>
-		game_box = document.querySelector('game-box')
-		game_box.current_screen = 'puzzles'
-		game_box.set_screen(game_box.current_screen)
+  new_game: () =>
+    @querySelector('#game-options').disabled = true
+    await post_control(@getAttribute('src'), {
+      action: 'new_game',
+      options: {
+        status: @querySelector('#game-option-status').value,
+        n_player: @querySelector('#game-option-number-player').value,
+        children_mode: @querySelector('#game-option-children').checked,
+        timeout_enabled: @querySelector('#game-option-timeout-enabled').value,
+        timeout: '00:'+@querySelector('#game-option-timeout-h').value.padStart(2, '0')+':'+@querySelector('#game-option-timeout-m').value.padStart(2, '0')
+      }
+    })
+    document.querySelector('game-box').current_screen = 'puzzles'
 
-	stop_game: () =>
-		post_control(@getAttribute('src'), {action: 'stop_game'})
+  back_to_game: () =>
+    game_box = document.querySelector('game-box')
+    game_box.current_screen = 'puzzles'
+    game_box.set_screen(game_box.current_screen)
+
+  stop_game: () =>
+    post_control(@getAttribute('src'), {action: 'stop_game'})
 
 customElements.define('game-menu', GameMenu)
 

@@ -13,36 +13,128 @@
 from . import asyncio
 from .misc import Chronometer
 from .registered import Registered
+from datetime import date
 
-from pathlib import Path
-import sys
+
+class GameOptionEditionError(Exception):
+    pass
+
+
+class GameOptionList(set):
+
+    def __init__(self, *args):
+        super().__init__(GameOption(opt) for opt in args)
+
+    def __getitem__(self, k):
+        k = GameOption(k)
+        if k in self:
+            return k._match
+        raise KeyError(k)
+
+    def __setitem__(self, k, v):
+        if k not in self:
+            raise KeyError(k)
+        opt = k._match
+        if not opt.editable:
+            raise GameOptionEditionError(k)
+        opt.value.set(v)
+
+    def mandatory(self):
+        return (opt for opt in self if opt.mandatory)
+
+    def ready(self):
+        return all(self.mandatory)
+
+    def __json__(self):
+        return {opt.name: opt.value for opt in self}
+
+
+class GameOption:
+
+    def __init__(self, name, db_type=None, value=None, *, db_name=None,
+                 editable=True, mandatory=False):
+
+        if isinstance(name, GameOption):
+            opt = name
+            self.name = opt.name
+            self.db_type = opt.db_type
+            self.value = opt.value
+            self.db_name = opt.db_name
+            self.editable = opt.editable
+            self.mandatory = opt.mandatory
+        else:
+            if db_type is None:
+                raise ValueError('db_type must be set')
+            self.name = name
+            self.db_type = db_type
+            self.value = value
+            self.db_name = db_name
+            self.editable = editable
+            self.mandatory = mandatory
+
+        # little trick to be accesses by equivalent element
+        self._math = None
+
+    def get(self):
+        return self.value
+
+    def set(self, v):
+        if v is None:
+            self.value = None
+        else:
+            self.value = self.db_type(v)
+
+    def __equ__(self, opt):
+        if isinstance(opt, str):
+            equ = (self.name == opt)
+        elif isinstance(opt, GameOption):
+            equ = (self.name == opt.name)
+        else:
+            raise TypeError(type(opt))
+        if equ:
+            self._match = opt
+        return equ
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __bool__(self):
+        return self.value is not None
 
 
 class Game(Registered):
 
     _current = None
 
-    options = {
-            'status': 'official',
-            'n_player': 4,
-            'timeout_enabled': True,
-            'timeout': '01:00:00'
-        }
+    options = GameOptionList(
+        GameOption('gamemaster', str, mandatory=True),
+        GameOption('test', bool, mandatory=True),
+        GameOption('group_name', str),
+        GameOption('group_size', int),
+        GameOption('leader_firstname', str),
+        GameOption('leader_lastname', str),
+        GameOption('leader_email', str),
+        GameOption('leader_postcode', int),
+        GameOption('planned_date', date),
+        GameOption('comments', str),
+    )
 
     @classmethod
     def get(cls):
         return cls._current
 
-    def __init__(self, name, *, options={}, ready=False):
+    def __init__(self, name, *, ready=False):
+
         if self._current is not None:
             raise RuntimeError('There can be only one game running')
+
         super().__init__(name, register=False)
-        self.options.update(options)
-        self._ready = ready
+
         self._chronometer = Chronometer('__game')
         self.main_chronometer = None
         self.give_clue = None
         Game._current = self
+        self.data = None
 
     def __str__(self):
         return f'game "{self.name}"'
@@ -50,9 +142,10 @@ class Game(Registered):
     def __bool__(self):
         return self.running
 
-    async def set_ready(self, state=True):
+    async def update_options(self, **kwargs):
         async with self.changed:
-            self._ready = state
+            for k, v in kwargs:
+                self.options[k] = v
             self.changed.notify_all()
 
     async def start(self, options):
@@ -74,7 +167,7 @@ class Game(Registered):
 
     @property
     def ready(self):
-        return self._ready
+        return self.options.ready()
 
     @property
     def running(self):
