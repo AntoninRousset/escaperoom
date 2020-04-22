@@ -22,20 +22,21 @@ class RoomsTable(DataTable):
 
     def __new__(cls, db):
         return super().__new__(cls, 'rooms', db, RoomData,
-                               Column('room_id', Integer, primary_key=True),
-                               Column('name', String),
+                               Column('room_name', String, primary_key=True),
                                Column('opening_date', Date),
                                Column('max_nb_players', Integer),
                                Column('duration', Interval),
                                )
 
-    async def new(self, name, opening_date, max_nb_players, duration):
+    async def new(self, room_name, opening_date, max_nb_players, duration):
         """
         Creates a new room in the table.
 
+        Raise an IntegrityError if room_name already exists.
+
         Parameters
         ----------
-        name : str
+        name_name : str
             Room name.
         opening_date : datetime.date
             Official opening date.
@@ -49,7 +50,7 @@ class RoomsTable(DataTable):
         game : GameData
             The created game accessor.
         """
-        return await super().new(name=name,
+        return await super().new(room_name=room_name,
                                  opening_date=opening_date,
                                  max_nb_players=max_nb_players,
                                  duration=duration)
@@ -60,22 +61,22 @@ class RoomData(DataRow):
     Accessor for a room.
     """
 
-    def __init__(self, room_id, rooms_table=None):
+    def __init__(self, room_name, rooms_table=None):
         """
         Parameters
         ----------
-        room_id : integer or RoomData
+        room_name: str or RoomData
             Key for the room row. If a RoomData is given, the latter is copied
             and rooms_table can be omitted.
         rooms_table : RoomsTable
-            Accessor to the rooms table. Can be ommited if room_id is a
+            Accessor to the rooms table. Can be ommited if room_name is a
             RoomData.
         """
 
-        super().__init__(room_id, rooms_table)
+        super().__init__(room_name, rooms_table)
 
     @property
-    def room_id(self):
+    def room_name(self):
         return self.key[0]
 
     async def new_game(self, gamemaster):
@@ -110,7 +111,7 @@ class RoomData(DataRow):
         """
 
         games = self.db.games
-        cond = games.c['room_id'] == self.room_id
+        cond = games.c['room_name'] == self.room_name
         query = select([games.c['game_id']]).where(cond)
 
         if gamemaster is not None:

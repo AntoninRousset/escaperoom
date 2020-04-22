@@ -73,8 +73,13 @@ class DataTable(sql.Table):
         row : DataRow sub-types
             Corresponding row accessor.
         """
-        res = await self.db.execute(self.insert(), values=kwargs)
-        return self.row_type(res, self)
+
+        from sqlalchemy import select, text
+
+        rowid = await self.db.execute(self.insert(), values=kwargs)
+        query = select(self.primary_key).where(text(f'rowid == {rowid}'))
+        key = await self.db.fetch_one(query)
+        return self.row_type(key, self)
 
     async def __aiter__(self):
         select = sql.select(self.primary_key)
@@ -115,6 +120,9 @@ class DataRow:
 
         if isinstance(key, dict):
             key = [key[c.name] for c in self.table.primary_key]
+
+        if isinstance(key, str):
+            key = [key]
 
         try:
             key = tuple(key)

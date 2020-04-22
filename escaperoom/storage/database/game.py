@@ -24,7 +24,7 @@ class GamesTable(DataTable):
         return super().__new__(cls, 'games', db, GameData,
 
                                Column('game_id', Integer, primary_key=True),
-                               Column('room_id', Integer),
+                               Column('room_name', String),
                                Column('gamemaster_id', Integer),
 
                                Column('group_name', String),
@@ -69,7 +69,7 @@ class GamesTable(DataTable):
             if not await ref.exists():
                 raise ValueError(f'{ref} does not exists')
 
-        return await super().new(room_id=room.room_id,
+        return await super().new(room_name=room.room_name,
                                  gamemaster_id=gamemaster.gamemaster_id,
                                  creation_date=datetime.now())
 
@@ -106,7 +106,7 @@ class GameData(DataRow):
         room: RoomData
             Accessor the room in which the game is played.
         """
-        return self.db.rooms[await self.get('room_id')]
+        return self.db.rooms[await self.get('room_name')]
 
     async def get_gamemaster(self):
         """
