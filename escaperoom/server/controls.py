@@ -37,8 +37,9 @@ async def control(params, service, query=None, server=None):
             return {'state': 'success'}
         return {'state': 'success', 'data': data}
     except Exception as error:
-        #TODO server logger
+        # TODO server logger
         return {'state': 'failed', 'reason': str(error)}
+
 
 async def action_control(params, query):
     action = Action.find_entry(**query)
@@ -51,11 +52,13 @@ async def action_control(params, query):
     else:
         raise RuntimeError('action not implemented: '+params['action'])
 
+
 async def camera_control(params, query):
     camera = Camera.find_entry(**query)
     if camera is None:
         raise RuntimeError('camera not found')
     return await camera.handle_sdp(params['sdp'], params['type'])
+
 
 async def condition_control(params, query):
     condition = Condition.find_entry(**query)
@@ -72,6 +75,7 @@ async def condition_control(params, query):
     else:
         raise RuntimeError('action not implemented: '+params['action'])
 
+
 async def cluesdisplay_control(params, query, server):
     if params['action'] == 'clue':
         if server.give_clue is None:
@@ -79,6 +83,7 @@ async def cluesdisplay_control(params, query, server):
         await server.give_clue(params['text'])
     else:
         raise RuntimeError('action not implemented: '+params['action'])
+
 
 async def device_control(params, query):
     device = Device.find_entry(**query)
@@ -91,6 +96,7 @@ async def device_control(params, query):
     else:
         raise RuntimeError('action not implemented: '+params['action'])
 
+
 async def game_control(params):
     game = Game.get()
     if game is None:
@@ -98,12 +104,14 @@ async def game_control(params):
     if params['action'] == 'new_game':
         options = params['options']
         await game.start(options)
-    elif params['action'] == 'update_game_options':
-        print(params)
-        await game.update_options(params['options'])
+
+    elif params['action'] == 'update_options':
+        await game.update_options(**params['options'])
+
     elif params['action'] == 'stop_game':
         await game.stop()
     elif params['action'] == 'buzzer':
+        # TODO buzzer and self do not exist
         if server.buzzer is None:
             raise RuntimeError('buzzer is not implemented by the room')
         await self.buzzer()

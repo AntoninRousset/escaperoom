@@ -46,77 +46,100 @@ customElements.define('game-issues', GameIssues);
 
 GameMenu = class GameMenu extends HTMLElement {
   constructor() {
+    var e, i, len, ref;
     super();
     this.new_game = this.new_game.bind(this);
     this.back_to_game = this.back_to_game.bind(this);
     this.stop_game = this.stop_game.bind(this);
-    this.querySelector('#game-option-timeout-enabled').onchange = (event) => {
-      return this.timeout_enabled_changed();
-    };
-    this.querySelector('#game-option-reset').onclick = (event) => {
-      return this.read_options(this.options);
-    };
-    this.querySelector('#new-game').onclick = this.new_game;
-    this.querySelector('#back-to-game').onclick = this.back_to_game;
-    this.querySelector('#stop-game').onclick = this.stop_game;
+    ref = this.query_all_options_elements();
+    // listen to all changes on game options
+    for (i = 0, len = ref.length; i < len; i++) {
+      e = ref[i];
+      e.onchange = (event) => {
+        return this.post_input_element(event.target);
+      };
+      e.onkeyup = (event) => {
+        if (event.key === "Escape") {
+          this.sync();
+          return event.target.blur();
+        }
+      };
+    }
   }
 
-  update(datas) {
-    if (this.options == null) {
-      this.read_options(datas.options);
-    }
-    this.options = datas.options;
-    if (datas.running) {
+  
+  //@querySelector('#game-option-reset').onclick = (event) =>
+  //  @read_options(@options)
+  //@querySelector('#new-game').onclick = @new_game
+  //@querySelector('#back-to-game').onclick = @back_to_game
+  //@querySelector('#stop-game').onclick = @stop_game
+  query_all_options_elements() {
+    var all, selector;
+    selector = '.game-option > input:not([type=button]), .game-option > select';
+    all = this.querySelectorAll(selector);
+    console.log(selector);
+    console.log(all);
+    return all;
+  }
+
+  async post_input_element(e) {
+    e.setCustomValidity('Invalid');
+    return (await post_control(this.getAttribute('src'), {
+      action: 'update_options',
+      options: {
+        [e.name]: e.value
+      }
+    }));
+  }
+
+  sync() {
+    return document.querySelector('game-box').sync();
+  }
+
+  update(data) {
+    this.update_options(data.game.options, data.gamemasters);
+    if (data.game.running) {
       this.querySelector('#new-game').setAttribute('hidden', '');
       this.querySelector('#back-to-game').removeAttribute('hidden');
       this.querySelector('#stop-game').disabled = false;
-      return this.querySelector('#game-options').disabled = true;
+      return this.querySelector('#game-creation').disabled = true;
     } else {
       this.querySelector('#new-game').removeAttribute('hidden');
       this.querySelector('#back-to-game').setAttribute('hidden', '');
       this.querySelector('#stop-game').disabled = true;
-      return this.querySelector('#game-options').disabled = false;
+      return this.querySelector('#game-creation').disabled = false;
     }
   }
 
-  timeout_enabled_changed() {
-    var i, j, len, len1, node, ref, ref1, timeout_div;
-    timeout_div = this.querySelector('#game-option-timeout');
-    if (timeout_div.querySelector('#game-option-timeout-enabled').checked) {
-      timeout_div.removeAttribute('disabled');
-      ref = timeout_div.children;
-      for (i = 0, len = ref.length; i < len; i++) {
-        node = ref[i];
-        node.removeAttribute('disabled');
-      }
-    } else {
-      timeout_div.setAttribute('disabled', true);
-      ref1 = timeout_div.children;
-      for (j = 0, len1 = ref1.length; j < len1; j++) {
-        node = ref1[j];
-        node.setAttribute('disabled', true);
-      }
+  update_options(options, gamemasters) {
+    var e, email, gm, gmselect, k, opt, results, v;
+    // set gamemasters list
+    gmselect = this.querySelector('#game-option-gamemaster');
+    gmselect.innerHTML = '';
+    for (email in gamemasters) {
+      gm = gamemasters[email];
+      opt = document.createElement('option');
+      opt.value = email;
+      opt.innerHTML = gm.firstname + ' ' + gm.lastname;
+      gmselect.appendChild(opt);
     }
-    return timeout_div.querySelector('#game-option-timeout-enabled').disabled = false;
-  }
-
-  read_options(data) {
-    this.querySelector('#game-option-status').value = data.status;
-    this.querySelector('#game-option-number-player').value = data.n_player;
-    this.querySelector('#game-option-children').value = data.children_mode;
-    this.querySelector('#game-option-timeout-enabled').checked = data.timeout_enabled;
-    this.querySelector('#game-option-timeout-h').value = data.timeout.split(':')[0];
-    this.querySelector('#game-option-timeout-m').value = data.timeout.split(':')[1];
-    return this.timeout_enabled_changed();
+// set fields values
+    results = [];
+    for (k in options) {
+      v = options[k];
+      e = this.querySelector('#game-option-' + k);
+      e.value = v;
+      results.push(e.setCustomValidity(''));
+    }
+    return results;
   }
 
   async new_game() {
     boundMethodCheck(this, GameMenu);
-    this.querySelector('#game-options').disabled = true;
+    this.querySelector('#game-creation').disabled = true;
     await post_control(this.getAttribute('src'), {
       action: 'new_game',
       options: {
-        status: this.querySelector('#game-option-status').value,
         n_player: this.querySelector('#game-option-number-player').value,
         children_mode: this.querySelector('#game-option-children').checked,
         timeout_enabled: this.querySelector('#game-option-timeout-enabled').value,

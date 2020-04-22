@@ -59,12 +59,20 @@ game-menu {
 	margin: 12px 0px;
 }
 
-#game-option-timeout-enabled {
-	vertical-align: middle;
+.game-option input[type=text] {
+  width: 100px;
 }
 
-#game-option-number-player, #game-option-timeout-h, #game-option-timeout-m {
-	width: 2.5em;
+.game-option select {
+  width: 120px;
+}
+
+.game-option input[type=number] {
+  width: 54px;
+}
+
+.game-option input[type=checkbox] {
+	vertical-align: middle;
 }
 
 #game-option-reset {

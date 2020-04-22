@@ -168,9 +168,8 @@ async def devices_reader():
 
 
 async def game_reader():
-    return Game.get()
-
-
-async def gamemasters_reader():
     from .. import storage
-    return await storage.data.db.gamemasters.get_all()
+    return {
+        'game': Game.get(),
+        'gamemasters': await storage.data.db.gamemasters.get_all(),
+    }

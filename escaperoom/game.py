@@ -32,12 +32,14 @@ class GameOptionList(set):
         raise KeyError(k)
 
     def __setitem__(self, k, v):
-        if k not in self:
-            raise KeyError(k)
-        opt = k._match
-        if not opt.editable:
-            raise GameOptionEditionError(k)
-        opt.value.set(v)
+
+        for opt in self:
+            if opt == k:
+                if not opt.editable:
+                    raise GameOptionEditionError(k)
+                return opt.set(v)
+
+        raise KeyError(k)
 
     def mandatory(self):
         return (opt for opt in self if opt.mandatory)
@@ -72,9 +74,6 @@ class GameOption:
             self.editable = editable
             self.mandatory = mandatory
 
-        # little trick to be accesses by equivalent element
-        self._math = None
-
     def get(self):
         return self.value
 
@@ -84,7 +83,7 @@ class GameOption:
         else:
             self.value = self.db_type(v)
 
-    def __equ__(self, opt):
+    def __eq__(self, opt):
         if isinstance(opt, str):
             equ = (self.name == opt)
         elif isinstance(opt, GameOption):
@@ -144,7 +143,7 @@ class Game(Registered):
 
     async def update_options(self, **kwargs):
         async with self.changed:
-            for k, v in kwargs:
+            for k, v in kwargs.items():
                 self.options[k] = v
             self.changed.notify_all()
 
