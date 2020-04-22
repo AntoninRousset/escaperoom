@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from .table import DataTable, DataRow
-from sqlalchemy import Column, Integer, String, select
+from sqlalchemy import Column, String, select
 
 
 class GamemastersTable(DataTable):
@@ -12,14 +12,12 @@ class GamemastersTable(DataTable):
         Accessor for the gamemasters table.
         """
         return super().__new__(cls, 'gamemasters', db, GamemasterData,
-                               Column('gamemaster_id', Integer,
-                                      primary_key=True),
+                               Column('email', String, primary_key=True),
                                Column('firstname', String),
                                Column('lastname', String),
-                               Column('email', String),
                                )
 
-    async def new(self, firstname, lastname, email):
+    async def new(self, email, firstname, lastname):
         """
         Creates a new gamemaster in the table.
 
