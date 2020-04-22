@@ -172,3 +172,12 @@ class Game(Registered):
     @property
     def running(self):
         return self._chronometer.running
+
+    def __json__(self):
+        return {
+            'running': self.running,
+            'name': self.name,
+            'start_time': self._chronometer.start_time,
+            'end_time': self._chronometer.end_time,
+            'options': self.options,
+        }

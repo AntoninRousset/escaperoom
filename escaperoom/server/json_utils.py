@@ -2,14 +2,17 @@
 # -*- coding: utf-8 -*-
 
 from json import dumps
+from datetime import datetime
 
 
 def to_json(obj):
     """
     Serialize obj to a JSON formatted str.
 
-    This function extends the serializable obj to any obj implementing a
-    __json__ method. The latter function must take no arguments except self and
+    This function extends the serializable obj types, adding:
+        - datetime.datetime
+        - any obj implementing __json__
+    The __json__ method must not take any arguments except self and
     must return any json compatible obj: str, int, float, bool, None.
 
     Parameters
@@ -24,6 +27,10 @@ def to_json(obj):
     """
 
     def default(obj):
+
+        if isinstance(obj, datetime):
+            return obj.strftime('%H:%M')
+
         try:
             return obj.__json__()
         except AttributeError:

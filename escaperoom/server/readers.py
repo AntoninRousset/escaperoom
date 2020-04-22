@@ -15,9 +15,6 @@ from ..logic import Action, Condition
 from ..misc import Camera, Chronometer
 from ..network import Device
 
-def datetime_to_string(datetime):
-    if datetime is not None:
-        return datetime.strftime('%H:%M')
 
 async def read(service, query=None, server=None):
     if service == 'actions':
@@ -171,14 +168,7 @@ async def devices_reader():
 
 
 async def game_reader():
-    game = Game.get()
-    return {
-            'running': game.running,
-            'name': game.name,
-            'start_time': datetime_to_string(game._chronometer.start_time),
-            'end_time': datetime_to_string(game._chronometer.end_time),
-            'options': game.options,
-            }
+    return Game.get()
 
 
 async def gamemasters_reader():
