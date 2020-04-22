@@ -73,9 +73,11 @@ class Cluster(Network):
                 line = (await self.sp.communicate(input=msg.encode()))[0]
             return self._decode(line)
 
-        async def responses(self):
+        async def responses(self, *, timeout=None):
             while True:
-                yield self._decode(await self.sp.stdout.readline())
+                p = self.sp.stdout
+                line = await asyncio.wait_for(p.readline(), timeout=timeout)
+                yield self._decode(line)
 
         def terminate(self):
             try:
@@ -86,43 +88,46 @@ class Cluster(Network):
 
     class Lock():
 
+        # TODO Class-wide watching mechanism
+        # TODO Remove unverlying_lock when no more needed
+
         _underlying_locks = defaultdict(asyncio.Lock)
 
-        def __init__(self, key, *, wait_release=False):
+        def __init__(self, key):
             self.key = Cluster.normalize_key(key)
-            self.wait_release = wait_release
 
             self._client = None
-            self._alive = asyncio.Event()
-            # asyncio.create_task(self._watching(self.lock_key))
+            self._lease_id = None
+            self._locked = asyncio.Event()
+
+            asyncio.create_task(self._watching(self.lock_key))
 
         async def __aenter__(self):
             await self.acquire()
 
         async def __aexit__(self, exc_type, exc, tb):
-            w = self.release()
-            if self.wait_release:
-                await w
+            self.release()
 
         async def _watching(self, lock_key):
+            async def read_ttl(lease_id):
+                async with Cluster._Etcdctl('lease', 'timetolive',
+                                            lease_id) as client:
+                    async for r in client.responses():
+                        if 'ttl' in r:
+                            return int(r['ttl'])
+                        return None
+
             ttl = None
             async for lease_id in Cluster.watch(lock_key, timeout=ttl):
-                print('lease_id:', lease_id)
+                self._lease_id = lease_id
                 if lease_id is None:
-                    self._alive.clear()
+                    self._locked.clear()
                 else:
-                    sp = await asyncio.create_subprocess_exec(
-                        *(Cluster.CLIENT_EXEC['args']), 'lease', 'timetolive',
-                        lease_id,
-                        stdout=asyncio.subprocess.PIPE,
-                        env=Cluster.CLIENT_EXEC.get('env')
-                        )
-                    line = (await sp.communicate())[0]
+                    self._locked.set()
                     try:
-                        r = Cluster._decode_etcd_resp(line)
-                        ttl = int(r['ttl'])
-                    except Exception as e:
-                        raise RuntimeError(f'cannot set value: {repr(e)}')
+                        ttl = await read_ttl(lease_id)
+                    except Exception as e:  # TMP?, may fail
+                        print('error reading ttl:', repr(e))
 
         async def acquire(self):
             async with self._underlying_lock:
@@ -130,27 +135,34 @@ class Cluster(Network):
                 async for r in self._client.responses():
                     key, lease_id = r['kvs'][0]['key'].rsplit('/', 1)
                     if key == self.key:
-                        return await Cluster.set(self.lock_key, lease_id)
+                        await Cluster.set(self.lock_key, lease_id)
+                        return await self._locked.wait()
 
         async def _release(self):
-            if self._client is not None:
-                await self._client.terminate()
-            asyncio.create_task(Cluster.rem(self.lock_key))
+            await self._client.terminate()
+            await Cluster.rem(self.lock_key)
 
-        def release(self):  # TODO self.locked() and exceptions
+        def release(self):
+            if not self.locked():
+                raise RuntimeError('releasing unacquired lock')
+            if self._client is None:
+                raise RuntimeError('cannot release stranger\'s lock')
             return asyncio.create_task(self._release())
 
         def locked(self):
-            raise RuntimeError('Not implemented')
-            # TODO? track self._lock_key
+            return self._locked.is_set()
+
+        @property
+        def _underlying_lock(self):
+            return self._underlying_locks[self.lock_key]
 
         @property
         def lock_key(self):
             return self.key + '_lock'
 
         @property
-        def _underlying_lock(self):
-            return self._underlying_locks[self.lock_key]
+        def lease_id(self):
+            return self._lease_id if self.locked() else None
 
     class Condition():
 
@@ -276,7 +288,7 @@ class Cluster(Network):
                 raise RuntimeError(f'cannot set value: {repr(e)}')
 
     @classmethod
-    async def get(cls, key: str) -> str:
+    async def get(cls, key: str, default=None) -> str:
         if not key:
             raise RuntimeError('key cannot be empty')
 
@@ -289,9 +301,9 @@ class Cluster(Network):
                             return kv['value']
             except KeyError as e:
                 if e.args[0] == 'kvs':
-                    raise KeyError(key)
+                    return default
             else:
-                raise KeyError(key)
+                raise RuntimeError('Bad response')
 
     @classmethod
     async def rem(cls, key: str):
@@ -305,7 +317,7 @@ class Cluster(Network):
                 raise RuntimeError(f'cannot remove value: {repr(e)}')
 
     @classmethod
-    async def watch(cls, key, *, first=True):
+    async def watch(cls, key: str, *, first=True, timeout=None):
         if not key:
             raise RuntimeError('key cannot be empty')
 
@@ -316,7 +328,7 @@ class Cluster(Network):
                 pass
 
         async with Cluster._Etcdctl('watch', str(key)) as client:
-            async for r in client.responses():
+            async for r in client.responses(timeout=timeout):
                 for event in r['Events']:
                     if 'kv' in event:
                         kv = event['kv']
