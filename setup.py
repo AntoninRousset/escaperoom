@@ -14,7 +14,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/AntoninRousset/escaperoom',
-    packages=['escaperoom'],
+    packages=setuptools.find_packages(exclude=('logo',)),
     include_package_data=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
