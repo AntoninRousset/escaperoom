@@ -46,7 +46,7 @@ customElements.define('game-issues', GameIssues);
 
 GameMenu = class GameMenu extends HTMLElement {
   constructor() {
-    var e, i, len, ref;
+    var e, h, hh, i, j, l, len, len1, m, mm, opt, ref, ref1, time;
     super();
     this.new_game = this.new_game.bind(this);
     this.back_to_game = this.back_to_game.bind(this);
@@ -65,29 +65,48 @@ GameMenu = class GameMenu extends HTMLElement {
         }
       };
     }
+    // fill planned_date-time
+    time = this.querySelector('#game-option-planned_date-time');
+    time.innerHTML = '';
+    for (h = j = 0; j <= 23; h = ++j) {
+      hh = h.toString().padStart(2, "0");
+      ref1 = [0, 15, 30, 45];
+      for (l = 0, len1 = ref1.length; l < len1; l++) {
+        m = ref1[l];
+        mm = m.toString().padStart(2, "0");
+        opt = document.createElement('option');
+        opt.value = hh + ':' + mm;
+        opt.innerHTML = opt.value;
+        time.appendChild(opt);
+      }
+    }
   }
 
-  
-  //@querySelector('#game-option-reset').onclick = (event) =>
-  //  @read_options(@options)
   //@querySelector('#new-game').onclick = @new_game
   //@querySelector('#back-to-game').onclick = @back_to_game
   //@querySelector('#stop-game').onclick = @stop_game
   query_all_options_elements() {
     var all, selector;
-    selector = '.game-option > input:not([type=button]), .game-option > select';
+    selector = '.game-option > input:not([type=button]),';
+    selector += ' .game-option > select, ';
+    selector += ' .game-option > textarea';
     all = this.querySelectorAll(selector);
-    console.log(selector);
-    console.log(all);
     return all;
   }
 
   async post_input_element(e) {
+    var date, time, value;
+    value = e.value;
+    if (e.name === "planned_date") {
+      date = this.querySelector('#game-option-planned_date-date').value;
+      time = this.querySelector('#game-option-planned_date-time').value;
+      value = date + 'T' + time;
+    }
     e.setCustomValidity('Invalid');
     return (await post_control(this.getAttribute('src'), {
       action: 'update_options',
       options: {
-        [e.name]: e.value
+        [e.name]: value
       }
     }));
   }
@@ -112,7 +131,7 @@ GameMenu = class GameMenu extends HTMLElement {
   }
 
   update_options(options, gamemasters) {
-    var e, email, gm, gmselect, k, opt, results, v;
+    var e, e_date, e_time, email, gm, gmselect, k, opt, results, today, v;
     // set gamemasters list
     gmselect = this.querySelector('#game-option-gamemaster');
     gmselect.innerHTML = '';
@@ -127,9 +146,27 @@ GameMenu = class GameMenu extends HTMLElement {
     results = [];
     for (k in options) {
       v = options[k];
-      e = this.querySelector('#game-option-' + k);
-      e.value = v;
-      results.push(e.setCustomValidity(''));
+      // set planned_datetime option
+      if (k === 'planned_date') {
+        e_date = this.querySelector('#game-option-planned_date-date');
+        e_time = this.querySelector('#game-option-planned_date-time');
+        if (v == null) {
+          // set planned_datetime-date to today
+          today = new Date().toISOString().substr(0, 10);
+          e_date.value = today;
+          results.push(e_time.value = null);
+        } else {
+          e_date.value = v.substr(0, 10);
+          e_time.value = v.substr(11, 5);
+          e_date.setCustomValidity('');
+          results.push(e_time.setCustomValidity(''));
+        }
+      } else {
+        // set any other options
+        e = this.querySelector('#game-option-' + k);
+        e.value = v;
+        results.push(e.setCustomValidity(''));
+      }
     }
     return results;
   }

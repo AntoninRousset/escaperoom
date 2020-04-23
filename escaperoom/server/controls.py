@@ -106,7 +106,19 @@ async def game_control(params):
         await game.start(options)
 
     elif params['action'] == 'update_options':
-        await game.update_options(**params['options'])
+
+        options = params['options']
+
+        print(options)
+
+        # convert planned_date isoformat to datetime.datetime
+        if 'planned_date' in options:
+            import dateutil.parser
+            t = options['planned_date']
+            options['planned_date'] = dateutil.parser.parse(t)
+            print('>>>', options['planned_date'])
+
+        await game.update_options(**options)
 
     elif params['action'] == 'stop_game':
         await game.stop()

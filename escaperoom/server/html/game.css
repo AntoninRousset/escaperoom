@@ -48,7 +48,7 @@ game-menu {
 
 #game-options {
 	flex: 1;
-	margin: 0;
+	margin: 10px 0px;
 }
 
 .game-option {
@@ -59,12 +59,19 @@ game-menu {
 	margin: 12px 0px;
 }
 
-.game-option input[type=text] {
-  width: 100px;
+.game-option.big {
+	flex-flow: column;
 }
 
-.game-option select {
-  width: 120px;
+.game-option input[type=text], input[type=date], select {
+  width: 130px;
+}
+
+.game-option.big textarea {
+  width: 100%;
+  height: 140px;
+  resize: none;
+  padding: 10px;
 }
 
 .game-option input[type=number] {

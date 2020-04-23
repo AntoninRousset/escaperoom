@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from json import dumps
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 
 def to_json(obj):
@@ -28,8 +28,12 @@ def to_json(obj):
 
     def default(obj):
 
-        if isinstance(obj, datetime):
-            return obj.strftime('%H:%M')
+        # datetime.datime is a subclass of datetime.daet
+        if isinstance(obj, date):
+            return obj.isoformat()
+
+        if isinstance(obj, timedelta):
+            return obj.total_seconds()
 
         try:
             return obj.__json__()

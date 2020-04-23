@@ -13,7 +13,7 @@
 from . import asyncio
 from .misc import Chronometer
 from .registered import Registered
-from datetime import date
+from datetime import datetime
 
 
 class GameOptionEditionError(Exception):
@@ -81,7 +81,7 @@ class GameOption:
         if v is None:
             self.value = None
         else:
-            self.value = self.db_type(v)
+            self.value = v if type(v) is self.db_type else self.db_type(v)
 
     def __eq__(self, opt):
         if isinstance(opt, str):
@@ -114,7 +114,7 @@ class Game(Registered):
         GameOption('leader_lastname', str),
         GameOption('leader_email', str),
         GameOption('leader_postcode', int),
-        GameOption('planned_date', date),
+        GameOption('planned_date', datetime, datetime(2000, 10, 15, 13, 15)),
         GameOption('comments', str),
     )
 

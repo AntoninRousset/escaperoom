@@ -36,27 +36,44 @@ class GameMenu extends HTMLElement
         if event.key == "Escape"
           @sync()
           event.target.blur()
-      
-    #@querySelector('#game-option-reset').onclick = (event) =>
-    #  @read_options(@options)
+
+    # fill planned_date-time
+    time = @querySelector('#game-option-planned_date-time')
+    time.innerHTML = ''
+    for h in [0..23]
+      hh = h.toString().padStart(2, "0")
+      for m in [0, 15, 30, 45]
+        mm = m.toString().padStart(2, "0")
+        opt = document.createElement('option')
+        opt.value = hh + ':' + mm
+        opt.innerHTML = opt.value
+        time.appendChild(opt)
+
     #@querySelector('#new-game').onclick = @new_game
     #@querySelector('#back-to-game').onclick = @back_to_game
     #@querySelector('#stop-game').onclick = @stop_game
   
   query_all_options_elements: () ->
-    selector = '.game-option > input:not([type=button]), .game-option > select'
+    selector = '.game-option > input:not([type=button]),'
+    selector += ' .game-option > select, '
+    selector += ' .game-option > textarea'
     all = @querySelectorAll(selector)
-    console.log(selector)
-    console.log(all)
     return all
 
   post_input_element: (e) ->
+
+    value = e.value
+
+    if e.name == "planned_date"
+      date = @querySelector('#game-option-planned_date-date').value
+      time = @querySelector('#game-option-planned_date-time').value
+      value = date + 'T' + time
 
     e.setCustomValidity('Invalid')
 
     await post_control(@getAttribute('src'), {
       action: 'update_options',
-      options: {[e.name]: e.value}
+      options: {[e.name]: value}
     })
 
   sync: () ->
@@ -79,7 +96,6 @@ class GameMenu extends HTMLElement
 
   update_options: (options, gamemasters) ->
 
-
     # set gamemasters list
     gmselect = @querySelector('#game-option-gamemaster')
     gmselect.innerHTML = ''
@@ -89,12 +105,29 @@ class GameMenu extends HTMLElement
       opt.innerHTML = gm.firstname + ' ' + gm.lastname
       gmselect.appendChild(opt)
 
-
     # set fields values
     for k, v of options
-      e = @querySelector('#game-option-' + k)
-      e.value = v
-      e.setCustomValidity('')
+
+      # set planned_datetime option
+      if k == 'planned_date'
+        e_date = @querySelector('#game-option-planned_date-date')
+        e_time = @querySelector('#game-option-planned_date-time')
+        if not v?
+          # set planned_datetime-date to today
+          today = new Date().toISOString().substr(0, 10)
+          e_date.value = today
+          e_time.value = null
+        else
+          e_date.value = v.substr(0, 10)
+          e_time.value = v.substr(11, 5)
+          e_date.setCustomValidity('')
+          e_time.setCustomValidity('')
+
+      # set any other options
+      else
+        e = @querySelector('#game-option-' + k)
+        e.value = v
+        e.setCustomValidity('')
 
   new_game: () =>
     @querySelector('#game-creation').disabled = true

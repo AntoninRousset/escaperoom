@@ -57,38 +57,52 @@
               </div>
             </fieldset>
 						<fieldset id='game-options'>
-							<legend>Informations</legend>
+							<legend>Groupe</legend>
 							<div class='game-option'>
-								<label for='game-option-group_name'>Nom du groupe</label>
+								<label for='game-option-group_name'>Nom</label>
                 <input type='text' id='game-option-group_name' name='group_name'>
 							</div>
 							<div class='game-option'>
-								<label for='game-option-planned_date'>Date planifiée</label>
-                <input type='text' id='game-option-planned_date' name='planned_date'>
+								<label for='game-option-planned_date-date'>Date planifiée</label>
+                <input type='date' id='game-option-planned_date-date' name='planned_date'>
+							</div>
+							<div class='game-option'>
+								<label for='game-option-planned_date-time'>Heure de passage</label>
+                <select id='game-option-planned_date-time' name='planned_date'>
+                  <option value'00:00'>00:00</option>
+                  <option value'00:15'>00:15</option>
+                  <option value'00:30'>00:30</option>
+                  <option value'00:45'>00:45</option>
+                  <option value'01:00'>01:00</option>
+                </select>
 							</div>
 							<div class='game-option'>
 								<label for='game-option-group_size'>Nombre de participants</label>
                 <input type='number' id='game-option-group_size' min='1' name='group_size'>
 							</div>
+            </fieldset>
+						<fieldset id='game-options'>
+							<legend>Leader</legend>
 							<div class='game-option'>
-								<label for='game-option-leader_firstname'>Prénom du leader</label>
+								<label for='game-option-leader_firstname'>Prénom</label>
                 <input type='text' id='game-option-leader_firstname' name='leader_firstname'>
 							</div>
 							<div class='game-option'>
-								<label for='game-option-leader_lastname'>Nom du leader</label>
+								<label for='game-option-leader_lastname'>Nom</label>
                 <input type='text' id='game-option-leader_lastname' name='leader_lastname'>
 							</div>
 							<div class='game-option'>
-								<label for='game-option-leader_email'>Email du leader</label>
+								<label for='game-option-leader_email'>Email</label>
                 <input type='text' id='game-option-leader_email' name='leader_email'>
 							</div>
 							<div class='game-option'>
 								<label for='game-option-leader_postcode'>Code postal</label>
                 <input type='text' id='game-option-leader_postcode' name='leader_postcode'>
 							</div>
-							<div class='game-option'>
+							<div class='game-option big'>
 								<label for='game-option-comments'>Commentaires</label>
-                <input type='text' id='game-option-comments' name='comments'>
+                <textarea id='game-option-comments' name='comments'>
+                </textarea>
 							</div>
 						</fieldset>
 					</game-menu>

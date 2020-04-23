@@ -96,13 +96,14 @@ p {
 	font-size: 12px;
 }
 
-button, input, select {
+button, input, select, textarea {
 	border: 1px solid #00000040;
 	border-radius: 4px;
 	padding: 2px 7px;
 	text-shadow: 0px 1px 0px #ffffff40;
 	cursor: pointer;
 	transition: background 0.2s ease;
+  box-sizing: border-box;
 }
 
 button, input[type='reset'], input[type='submit'] {
