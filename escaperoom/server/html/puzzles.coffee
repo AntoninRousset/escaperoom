@@ -156,18 +156,18 @@ class ConditionItem extends Subscriber
 		@state = datas['state']
 		console.log(datas.state)
 		if not datas.state?
-			div.style.backgroundColor = 'orange'
+			div.style.borderColor = 'orange'
 		else if datas['state']
-			div.style.backgroundColor = 'green'
+			div.style.borderColor = 'green'
 		else
-			div.style.backgroundColor = 'red'
+			div.style.borderColor = 'red'
 		if datas['forced']
 			button.disabled = false
 		else
 			button.disabled = true
 		if datas['desactivated']
 			div.disabled = true
-			div.style.backgroundColor = 'gray'
+			div.style.borderColor = 'gray'
 		else
 			div.disabled = false
 
@@ -210,14 +210,14 @@ class ActionItem extends Subscriber
 		@update_plugs(datas)
 		div = @shadowRoot.querySelector('div')
 		if datas['running']
-			div.style.backgroundColor = 'green'
+			div.style.borderColor = 'green'
 		else if datas['failed']
-			div.style.backgroundColor = 'red'
+			div.style.borderColor = 'red'
 		else
-			div.style.backgroundColor = 'orange'
+			div.style.borderColor = 'orange'
 		if datas['desactivated']
 			div.disabled = true
-			div.style.backgroundColor = 'gray'
+			div.style.borderColor = 'gray'
 		else
 			div.disabled = false
 

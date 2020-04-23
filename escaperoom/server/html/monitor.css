@@ -13,6 +13,8 @@ body {
 	left: 0px;
 	right: 0px;
 	bottom: 0px;
+
+  font-family: TeXGyreHeros, Arial, Helvetica, sans-serif
 }
 
 .box {
@@ -37,6 +39,7 @@ body {
 
 game-box {
 	grid-area: 1 / 1 / 4 / 6;
+  display: flex;
 }
 
 cameras-box {
@@ -155,3 +158,40 @@ clues-box ul li:hover {
 	display: none
 }
 
+@media only screen and (max-width: 800px) {
+
+  body {
+    display: block;
+    padding: 0px;
+  }
+
+  .box {
+    position: relative;
+    margin: 10px 2px;
+    background: white;
+    box-shadow: 0px 0px 10px #00000060;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  game-box {
+    display: block;
+  }
+
+  cameras-box {
+    display: block;
+  }
+
+  devices-box {
+    display: flex;
+  }
+
+  clues-box {
+    display: flex;
+    flex-flow: column;
+  }
+
+  clues-box ul {
+    scrollbar-width: none;
+  }
+}

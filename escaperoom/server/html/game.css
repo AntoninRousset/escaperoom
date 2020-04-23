@@ -1,6 +1,11 @@
 @import 'monitor.css';
 @import 'page.css';
 
+game-issues {
+  display: block;
+  text-align: center;
+}
+
 .screen[name='game'] {
 	position: absolute;
 	z-index: 1;
@@ -20,11 +25,11 @@
 }
 
 #game-name {
-	font-size: 38pt;
-    font-weight: bold;
-    text-align: center;
-    font-variant: small-caps;
-	margin: 10px;
+  font-size: 38pt;
+  font-weight: bold;
+  text-align: center;
+  font-variant: small-caps;
+  margin: 10px;
 }
 
 #game-chronometer {
@@ -101,4 +106,45 @@ game-menu {
 #menu-button {
 	position: absolute;
 	margin: 15px;
+}
+
+@media only screen and (max-width: 800px) {
+
+  .screen[name='game'] {
+    position: relative;
+    z-index: 0;
+    transform: none;
+    flex-flow: column;
+  }
+
+  .screen[name='game'][hidden] {
+    display: flex;
+    flex-flow: column;
+    position: absolute;
+    transition: transform 0.3s 0s;
+    transform: none;
+  }
+
+  game-menu {
+    padding: 6px;
+  }
+
+  .game-option {
+    display: flex;
+    flex-flow: column;
+  }
+
+  .game-option label {
+    display: inline-block;
+    margin: 12px;
+  }
+
+  .game-option input:not([type=checkbox]), select  {
+    width: 100%;
+  }
+
+  .game-option input[type=checkbox]{
+    transform: scale(1.2);
+  }
+
 }

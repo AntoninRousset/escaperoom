@@ -60,4 +60,10 @@ device-info {
     min-width: 100px;
 }
 
+@media only screen and (max-width: 800px) {
 
+  .screen {
+    flex-flow: column;
+  }
+
+}

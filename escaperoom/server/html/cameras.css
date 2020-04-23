@@ -59,3 +59,45 @@ camera-video video:hover {
 	bottom: 1em;
 	right: 1em;
 }
+
+@media only screen and (max-width: 800px) {
+
+  .panel {
+    position: relative;
+  }
+
+  .panel {
+    transform: none;
+  }
+
+  .panel[visible='true'] {
+    transform: none;
+  }
+
+  cameras-list {
+    flex-flow: column;
+    height: auto;
+    padding: 5px;
+  }
+
+  camera-video video {
+    margin: 5px;
+  }
+
+  video.bigscreen {
+    display: none;
+  }
+
+  .screen[name=loading] {
+    display: none;
+  }
+
+  .screen[name=empty] {
+    display: none;
+  }
+
+  .screen[name=error] {
+    display: none;
+  }
+
+}

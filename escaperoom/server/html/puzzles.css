@@ -78,17 +78,53 @@ puzzle-info {
 .condition-item {
 	display: flex;
 	flex-flow: row;
+  margin: 5px 0px;
+  padding: 0px 0px 0px 6px;
+  border-style: solid;
+  border-top-width: 0;
+  border-right-width: 0;
+  border-bottom-width: 0;
+  border-left-width: 4px;
+  border-color: lightgray;
 }
 
 .condition-item div {
 	flex: 1;
+  padding: 6px;
+  margin: 2px 0px; 
 }
 
 .action-item {
 	display: flex;
 	flex-flow: row;
+  margin: 5px 0px;
+  padding: 0px 0px 0px 6px;
+  border-style: solid;
+  border-top-width: 0;
+  border-right-width: 0;
+  border-bottom-width: 0;
+  border-left-width: 4px;
+  border-color: lightgray;
 }
 
 .action-item div {
 	flex: 1;
+  padding: 6px;
+  margin: 2px 0px; 
+}
+
+@media only screen and (max-width: 800px) {
+
+  .screen[name='graph'] {
+    flex-flow: column;
+  }
+
+  puzzle-info.scroll-y {
+    overflow-y: hidden;
+  }
+
+  #puzzles-menu {
+    display: none;
+  }
+
 }
