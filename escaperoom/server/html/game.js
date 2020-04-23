@@ -51,6 +51,7 @@ GameMenu = class GameMenu extends HTMLElement {
     this.new_game = this.new_game.bind(this);
     this.back_to_game = this.back_to_game.bind(this);
     this.stop_game = this.stop_game.bind(this);
+    console.log('************');
     ref = this.query_all_options_elements();
     // listen to all changes on game options
     for (i = 0, len = ref.length; i < len; i++) {
@@ -65,6 +66,9 @@ GameMenu = class GameMenu extends HTMLElement {
         }
       };
     }
+    this.querySelector('#new-game').onclick = this.new_game;
+    this.querySelector('#back-to-game').onclick = this.back_to_game;
+    this.querySelector('#stop-game').onclick = this.stop_game;
     // fill planned_date-time
     time = this.querySelector('#game-option-planned_date-time');
     time.innerHTML = '';
@@ -82,9 +86,6 @@ GameMenu = class GameMenu extends HTMLElement {
     }
   }
 
-  //@querySelector('#new-game').onclick = @new_game
-  //@querySelector('#back-to-game').onclick = @back_to_game
-  //@querySelector('#stop-game').onclick = @stop_game
   query_all_options_elements() {
     var all, selector;
     selector = '.game-option > input:not([type=button]),';

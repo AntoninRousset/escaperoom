@@ -29,6 +29,8 @@ class GameMenu extends HTMLElement
   constructor: () ->
     super()
 
+    console.log('************')
+
     # listen to all changes on game options
     for e in @query_all_options_elements()
       e.onchange = (event) => @post_input_element(event.target)
@@ -36,6 +38,10 @@ class GameMenu extends HTMLElement
         if event.key == "Escape"
           @sync()
           event.target.blur()
+
+    @querySelector('#new-game').onclick = @new_game
+    @querySelector('#back-to-game').onclick = @back_to_game
+    @querySelector('#stop-game').onclick = @stop_game
 
     # fill planned_date-time
     time = @querySelector('#game-option-planned_date-time')
@@ -49,10 +55,6 @@ class GameMenu extends HTMLElement
         opt.innerHTML = opt.value
         time.appendChild(opt)
 
-    #@querySelector('#new-game').onclick = @new_game
-    #@querySelector('#back-to-game').onclick = @back_to_game
-    #@querySelector('#stop-game').onclick = @stop_game
-  
   query_all_options_elements: () ->
     selector = '.game-option > input:not([type=button]),'
     selector += ' .game-option > select, '

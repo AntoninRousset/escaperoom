@@ -109,14 +109,11 @@ async def game_control(params):
 
         options = params['options']
 
-        print(options)
-
         # convert planned_date isoformat to datetime.datetime
         if 'planned_date' in options:
             import dateutil.parser
             t = options['planned_date']
             options['planned_date'] = dateutil.parser.parse(t)
-            print('>>>', options['planned_date'])
 
         await game.update_options(**options)
 
