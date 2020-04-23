@@ -51,7 +51,6 @@ GameMenu = class GameMenu extends HTMLElement {
     this.new_game = this.new_game.bind(this);
     this.back_to_game = this.back_to_game.bind(this);
     this.stop_game = this.stop_game.bind(this);
-    console.log('************');
     ref = this.query_all_options_elements();
     // listen to all changes on game options
     for (i = 0, len = ref.length; i < len; i++) {
@@ -176,13 +175,7 @@ GameMenu = class GameMenu extends HTMLElement {
     boundMethodCheck(this, GameMenu);
     this.querySelector('#game-creation').disabled = true;
     await post_control(this.getAttribute('src'), {
-      action: 'new_game',
-      options: {
-        n_player: this.querySelector('#game-option-number-player').value,
-        children_mode: this.querySelector('#game-option-children').checked,
-        timeout_enabled: this.querySelector('#game-option-timeout-enabled').value,
-        timeout: '00:' + this.querySelector('#game-option-timeout-h').value.padStart(2, '0') + ':' + this.querySelector('#game-option-timeout-m').value.padStart(2, '0')
-      }
+      action: 'new_game'
     });
     return document.querySelector('game-box').current_screen = 'puzzles';
   }

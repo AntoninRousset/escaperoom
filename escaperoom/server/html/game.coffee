@@ -29,8 +29,6 @@ class GameMenu extends HTMLElement
   constructor: () ->
     super()
 
-    console.log('************')
-
     # listen to all changes on game options
     for e in @query_all_options_elements()
       e.onchange = (event) => @post_input_element(event.target)
@@ -134,13 +132,7 @@ class GameMenu extends HTMLElement
   new_game: () =>
     @querySelector('#game-creation').disabled = true
     await post_control(@getAttribute('src'), {
-      action: 'new_game',
-      options: {
-        n_player: @querySelector('#game-option-number-player').value,
-        children_mode: @querySelector('#game-option-children').checked,
-        timeout_enabled: @querySelector('#game-option-timeout-enabled').value,
-        timeout: '00:'+@querySelector('#game-option-timeout-h').value.padStart(2, '0')+':'+@querySelector('#game-option-timeout-m').value.padStart(2, '0')
-      }
+      action: 'new_game'
     })
     document.querySelector('game-box').current_screen = 'puzzles'
 

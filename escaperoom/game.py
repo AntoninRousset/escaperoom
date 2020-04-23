@@ -147,7 +147,7 @@ class Game(Registered):
                 self.options[k] = v
             self.changed.notify_all()
 
-    async def start(self, options):
+    async def start(self):
         async with self.changed:
             await self._chronometer.start()
             self.changed.notify_all()

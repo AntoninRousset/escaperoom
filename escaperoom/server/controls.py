@@ -102,8 +102,7 @@ async def game_control(params):
     if game is None:
         raise KeyError('no game defined for the room')
     if params['action'] == 'new_game':
-        options = params['options']
-        await game.start(options)
+        await game.start()
 
     elif params['action'] == 'update_options':
 
