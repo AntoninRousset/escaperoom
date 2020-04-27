@@ -15,8 +15,10 @@ import {
 GameBox = class GameBox extends Subscriber {
   constructor() {
     super();
+    this.end_game = this.end_game.bind(this);
     this.apply_template();
     this.set_screen('game');
+    this.shadowRoot.querySelector('#restart-button').onclick = this.end_game;
     this.subscribe();
   }
 
@@ -29,6 +31,13 @@ GameBox = class GameBox extends Subscriber {
       this.current_screen = 'puzzles';
     }
     return this.set_screen(this.current_screen);
+  }
+
+  end_game() {
+    boundMethodCheck(this, GameBox);
+    return post_control(this.getAttribute('src'), {
+      action: 'end_game'
+    });
   }
 
 };

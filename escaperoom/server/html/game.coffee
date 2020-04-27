@@ -6,6 +6,7 @@ class GameBox extends Subscriber
 		super()
 		@apply_template()
 		@set_screen('game')
+		@shadowRoot.querySelector('#restart-button').onclick = @end_game
 		@subscribe()
 
 	update: (datas) ->
@@ -16,6 +17,9 @@ class GameBox extends Subscriber
 		else if not @current_screen?
 			@current_screen = 'puzzles'
 		@set_screen(@current_screen)
+
+	end_game: () =>
+		post_control(@getAttribute('src'), {action: 'end_game'})
 
 customElements.define('game-box', GameBox)
 

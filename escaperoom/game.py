@@ -164,6 +164,9 @@ class Game(Registered):
             await self._reset()
             self.changed.notify_all()
 
+    async def end(self):
+        self.ended.set()
+
     @property
     def ready(self):
         return self.options.ready()

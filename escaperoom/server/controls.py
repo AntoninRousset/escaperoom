@@ -126,6 +126,9 @@ async def game_control(params):
         if server.buzzer is None:
             raise RuntimeError('buzzer is not implemented by the room')
         await self.buzzer()
+    elif params['action'] == 'end_game':
+        print('end_game')
+        await game.end()
     else:
         raise RuntimeError('action not implemented: '+params['action'])
 

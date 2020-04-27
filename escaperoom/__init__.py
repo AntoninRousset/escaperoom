@@ -19,7 +19,7 @@ from .logic import Action, action, Condition, condition
 from .misc import Camera, LocalCamera, RemoteCamera, LocalCluesDisplay, \
     RemoteCluesDisplay, Chronometer, Timer
 from .media import Audio
-from .network import SerialBus, Device, device, SerialDevice
+from .network import SerialBus, Device, device, SerialDevice, Cluster
 from .registered import Registered
 from .server import HTTPServer
 from .subprocess import SubProcess
@@ -33,7 +33,11 @@ def loop(*, debug=False):
     loop = asyncio.get_event_loop()
     try:
         loop.set_debug(debug)
-        loop.run_forever()
+        game = Game.get()
+        if game is None:
+            loop.run_forever()
+        else:
+            loop.run_until_complete(game.ended.wait())
     except KeyboardInterrupt:
         print('Keyboard interrupt')
     finally:
