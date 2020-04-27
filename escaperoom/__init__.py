@@ -26,7 +26,7 @@ from .subprocess import SubProcess
 
 import logging.config
 # TODO per room logging
-logging.config.fileConfig(storage.config)
+logging.config.fileConfig(storage.config.logging)
 
 
 def loop(*, debug=False):

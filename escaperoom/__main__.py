@@ -40,7 +40,7 @@ async def _room_executor(pythonpath, room_name):
 
 
 def launch_rooms(rooms_re):
-    rooms_dir = Path(storage.config['DEFAULT']['rooms_dir']).expanduser()
+    rooms_dir = Path(storage.config.rooms_dir).expanduser()
     rooms = set()
     for child in Path(rooms_dir).iterdir():
         room_name = child.stem

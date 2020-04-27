@@ -39,7 +39,7 @@ def get_config(platform=None):
         raise SystemError(f'Unsupported system platform {sys.platform}')
 
 
-class ConfigAccessor(ConfigParser):
+class ConfigAccessor:
 
     dirname = 'escaperoom'
 
@@ -50,34 +50,41 @@ class XDGConfigAccessor(ConfigAccessor):
 
         super().__init__()
 
+        self.general = self.load_config_file('general.conf')
+        self.logging = self.load_config_file('logger.conf')
+        self.rooms = self.load_config_file('rooms.conf')
+
+    def load_config_file(self, name):
+
         from pathlib import Path
 
-        default_file = Path(__file__).absolute().parent / 'default.conf'
-        filename = filename or self._get_default_filename()
-        config_file = Path(filename).expanduser()
-        self.read([default_file, config_file], encoding='utf-8')
+        default_config_file = Path(__file__).absolute().parent / name
+        user_config_file = self.config_dir / name
 
-    def use_(self):
+        config = ConfigParser()
+        config.read([default_config_file, user_config_file], encoding='utf-8')
+        return config
 
-        """
-        Get the database if the "use_database" is True in the config.
+    @property
+    def rooms_dir(self):
+        return self.general['DEFAULT']['rooms_dir']
 
-        Returns
-        -------
-        database : Databse or None
-            A Database object if "use_database" is True. None otherwise.
-        """
+    @property
+    def test(self):
+        return self.general['DEFAULT'].getboolean('test')
 
-        if not self['database'].getboolean('use_database'):
-            return None
+    @property
+    def use_database(self):
+        return self.general['database'].getboolean('use_database')
 
-        from .data import data
+    @property
+    def database_backend(self):
+        return self.general['database']['backend']
 
-        return data.load_database(backend=self['database']['backend'])
-
-    def _get_default_filename(self):
+    @property
+    def config_dir(self):
 
         from xdg.BaseDirectory import xdg_config_home
         from pathlib import Path
 
-        return Path(xdg_config_home) / self.dirname / 'escaperoom.conf'
+        return Path(xdg_config_home) / self.dirname

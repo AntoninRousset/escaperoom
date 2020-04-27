@@ -11,12 +11,13 @@
 '''
 
 from . import storage
-if storage.config['DEFAULT'].getboolean('test'):
+if storage.config.test:
     from . import serial_test as serial
 else:
     import PJON_daemon_client as serial
 
 from . import asyncio, Network
+
 
 class Bus(Network):
 

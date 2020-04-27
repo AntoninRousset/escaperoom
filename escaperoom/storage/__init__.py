@@ -22,9 +22,8 @@ config = get_config()
 _logger.debug('Config accessor loaded')
 
 # data
-_use_database = config['database'].getboolean('use_database')
-_backend = config['database']['backend']
-data = get_data(load_db=_use_database, db_backend=_backend)
+data = get_data(load_db=config.use_database,
+                db_backend=config.database_backend)
 _logger.debug('Data accessor loaded')
 
 # cache

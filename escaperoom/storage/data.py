@@ -41,6 +41,10 @@ def get_data(platform=None, load_db=False, db_backend='sqlite'):
         raise SystemError(f'Unsupported system platform {sys.platform}')
 
 
+class DatabaseNotLoadedException(Exception):
+    pass
+
+
 class DataAccessor:
 
     def __init__(self, dirpath, load_db=False, db_backend='sqlite'):
@@ -49,17 +53,27 @@ class DataAccessor:
 
         self.dirpath = Path(dirpath)
         self.dirpath.mkdir(parents=True, exist_ok=True)
-        self.db = None
+        self._db = None
 
         if load_db:
-            self.load_db(db_backend)
+            self._db = self.load_db(db_backend)
+
+    @property
+    def is_db_loaded(self):
+        return self._db is not None
+
+    @property
+    def db(self):
+        if not self.is_db_loaded:
+            raise DatabaseNotLoadedException()
+        return self._db
 
     def load_db(self, backend='sqlite'):
 
         from .database import Database
 
         filename = str(self.dirpath / 'escaperoom.db')
-        self.db = Database(f'/{filename}', backend)
+        return Database(f'/{filename}', backend)
 
 
 class XDGDataAccessor(DataAccessor):
