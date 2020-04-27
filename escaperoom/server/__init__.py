@@ -75,7 +75,7 @@ class HTTPServer(Server, web.Application):
         if interface:
             self._activate_interface()
         self.add_routes(routes)
-        runner = web.AppRunner(self)
+        runner = web.AppRunner(self, logger=self._logger)
         asyncio.run_until_complete(runner.setup())
         self.site = web.TCPSite(runner, host, port)
         self._start(host, port)
