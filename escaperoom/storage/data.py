@@ -65,7 +65,9 @@ class DataAccessor:
     @property
     def db(self):
         if not self.is_db_loaded:
-            raise DatabaseNotLoadedException()
+            raise DatabaseNotLoadedException('Make sure that use_database '
+                                             'config is not set to False')
+
         return self._db
 
     def load_db(self, backend='sqlite'):
