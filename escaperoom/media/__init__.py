@@ -13,11 +13,13 @@
 from .. import asyncio, logging
 from ..registered import Registered
 
-logger = logging.getLogger('escaperoom')
+logger = logging.getLogger('escaperoom.media')
+
 
 class Media(Registered):
 
     _logger = logger
 
 
-from .player import Audio, MediaPlayer
+from .audio import Audio
+from .player import MediaPlayer

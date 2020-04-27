@@ -11,36 +11,182 @@
 '''
 
 import aiortc.contrib.media as aiom
-import threading, json
-#import alsaaudio as alsa
-from tempfile import gettempdir
+import threading
 
-from . import asyncio, logger, Media
-from ..subprocess import SubProcess
-from ..utils import ensure_iter
+from . import asyncio, logger
+import av
+import aiortc
+import aiortc.contrib.media as aiom
+from aiortc.mediastreams import AUDIO_PTIME, MediaStreamError, MediaStreamTrack
+from threading import Lock
+from weakref import ref
+
+# TMP, TODO
+aiom.MediaStreamTrack.stop = lambda: None
 
 
-aiom.MediaStreamTrack.stop = lambda: None #TMP, TODO
+def worker(loop, container, streams, tracks, lock_tracks, quit_event):
 
-def effect_worker(loop, track_in, track_out, effect, quit_event):
+    import fractions
 
-    print_warning = True
+    audio_fifo = av.AudioFifo()
+    audio_format_name = "s16"
+    audio_layout_name = "stereo"
+    audio_sample_rate = 48000
+    audio_samples = 0
+    audio_samples_per_frame = int(audio_sample_rate * AUDIO_PTIME)
+    audio_resampler = av.AudioResampler(format=audio_format_name,
+                                        layout=audio_layout_name,
+                                        rate=audio_sample_rate)
+
+    video_first_pts = None
+    print('work')
+
+    def iter_tracks(kind=None):
+        with lock_tracks:
+
+            # clean invalid ref
+            tt = {t for t in tracks if t() is not None}
+
+            for track in tt:
+                track = track()
+                if track is not None:
+                    if kind is None or kind == track.kind:
+                        yield track
 
     while not quit_event.is_set():
-        future = asyncio.run_coroutine_threadsafe(track_in._queue.get(), loop)
-        frame = future.result()
 
+
+        # decode frame
         try:
-            frame = effect(loop, frame)
-            print_warning = True
-        except BaseException:
-            if print_warning:
-                logger.exception('Failed to apply video effect')
-                print_warning = False
+            frame = next(container.decode(*streams))
+        except (av.AVError, StopIteration):
+            for track in iter_tracks():
+                asyncio.run_coroutine_threadsafe(track._queue.put(None), loop)
+            break
 
-        asyncio.run_coroutine_threadsafe(track_out._queue.put(frame), loop)
+        # audio
+        if isinstance(frame, av.AudioFrame) and set(iter_tracks('audio')):
+
+            if (
+                frame.format.name != audio_format_name
+                or frame.layout.name != audio_layout_name
+                or frame.sample_rate != audio_sample_rate
+            ):
+                frame.pts = None
+                frame = audio_resampler.resample(frame)
+
+            # fix timestamps
+            frame.pts = audio_samples
+            frame.time_base = fractions.Fraction(1, audio_sample_rate)
+            audio_samples += frame.samples
+
+            audio_fifo.write(frame)
+            while True:
+                frame = audio_fifo.read(audio_samples_per_frame)
+                if frame:
+                    for track in iter_tracks('audio'):
+                        asyncio.run_coroutine_threadsafe(
+                            track._queue.put(frame), loop)
+                else:
+                    break
+
+        # video
+        if isinstance(frame, av.VideoFrame) and set(iter_tracks('video')):
+
+            if frame.pts is None:  # pragma: no cover
+                logger.warning("Skipping video frame with no pts")
+                continue
+
+            # video from a webcam doesn't start at pts 0, cancel out offset
+            if video_first_pts is None:
+                video_first_pts = frame.pts
+            frame.pts -= video_first_pts
+
+            for track in iter_tracks('video'):
+                asyncio.run_coroutine_threadsafe(track._queue.put(frame), loop)
 
 
+class PlayerStreamTrack(MediaStreamTrack):
+
+    def __init__(self, kind):
+        super().__init__()
+        self.kind = kind
+        self._queue = asyncio.Queue()
+        logger.debug('WebcamStreamTrack created')
+
+    async def recv(self):
+
+        print(self.readyState)
+
+        if self.readyState != "live":
+            raise MediaStreamError
+
+        frame = await self._queue.get()
+
+        # TODO why stop if no frame?
+        if frame is None:
+            self.stop()
+            raise MediaStreamError
+
+        print(frame)
+
+        return frame
+
+
+class MediaPlayer(aiom.MediaPlayer):
+    """
+    Multiqeue media player with optional effects.
+    """
+
+    def __init__(self, file, format=None, options={}):
+
+        super().__init__(file, format, options)
+
+        self.__lock_started = Lock()
+
+        # TODO if self.__started is empty, do not run worker
+        self.__thread_quit = threading.Event()
+        self.__thread = threading.Thread(
+            name="media-player",
+            target=worker,
+            args=(
+                asyncio.get_event_loop(),
+                self.__container,
+                self.__streams,
+                self.__started,
+                self.__lock_started,
+                self.__thread_quit,
+            ),
+        )
+        self.__thread.start()
+        logger.debug(f'WebcamSource created file: {file},'
+                     f'format: {format}, options: {options}')
+
+    @property
+    def audio(self):
+        track = PlayerStreamTrack(kind='audio')
+        self._start(track)
+        return track
+
+    @property
+    def video(self):
+        track = PlayerStreamTrack(kind='video')
+        self._start(track)
+        return track
+
+    def _start(self, track):
+        with self.__lock_started:
+            track = ref(track) if not isinstance(track, ref) else track
+            self.__started.add(track)
+
+    def _stop(self, track):
+        with self.__lock_started:
+            track = ref(track) if not isinstance(track, ref) else track
+            self.__started.discard(track)
+
+
+'''
 class MediaPlayer(aiom.MediaPlayer):
 
     def __init__(self, file, format=None, options={}, audio_effect=None,
@@ -50,12 +196,6 @@ class MediaPlayer(aiom.MediaPlayer):
 
         self.__audio_effect = audio_effect
         self.__video_effect = video_effect
-        self.__audio_with_effect = aiom.PlayerStreamTrack(self, kind='audio')
-        self.__video_with_effect = aiom.PlayerStreamTrack(self, kind='video')
-        self.__effect_audio_thread = None
-        self.__effect_audio_thread_quit = None
-        self.__effect_video_thread = None
-        self.__effect_video_thread_quit = None
 
     def _start(self, track):
 
@@ -116,118 +256,25 @@ class MediaPlayer(aiom.MediaPlayer):
             self.__effect_video_thread = None
 
         super()._stop(track)
+'''
 
+def effect_worker(loop, track_in, track_out, effect, quit_event):
 
-from sdl2 import *
-from sdl2.ext.compat import byteify
-from sdl2.sdlmixer import *
+    print_warning = True
 
-import ctypes
-import threading 
+    while not quit_event.is_set():
+        future = asyncio.run_coroutine_threadsafe(track_in._queue.get(), loop)
+        frame = future.result()
 
-class Audio(Media):
-
-    _channels_groups_lock = threading.Lock()
-    _channels_groups = list()
-
-    if SDL_Init(SDL_INIT_AUDIO) != 0:
-        raise RuntimeError('Cannot initialize audio: '+SDL_GetError())
-    if Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024):
-        raise RuntimeError('Cannot open mixed audio: '+Mix_GetError())
-
-    @classmethod
-    def _channel_finished(cls, channel):
-        def find_player(channel):
-            with cls._channels_groups_lock:
-                for group in cls._channels_groups:
-                    if channel in group:
-                        return group[channel]
-                raise KeyError(channel)
         try:
-            player, sample = find_player(channel)
-            player._sample_ended(sample, channel)
-        except KeyError:
-            pass
+            frame = effect(loop, frame)
+            print_warning = True
+        except BaseException:
+            if print_warning:
+                logger.exception('Failed to apply video effect')
+                print_warning = False
 
-    @classmethod
-    def _create_channels_group(cls):
-        with cls._channels_groups_lock:
-            cls._channels_groups.append(dict())
-            return len(cls._channels_groups) - 1
-
-    def __init__(self, files, *, loop=False, loop_last=False):
-        files = ensure_iter(files)
-        super().__init__(', '.join(map(str, files)))
-        self.loop = loop
-        self.loop_last = loop_last
-        self.__loop = asyncio.get_event_loop()
-        self._samples = list()
-        self.__group_id = self._create_channels_group()
-        self._stoping = False
-        self._ended = asyncio.Event()
-        self._ended.set()
-        self._open(files)
-
-    def __bool__(self):
-        return bool(self.__channels_group)
-
-    def __str__(self):
-        return f'sound "{self.name}"'
-
-    async def wait(self):
-        await self._ended.wait()
-
-    @property
-    def __channels_group(self):
-        return self._channels_groups[self.__group_id]
-
-    def _sample_ended(self, sample, channel):
-        try:
-            if self._stoping:
-                raise StopIteration()
-            samples = iter(self._samples)
-            while True:
-                if next(samples) is sample:
-                    next_sample = next(samples)
-                    loop = self.loop_last and next_sample is self._samples[-1]
-                    return self._play(next_sample, channel, loop=loop)
-        except StopIteration:
-            if not Mix_GroupChannel(channel, -1):
-                print('ERROR, cannot remove channel from group')
-            with self._channels_groups_lock:
-                self.__channels_group.pop(channel)
-            if not self:
-                self.__loop.call_soon_threadsafe(self._ended.set)
-
-    def _open(self, files):
-        for file in files:
-            sample = Mix_LoadWAV(byteify(str(file), 'utf-8'))
-            if sample is None:
-                raise RuntimeError('Cannot open audio file: '+Mix_GetError())
-            self._samples.append(sample)
-
-    def _play(self, sample, channel=-1, *, loop=False):
-        self._ended.clear()
-        channel = Mix_PlayChannel(channel, sample, -1 if loop else 0)
-        if not Mix_GroupChannel(channel, self.__group_id):
-            print('ERROR, cannot remove channel from group')
-        with self._channels_groups_lock:
-            self.__channels_group[channel] = (self, sample)
-
-    def play(self):
-        self._play(self._samples[0], loop=self.loop)
-        return asyncio.create_task(self._ended.wait())
-
-    async def _reset(self):
-        self._stoping = True
-        Mix_HaltGroup(self.__group_id)
-        await self._ended.wait()
-        self._stoping = False
-
-    def stop(self):
-        return asyncio.create_task(self._reset())
+        asyncio.run_coroutine_threadsafe(track_out._queue.put(frame), loop)
 
 
-c_wrapper = ctypes.CFUNCTYPE(None, ctypes.c_int)
-c_func = c_wrapper(Audio._channel_finished)
-Mix_ChannelFinished(c_func)
+

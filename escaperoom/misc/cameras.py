@@ -59,15 +59,18 @@ class LocalCamera(Camera):
             self.set_v4l2_ctl(v_file, v4l2_ctl)
 
         try:
+            self.v_player = MediaPlayer(v_file, v_format, v_options)
+            '''
             self.v_player = MediaPlayer(v_file, v_format, v_options,
                                         video_effect=v_effect,
                                         audio_effect=a_effect)
+            '''
             if a_file is None:
                 self.a_player = self.v_player
             else:
                 self.a_player = MediaPlayer(a_file, a_format, a_options)
         except Exception as e:
-            self._log_error(f'Cannot open camera {e}')
+            self._log_exception(f'Cannot open camera {e}')
 
     @staticmethod
     def set_v4l2_ctl(devfile, ctl):
@@ -87,9 +90,10 @@ class LocalCamera(Camera):
 
         @pc.on('iceconnectionstatechange')
         async def on_iceconnectionstatechange():
-            print('ice state:', pc.iceConnectionState)
+            logger.info(f'ice state: {pc.iceConnectionState}')
             if pc.iceConnectionState == 'failed':
                 await self._close_pc(pc)
+
         return pc
 
     def _set_codec_preferences(self, transceiver):
@@ -111,17 +115,17 @@ class LocalCamera(Camera):
         pc = self._create_peer_connection()
         self.pcs.add(pc)
         await pc.setRemoteDescription(offer)
+
         for t in pc.getTransceivers():
             if t.kind == 'audio' and self.audio:
                 pc.addTrack(self.audio)
-            elif t.kind == 'video' and self.video:
-                self._set_codec_preferences(t)
+            elif t.kind == 'video' and self.v_player:
                 pc.addTrack(self.video)
+
         answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
         return {'sdp': pc.localDescription.sdp,
                 'type': pc.localDescription.type}
-
 
     async def _close_pc(self, pc):
         await pc.close()

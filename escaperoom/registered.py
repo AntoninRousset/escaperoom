@@ -91,6 +91,9 @@ class Registered(ABC):
     def _log_error(self, msg):
         self._logger.error(f'{self}: {msg}')
 
+    def _log_exception(self, msg):
+        self._logger.exception(f'{self}: {msg}')
+
     async def _reset(self):
         pass
 

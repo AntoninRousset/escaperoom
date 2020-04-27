@@ -15,6 +15,9 @@ from ..game import Game
 from ..logic import Action, Condition
 from ..misc import Camera, CluesDisplay
 from ..network import Device
+import logging
+
+logger = logging.getLogger('escaperoom.server')
 
 
 async def control(params, service, query=None, server=None):
@@ -37,7 +40,7 @@ async def control(params, service, query=None, server=None):
             return {'state': 'success'}
         return {'state': 'success', 'data': data}
     except Exception as error:
-        # TODO server logger
+        logger.exception('Failed to execute control')
         return {'state': 'failed', 'reason': str(error)}
 
 
