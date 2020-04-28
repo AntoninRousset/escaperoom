@@ -40,8 +40,17 @@ from .registered import Registered
 from .server import HTTPServer
 from .subprocess import SubProcess 
 
+def handle_exception(loop, context):
+    # context["message"] will always be there; but context["exception"] may not
+    msg = context.get("exception", context["message"])
+
+    print(f"Caught exception: {msg}")
+
 def loop(*, debug=False): 
     loop = asyncio.get_event_loop()
+
+    #loop.set_exception_handler(handle_exception)
+
     try:
         loop.set_debug(debug)
         game = Game.get()
