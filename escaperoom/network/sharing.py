@@ -99,7 +99,7 @@ class Cluster(Network):
     def normalize_key(cls, key):
         return key.rstrip('/') + '/'
 
-    def __init__(self, name: str, peers, *, new=False, arm64=False):
+    def __init__(self, name: str, peers, *, existing=False, arm64=False):
         if set(Cluster.entries()):
             raise RuntimeError('There can be only one cluster running')
         super().__init__(name)
@@ -111,11 +111,11 @@ class Cluster(Network):
         if arm64:
             self.env['ETCD_UNSUPPORTED_ARCH'] = 'arm64'
 
-        asyncio.run_until_complete(self._start(new))  # TODO don't run the loop
+        asyncio.run_until_complete(self._start(existing))  # TODO ? don't run the loop
 
         print('STARTED')
 
-    async def _start(self, new):
+    async def _start(self, existing):
 
         import shutil
         try:
@@ -131,7 +131,7 @@ class Cluster(Network):
             '--name', self.name,
             '--data-dir', '/tmp/escaperoom.etcd',  # TODO relevant dir
             '--initial-advertise-peer-urls', self._etcd_advertise_peer_urls,
-            '--initial-cluster-state', 'new' if new else 'existing',
+            '--initial-cluster-state', 'existing' if existing else 'new',
             '--listen-peer-urls', self._etcd_listen_peer_urls,
             '--listen-client-urls', self._etcd_listen_client_urls,
             '--advertise-client-urls', self._etcd_advertise_peer_urls,
