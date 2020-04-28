@@ -129,13 +129,10 @@ class LocalCamera(Camera):
                 'type': pc.localDescription.type}
 
     async def _close_pc(self, pc):
-        print('###### _close_pc 1 #####', flush=True)
         try:
             await pc.close()
-        except BaseException as e:
-            print('Failed to close pc:', e)
-        print('###### _close_pc 2 #####', flush=True)
-        print('>>>', pc.__transceivers, flush=True)
+        except BaseException:
+            logger.exception(f'Failed to close pc')
         self.pcs.discard(pc)
 
     async def close(self):
