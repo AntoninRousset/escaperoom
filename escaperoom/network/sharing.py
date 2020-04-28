@@ -99,13 +99,17 @@ class Cluster(Network):
     def normalize_key(cls, key):
         return key.rstrip('/') + '/'
 
-    def __init__(self, name: str, peers, *, new=False):
+    def __init__(self, name: str, peers, *, new=False, arm64=False):
         if set(Cluster.entries()):
             raise RuntimeError('There can be only one cluster running')
         super().__init__(name)
 
         self.peers = self._resolve_ips(peers)
         self._soon_ready = asyncio.Event()
+
+        self.env = dict()
+        if arm64:
+            self.env['ETCD_UNSUPPORTED_ARCH'] = 'arm64'
 
         asyncio.run_until_complete(self._start(new))  # TODO don't run the loop
 
@@ -132,7 +136,8 @@ class Cluster(Network):
             '--listen-client-urls', self._etcd_listen_client_urls,
             '--advertise-client-urls', self._etcd_advertise_peer_urls,
             '--initial-cluster', self._etcd_cluster,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.PIPE,
+            env=self.env
             )
 
         await sp.running
@@ -166,10 +171,11 @@ class Cluster(Network):
                     self._log_info(data['msg'])
                 elif data['level'] == 'warn':
                     self._log_warning(data['msg'])
-            else:
+            elif line != '':
                 if re.match('.*embed: ready to serve client requests', line):
                     self._soon_ready.set()
-                self._log_info(line)
+                elif re.match('.*etcd on unsupported platform.*', line):
+                    self._log_error('etcd failed to start: wrong architecture')
 
     # TODO discovery, DNS
     def _resolve_ips(self, peers):
