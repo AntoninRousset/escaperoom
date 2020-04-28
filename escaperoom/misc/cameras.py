@@ -59,7 +59,8 @@ class LocalCamera(Camera):
             self.set_v4l2_ctl(v_file, v4l2_ctl)
 
         try:
-            self.v_player = MediaPlayer(v_file, v_format, v_options)
+            self.v_player = MediaPlayer(v_file, v_format, v_options,
+                                        a_effect=a_effect, v_effect=v_effect)
             '''
             self.v_player = MediaPlayer(v_file, v_format, v_options,
                                         video_effect=v_effect,
@@ -128,7 +129,13 @@ class LocalCamera(Camera):
                 'type': pc.localDescription.type}
 
     async def _close_pc(self, pc):
-        await pc.close()
+        print('###### _close_pc 1 #####', flush=True)
+        try:
+            await pc.close()
+        except BaseException as e:
+            print('Failed to close pc:', e)
+        print('###### _close_pc 2 #####', flush=True)
+        print('>>>', pc.__transceivers, flush=True)
         self.pcs.discard(pc)
 
     async def close(self):

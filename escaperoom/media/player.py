@@ -10,24 +10,21 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import aiortc.contrib.media as aiom
 import threading
 
 from . import asyncio, logger
 import av
-import aiortc
 import aiortc.contrib.media as aiom
 from aiortc.mediastreams import AUDIO_PTIME, MediaStreamError, MediaStreamTrack
 from threading import Lock
 from weakref import ref
 
-# TMP, TODO
-aiom.MediaStreamTrack.stop = lambda: None
 
-
-def worker(loop, container, streams, tracks, lock_tracks, quit_event):
+def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
+           throttle_playback, audio_effect, video_effect):
 
     import fractions
+    import time
 
     audio_fifo = av.AudioFifo()
     audio_format_name = "s16"
@@ -40,22 +37,31 @@ def worker(loop, container, streams, tracks, lock_tracks, quit_event):
                                         rate=audio_sample_rate)
 
     video_first_pts = None
-    print('work')
+    audio_frame_time = None
+    video_frame_time = None
+    start_time = time.time()
+
+    audio_print_warning = True
+    video_print_warning = True
 
     def iter_tracks(kind=None):
         with lock_tracks:
-
-            # clean invalid ref
-            tt = {t for t in tracks if t() is not None}
-
-            for track in tt:
+            for track in tracks:
                 track = track()
                 if track is not None:
                     if kind is None or kind == track.kind:
                         yield track
 
+    def cleanup_tracks():
+        with lock_tracks:
+            to_remove = {track for track in tracks if track() is None}
+            for track in to_remove:
+                tracks.discard(track)
+
     while not quit_event.is_set():
 
+        # clean invalid ref
+        cleanup_tracks()
 
         # decode frame
         try:
@@ -64,6 +70,12 @@ def worker(loop, container, streams, tracks, lock_tracks, quit_event):
             for track in iter_tracks():
                 asyncio.run_coroutine_threadsafe(track._queue.put(None), loop)
             break
+
+        # read up to 1 second ahead
+        if throttle_playback:
+            elapsed_time = time.time() - start_time
+            if audio_frame_time and audio_frame_time > elapsed_time + 1:
+                time.sleep(0.1)
 
         # audio
         if isinstance(frame, av.AudioFrame) and set(iter_tracks('audio')):
@@ -81,10 +93,22 @@ def worker(loop, container, streams, tracks, lock_tracks, quit_event):
             frame.time_base = fractions.Fraction(1, audio_sample_rate)
             audio_samples += frame.samples
 
+            # apply audio effect
+            if audio_effect is not None:
+
+                try:
+                    frame = audio_effect(loop, frame)
+                    audio_print_warning = True
+                except BaseException:
+                    if audio_print_warning:
+                        logger.exception('Failed to apply audio effect')
+                        audio_print_warning = False
+
             audio_fifo.write(frame)
             while True:
                 frame = audio_fifo.read(audio_samples_per_frame)
                 if frame:
+                    audio_frame_time = frame.time
                     for track in iter_tracks('audio'):
                         asyncio.run_coroutine_threadsafe(
                             track._queue.put(frame), loop)
@@ -103,21 +127,39 @@ def worker(loop, container, streams, tracks, lock_tracks, quit_event):
                 video_first_pts = frame.pts
             frame.pts -= video_first_pts
 
+            # drop frame if too late
+            if throttle_playback:
+                elapsed_time = time.time() - start_time
+                if elapsed_time - frame.time > 0.1:
+                    continue
+
+            # apply video effect
+            if video_effect is not None:
+
+                try:
+                    frame = video_effect(loop, frame)
+                    video_print_warning = True
+                except BaseException:
+                    if video_print_warning:
+                        logger.exception('Failed to apply video effect')
+                        video_print_warning = False
+
+            video_frame_time = frame.time
             for track in iter_tracks('video'):
                 asyncio.run_coroutine_threadsafe(track._queue.put(frame), loop)
 
 
 class PlayerStreamTrack(MediaStreamTrack):
 
-    def __init__(self, kind):
+    def __init__(self, player, kind):
         super().__init__()
+        self.__ended = False
+        self._player = player
         self.kind = kind
         self._queue = asyncio.Queue()
         logger.debug('WebcamStreamTrack created')
 
     async def recv(self):
-
-        print(self.readyState)
 
         if self.readyState != "live":
             raise MediaStreamError
@@ -129,9 +171,17 @@ class PlayerStreamTrack(MediaStreamTrack):
             self.stop()
             raise MediaStreamError
 
-        print(frame)
-
         return frame
+
+    def stop(self):
+
+        if not self.__ended:
+            self.__ended = True
+            self.emit('ended')
+
+        if self._player is not None:
+            self._player._stop(self)
+            self._player = None
 
 
 class MediaPlayer(aiom.MediaPlayer):
@@ -139,51 +189,74 @@ class MediaPlayer(aiom.MediaPlayer):
     Multiqeue media player with optional effects.
     """
 
-    def __init__(self, file, format=None, options={}):
+    def __init__(self, file, format=None, options={}, a_effect=None,
+                 v_effect=None):
 
         super().__init__(file, format, options)
 
         self.__lock_started = Lock()
+        self.a_effect = a_effect
+        self.v_effect = v_effect
 
-        # TODO if self.__started is empty, do not run worker
-        self.__thread_quit = threading.Event()
-        self.__thread = threading.Thread(
-            name="media-player",
-            target=worker,
-            args=(
-                asyncio.get_event_loop(),
-                self.__container,
-                self.__streams,
-                self.__started,
-                self.__lock_started,
-                self.__thread_quit,
-            ),
-        )
-        self.__thread.start()
         logger.debug(f'WebcamSource created file: {file},'
                      f'format: {format}, options: {options}')
 
     @property
     def audio(self):
-        track = PlayerStreamTrack(kind='audio')
+        track = PlayerStreamTrack(self, kind='audio')
         self._start(track)
         return track
 
     @property
     def video(self):
-        track = PlayerStreamTrack(kind='video')
+        track = PlayerStreamTrack(self, kind='video')
         self._start(track)
         return track
 
     def _start(self, track):
+
+        # add track
         with self.__lock_started:
             track = ref(track) if not isinstance(track, ref) else track
             self.__started.add(track)
 
+        # start thread if not already started
+        if self.__thread is None:
+            logger.debug('Starting worker thread')
+            self.__thread_quit = threading.Event()
+            self.__thread = threading.Thread(
+                name="media-player",
+                target=worker,
+                args=(
+                    self,
+                    asyncio.get_event_loop(),
+                    self.__container,
+                    self.__streams,
+                    self.__started,
+                    self.__lock_started,
+                    self.__thread_quit,
+                    self._throttle_playback,
+                    self.a_effect,
+                    self.v_effect,
+                ),
+            )
+            self.__thread.start()
+
     def _stop(self, track):
+
+        # remove track
         with self.__lock_started:
             track = ref(track) if not isinstance(track, ref) else track
             self.__started.discard(track)
+
+        # stop thread if no remaining tracks
+        if not self.__started and self.__thread is not None:
+            logger.debug('Stopping worker thread')
+            self.__thread_quit.set()
+            self.__thread.join()
+            self.__thread = None
+
+
 
 
 '''
