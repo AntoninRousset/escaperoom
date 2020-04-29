@@ -1,0 +1,50 @@
+.panel {
+  border: 1px solid #bbb;
+  margin: 0px 0px 18px 1px;
+  break-inside: avoid;
+}
+
+.panel > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0px;
+  padding: 6px 12px;
+  background: #f8f8f8;
+  border-bottom: 1px solid #bbb;
+}
+
+.panel > header > svg {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: transform 0.5s;
+}
+
+.panel > header > svg:hover {
+  background: #ddd;
+}
+
+.panel > header > svg:active {
+  box-shadow: 0px 0px 2px var(--active-color);
+}
+
+.panel  > header > h1 {
+  margin: 0;
+  font-size: medium;
+  color: black;
+}
+
+.panel > .content {
+  display: block;
+  background: white;
+}
+
+.panel[closed] > .content {
+  display: none;
+}
+
+.panel[closed] > header > svg {
+  transform: rotateZ(180deg);
+}

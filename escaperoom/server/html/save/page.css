@@ -1,0 +1,164 @@
+:root {
+	--dark-color: #1f4e5f;
+	--light-color: #f4f7f7;
+
+	--controls-color: #aacfd0;
+	--activate-color: #79a8a9;
+	--dangerous-color: #ed643f;
+
+	--dark-text-color: white;
+	--light-text-color: #424242;
+}
+
+@font-face{
+	font-family: 'time-dial-font';
+	src: url('/ressources/digital_counter_7.ttf');
+}
+
+:disabled {
+	color: #666666;
+	cursor: default;
+}
+
+[hidden] {
+	display: none;
+}
+
+[disabled] {
+	color: lightgray;
+	cursor: default;
+}
+
+[disabled] select, [disabled] input {
+  border: 1px solid lightgray;
+  color: lightgray;
+}
+
+[disabled] select {
+  -moz-appearance:none;
+}
+
+[disabled] input[number] {
+  -moz-appearance:textfield;
+}
+
+.box, .screen, .section {
+	position: relative;
+    background: var(--light-color);
+}
+
+.dark.box, .dark.screen, .dark.section {
+    background: var(--dark-color);
+}
+
+.screen-text {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-size: 24px;
+	text-align: center;
+}
+
+.dark .screen-text {
+	color: rgba(0,0,0, 0.4);
+	text-shadow: 0px 1px 0px rgba(255,255,255,0.05);
+}
+
+.dark {
+	font-weight: bold;
+	color: var(--dark-text-color);
+}
+
+.scroll-x {
+	overflow-x: scroll;
+	scrollbar-width: none;
+}
+
+.scroll-y {
+	overflow-y: scroll;
+	scrollbar-width: none;
+}
+
+h1 {
+	font-weight: normal;
+	font-size: 38px;
+	margin: 8px 0 6px 0;
+}
+
+h2 {
+	font-weight: normal;
+	font-size: 18px;
+	margin 14px 0 8px 0;
+}
+
+p {
+	font-size: 12px;
+}
+
+button, input, select, textarea {
+	border: 1px solid #00000040;
+	border-radius: 4px;
+	padding: 2px 7px;
+	text-shadow: 0px 1px 0px #ffffff40;
+	cursor: pointer;
+	transition: background 0.2s ease;
+  box-sizing: border-box;
+}
+
+button, input[type='reset'], input[type='submit'] {
+	padding: 8px 14px;
+}
+
+button:not(:disabled):hover {
+	background: #a9d7d8;
+}
+
+button:not(:disabled)[dangerous]:hover {
+	background: var(--dangerous-color); 
+}
+
+button:disabled {
+	border: 1px solid #999999;
+	background-color: #cccccc;
+	box-shadow: 0px 0px 0px #00000000 inset;
+}
+
+.time-dial {
+	font-family: 'time-dial-font'
+}
+
+/** TO CHECK **/
+
+button:active{
+	box-shadow: 0px 0px 20px #00000040 inset;
+}
+
+button::-moz-focus-inner {
+	border: 0;
+}
+
+.rect {
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.dark.list > .item:nth-child(odd) {
+	background: rgba(255,255,255, 0.2);
+}
+
+.dark.list > .item:nth-child(odd):hover {
+	background: var(--activate-color); 
+}
+
+
+/** LIST **/
+
+
+.inspector .actions button.dangerous.confirm {
+	box-shadow: 0px 0px 20px #00000040 inset;
+	background: #ed2c00; 
+	color: #ede2df;
+	text-shadow: 0px -1px 0px #00000040;
+}
