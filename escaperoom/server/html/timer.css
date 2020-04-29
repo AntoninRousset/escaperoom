@@ -45,3 +45,10 @@
   background: var(--active-color);
   fill: white;
 }
+
+@media only screen and (max-width: 500px) {
+
+  .timer .content .time {
+    font-size: 10vh;
+  }
+}

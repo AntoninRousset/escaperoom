@@ -24,6 +24,7 @@
 }
 
 .page .split-x > * {
+  flex: 1;
   margin-right: 8px;
 }
 
@@ -40,14 +41,13 @@
 }
 
 .page fieldset div {
-  margin: 4px 0;
   display: flex;
   flex-flow: column;
 }
 
-.page fieldset  div > div {
-  display: flex;
-}
+.page fieldset > div {
+  margin: 4px 0;
+} 
 
 .page label {
   display: block;
@@ -57,21 +57,22 @@
   margin-bottom: 2px;
 }
 
-.page input {
+.page input, .page textarea, .page button {
   display: block;
   width: 100%;
   box-sizing: border-box;
-  flex-grow: 1;
   margin: 0;
   border: 1px solid #bbb;
   border-radius: 4px;
-  height: 32px;
   padding: 2px 12px;
 }
 
-.page .content div {
+.page input {
+  height: 32px;
 }
 
-.page .content > div > div > *:first-child {
-  margin-right: 4px;
+.page textarea {
+  resize: none;
+  height: 120px;
+  padding: 10px 16px;
 }

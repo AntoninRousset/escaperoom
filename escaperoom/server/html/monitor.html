@@ -140,8 +140,10 @@
         </header>
         <div class='content'>
 
-          <div class='page' style='display: flex; flex-flow: column;'>
-            <button style='height: 40px; cursor: pointer;'>New game</button>
+          <div class='page'>
+            <div class='content'>
+              <button style='height: 40px; cursor: pointer;'>New game</button>
+            </div>
           </div>
 
           <div class='page'>
@@ -159,7 +161,7 @@
                     <label>Nom</label>
                     <input name='group_name'>
                   </div>
-                  <div style='width: 64px;'>
+                  <div style='min-width: 64px;'>
                     <label>Taille</label>
                     <input type='number' min='1' name='group_size'>
                   </div>
@@ -169,7 +171,7 @@
                   <label>Date planifiée</label>
                   <div class='split-x'>
                     <input type='date' name='planned_date'>
-                    <select name='planned_date'>
+                    <select name='planned_date' style='flex: 0;'>
                       <option>00:00</option>
                       <option>00:15</option>
                       <option>00:30</option>
@@ -191,11 +193,55 @@
             </div>
 
           </div>
+
+          <div class='page'>
+
+            <header>
+              <h2>Leader info</h2>
+            </header>
+
+            <div class='content'>
+
+              <fieldset id='leader-info'>
+
+                <div class='split-x'>
+                  <div>
+                    <label>Firstname</label>
+                    <input name='leader_firstname'>
+                  </div>
+                  <div>
+                    <label>Lastname</label>
+                    <input name='leader_lastname'>
+                  </div>
+                </div>
+
+                <div class='split-x'>
+                  <div style='flex: 2;'>
+                    <label>Email</label>
+                    <input name='leader_email'>
+                  </div>
+                  <div style='flex: 1; min-width: 70px;'>
+                    <label>Postcode</label>
+                    <input name='leader_postcode'>
+                  </div>
+                </div>
+
+                <div>
+                  <label>Comments</label>
+                  <textarea name='comments'></textarea>
+                </div>
+
+              </fieldset>
+
+            </div>
+
+          </div>
+
         </div>
       </div>
 
       <div class='panel'>
-        <link rel='stylesheet' type='text/css' href='ressources/story.css'>
+        <link rel='stylesheet' type='text/css' href='ressources/story.css'/>
         <header>
           <h1>Story</h1>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" onclick='toggle_panel(this.parentElement.parentElement);'>
@@ -204,7 +250,7 @@
         </header>
         <div class='content'>
           <div class='metro' style=''>
-            <img src='ressources/icons/metro.svg'>
+            <img src='ressources/icons/metro.svg'/>
           </div>
           <div class='page'>
 
@@ -234,6 +280,20 @@
             </div>
 
           </div>
+        </div>
+      </div>
+
+      <div class='panel'>
+        <header>
+          <h1>Clues</h1>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" onclick='toggle_panel(this.parentElement.parentElement);'>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path>
+          </svg>
+        </header>
+        <div class='page content'>
+            <textarea style='margin-bottom: 6px;'>
+            </textarea>
+          <button style='height: 48px;'>Envoyer</button>
         </div>
       </div>
 

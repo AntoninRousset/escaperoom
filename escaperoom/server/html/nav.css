@@ -1,7 +1,6 @@
 nav {
   height: 100%;
   position: fixed;
-  z-index: 1;
   left: 0;
   display: flex;
   flex-flow: column;
@@ -90,7 +89,7 @@ nav a[selected]::after {
   
   nav {
     width: auto;
-    position: sticky;
+    position: relative;
     bottom: 0px;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
