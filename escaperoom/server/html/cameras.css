@@ -1,0 +1,12 @@
+.cameras .darkbox {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 4px;
+}
+
+.cameras .darkbox img {
+  flex-grow: 1;
+  max-width: 300px;
+  margin: 4px;
+}

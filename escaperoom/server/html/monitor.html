@@ -17,7 +17,108 @@
 
       function load() {
         select_tab(window.location.hash.substr(1));
+        document.addEventListener('keydown', keypress);
+
+        // add ondragover to all panels
+        document.querySelectorAll('.panel').forEach(function (panel) {
+          panel.setAttribute('draggable', 'true');
+          panel.parentElement.addEventListener('dragenter', dragenter);
+
+          panel.addEventListener('dragstart', dragstart);
+          panel.addEventListener('dragend', dragend);
+          panel.addEventListener('drop', console.log);
+
+          // to allow drop
+          panel.parentElement.addEventListener('dragover', event => event.preventDefault());
+        });
       }
+
+      function dragstart(event) {
+        event.target.setAttribute('dragged', '');
+      }
+
+      function dragend(event) {
+
+        try {
+          dest = document.querySelector('.panel[drop-before], .panel[drop-after]');
+
+          if (!dest)
+            return;
+
+          if (dest.hasAttribute('drop-before')) {
+            dest.parentNode.insertBefore(event.target, dest);
+          } else {
+            dest.parentNode.insertBefore(event.target, dest.nextSibling);
+          }
+        } finally {
+
+          // remove dragged, drop-before and drop-after
+          event.target.removeAttribute('dragged');
+          document.querySelectorAll('.panel').forEach(function (p) {
+            p.removeAttribute('drop-before');
+            p.removeAttribute('drop-after');
+          });
+
+        }
+      }
+
+      function dragenter(event) {
+
+        target = get_panel(event.target);
+        event.preventDefault();
+
+        document.querySelectorAll('.panel').forEach(function (p) {
+          if (!target || p !== target) {
+            p.removeAttribute('drop-before');
+            p.removeAttribute('drop-after');
+          }
+        });
+
+        if (!target || target === document.querySelector('*[dragged]'))
+          return true;
+
+        rect = target.getBoundingClientRect();
+        y = event.clientY;
+        py = (y - rect.top) / (rect.bottom - rect.top)
+
+        if (py > 0.5) {
+          target.removeAttribute('drop-before');
+          target.setAttribute('drop-after', '');
+        } else {
+          target.removeAttribute('drop-after');
+          target.setAttribute('drop-before', '');
+        }
+
+        return false;
+      }
+
+      function get_panel(element, max_iter = 50) {
+
+        try {
+          for (let i = 0; i < max_iter; i++) {
+            if (element.parentElement.classList.contains('panel'))
+              return element.parentElement;
+            element = element.parentElement;
+          }
+        } catch {
+          return null;
+        }
+
+        return null;
+      }
+
+      function keypress(event) {
+        if (!isNaN(Number(event.key))
+          && !event.altKey
+          && !event.ctrlKey
+          && !event.metaKey
+          && event.target.tagName !== 'INPUT'
+          && event.target.tagName !== 'TEXTAREA'
+        ) {
+          event.preventDefault();
+          select_tab(Number(event.key) - 1);
+        }
+      } 
 
       function toggle_panel(panel) {
         if (!panel.hasAttribute('closed')) {
@@ -29,9 +130,21 @@
 
       function select_tab(tab) {
 
+        // handle number
+        if (Number.isInteger(tab)) {
+          try {
+            href = document.querySelectorAll('nav > a')[tab].getAttribute('href');
+            select_tab(href.substr(1));
+          } catch {
+          }
+          return;
+        }
+
         // remove hash if empty without reload
         if (!tab) {
           history.pushState("", document.title, window.location.pathname + window.location.search);
+        } else {
+          history.pushState("", document.title, window.location.pathname + window.location.search + '#' + tab);
         }
 
         // unselect all
@@ -115,8 +228,8 @@
             <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path>
           </svg>
         </header>
-        <div class='content'>
-          <div class='page'>
+        <div class='content page'>
+          <div style='display: flex; justify-content: center;'>
             <span class='time'>00:00</span>
             <span class='controls'>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -142,7 +255,7 @@
 
           <div class='page'>
             <div class='content'>
-              <button style='height: 40px; cursor: pointer;'>New game</button>
+              <button class='big'>New game</button>
             </div>
           </div>
 
@@ -249,7 +362,7 @@
           </svg>
         </header>
         <div class='content'>
-          <div class='metro' style=''>
+          <div class='metro darkbox'>
             <img src='ressources/icons/metro.svg'/>
           </div>
           <div class='page'>
@@ -291,9 +404,29 @@
           </svg>
         </header>
         <div class='page content'>
-            <textarea style='margin-bottom: 6px;'>
+          <fieldset>
+            <textarea>
             </textarea>
-          <button style='height: 48px;'>Envoyer</button>
+            <button class='big'>Envoyer</button>
+          </fieldset>
+        </div>
+      </div>
+
+      <div class='panel cameras'>
+        <link rel='stylesheet' type='text/css' href='ressources/cameras.css'/>
+        <header>
+          <h1>Cameras</h1>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" onclick='toggle_panel(this.parentElement.parentElement);'>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path>
+          </svg>
+        </header>
+        <div class='content'>
+          <div class='darkbox'>
+            <img src='ressources/cam/cam1.jpg'/>
+            <img src='ressources/cam/cam2.jpg'/>
+            <img src='ressources/cam/cam3.jpg'/>
+            <img src='ressources/cam/cam4.jpg'/>
+          </div>
         </div>
       </div>
 

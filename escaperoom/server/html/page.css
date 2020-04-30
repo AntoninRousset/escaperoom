@@ -1,5 +1,9 @@
 .page {
+  display: flex;
+  flex-flow: column;
+  align-items: stretch;
   padding: 8px 12px;
+  background: white;
 }
 
 .page .content {
@@ -45,8 +49,8 @@
   flex-flow: column;
 }
 
-.page fieldset > div {
-  margin: 4px 0;
+.page fieldset > *, .page fieldset > textarea {
+  margin: 6px 0;
 } 
 
 .page label {
@@ -65,6 +69,14 @@
   border: 1px solid #bbb;
   border-radius: 4px;
   padding: 2px 12px;
+}
+
+.page button {
+  cursor: pointer;
+}
+
+.page button.big {
+  padding: 12px 18px;
 }
 
 .page input {
