@@ -129,6 +129,8 @@ class Game(Registered):
 
         super().__init__(name, register=False)
 
+        self.ended = asyncio.Event()
+
         self._chronometer = Chronometer('__game')
         self.main_chronometer = None
         self.give_clue = None
