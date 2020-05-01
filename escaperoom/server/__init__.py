@@ -45,10 +45,13 @@ async def favicon(request):
 
 @routes.get('/events')
 async def events(request):
-    async with sse_response(request) as resp:
-        async for event in events_generator.generator():
-            await resp.send(to_json(event))
-    return resp
+    try:
+        async with sse_response(request) as resp:
+            async for event in events_generator.generator():
+                await resp.send(to_json(event))
+        return resp
+    except BaseException:
+        logger.exception('get /events failed')
 
 
 @routes.get('/{service}')
