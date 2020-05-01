@@ -25,6 +25,7 @@ def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
 
     import fractions
     import time
+    print('------------- READY')
 
     audio_fifo = av.AudioFifo()
     audio_format_name = "s16"
@@ -38,11 +39,13 @@ def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
 
     video_first_pts = None
     audio_frame_time = None
-    video_frame_time = None
     start_time = time.time()
 
     audio_print_warning = True
     video_print_warning = True
+    full_print_warning = True
+
+    print('--------------- GOOOOOO')
 
     def iter_tracks(kind=None):
         with lock_tracks:
@@ -53,12 +56,42 @@ def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
                         yield track
 
     def cleanup_tracks():
+
         with lock_tracks:
             to_remove = {track for track in tracks if track() is None}
             for track in to_remove:
                 tracks.discard(track)
 
+    def run_threadsafe(coro):
+        asyncio.run_coroutine_threadsafe(coro, loop)
+
+    def append_frame(frame, kind=None, force=False):
+
+        global full_print_warning
+
+        for track in iter_tracks(kind=kind):
+            if track._queue.full():
+                if full_print_warning:
+                    logger.warn('Track is full')
+                    full_print_warning = False
+                if force:
+                    run_threadsafe(track._queue.get())
+                    run_threadsafe(track._queue.put(frame))
+            else:
+                run_threadsafe(track._queue.put(frame))
+                full_print_warning = True
+
+    i = 0
+
     while not quit_event.is_set():
+
+        i += 1
+
+        if i > 10:
+            print('-' * 40)
+            for n, track in enumerate(iter_tracks()):
+                print(f'queue {n:2d} {track.kind:16s}:', track._queue.qsize())
+            i = 0
 
         # clean invalid ref
         cleanup_tracks()
@@ -68,7 +101,7 @@ def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
             frame = next(container.decode(*streams))
         except (av.AVError, StopIteration):
             for track in iter_tracks():
-                asyncio.run_coroutine_threadsafe(track._queue.put(None), loop)
+                append_frame(None, force=True)
             break
 
         # read up to 1 second ahead
@@ -109,9 +142,7 @@ def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
                 frame = audio_fifo.read(audio_samples_per_frame)
                 if frame:
                     audio_frame_time = frame.time
-                    for track in iter_tracks('audio'):
-                        asyncio.run_coroutine_threadsafe(
-                            track._queue.put(frame), loop)
+                    append_frame(frame, 'audio')
                 else:
                     break
 
@@ -144,9 +175,7 @@ def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
                         logger.exception('Failed to apply video effect')
                         video_print_warning = False
 
-            video_frame_time = frame.time
-            for track in iter_tracks('video'):
-                asyncio.run_coroutine_threadsafe(track._queue.put(frame), loop)
+            append_frame(frame, 'video')
 
 
 class PlayerStreamTrack(MediaStreamTrack):
@@ -156,7 +185,7 @@ class PlayerStreamTrack(MediaStreamTrack):
         self.__ended = False
         self._player = player
         self.kind = kind
-        self._queue = asyncio.Queue()
+        self._queue = asyncio.Queue(maxsize=10)
         logger.debug('WebcamStreamTrack created')
 
     async def recv(self):
