@@ -1,12 +1,17 @@
-.cameras .darkbox {
+div {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
   padding: 4px;
 }
 
-.cameras .darkbox img {
+img {
+  width: 200px;
   flex-grow: 1;
-  max-width: 300px;
   margin: 4px;
+}
+
+:host > div > .cameras img {
+  max-width: 300px;
 }

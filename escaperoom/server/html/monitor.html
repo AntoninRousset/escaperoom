@@ -1,172 +1,29 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset='utf-8'>
-		<meta name='viewport' content='width=device-width, initial-scale=1'/>
+  <head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'/>
     <title>Escape room</title>
     <link rel="icon" href="favicon.svg" type="xml/svg" sizes="any">
-		<link rel='stylesheet' type='text/css' href='ressources/monitor.css'>
-		<link rel='stylesheet' type='text/css' href='ressources/header.css'>
-		<link rel='stylesheet' type='text/css' href='ressources/nav.css'>
-		<link rel='stylesheet' type='text/css' href='ressources/panel.css'>
-		<link rel='stylesheet' type='text/css' href='ressources/page.css'>
-	</head>
-	<body onload='load();' onhashchange='select_tab(this.location.hash.substr(1));'>
+    <link rel='stylesheet' type='text/css' href='ressources/monitor.css'>
+    <link rel='stylesheet' type='text/css' href='ressources/header.css'>
+    <link rel='stylesheet' type='text/css' href='ressources/nav.css'>
+    <link rel='stylesheet' type='text/css' href='ressources/panel.css'>
+    <link rel='stylesheet' type='text/css' href='ressources/page.css'>
 
-    <script>
+    <script src="ressources/modules/loading.js" type='module'></script>
+    <script src="ressources/modules/communication.js" type='module'></script>
+    <script src="ressources/modules/tab.js" type='module' defer></script>
+    <script src="ressources/modules/panel.js" type='module' defer></script>
 
-      function load() {
-        select_tab(window.location.hash.substr(1));
-        document.addEventListener('keydown', keypress);
+    <script src="ressources/widgets/cameras/cameras.js" type='module' defer></script>
+    <script src="ressources/widgets/clues/clues.js" type='module' defer></script>
+    <script src="ressources/widgets/game/game.js" type='module' defer></script>
+    <script src="ressources/widgets/story/story.js" type='module' defer></script>
+    <script src="ressources/widgets/timer/timer.js" type='module' defer></script>
 
-        // add ondragover to all panels
-        document.querySelectorAll('.panel').forEach(function (panel) {
-          panel.setAttribute('draggable', 'true');
-          panel.parentElement.addEventListener('dragenter', dragenter);
-
-          panel.addEventListener('dragstart', dragstart);
-          panel.addEventListener('dragend', dragend);
-          panel.addEventListener('drop', console.log);
-
-          // to allow drop
-          panel.parentElement.addEventListener('dragover', event => event.preventDefault());
-        });
-      }
-
-      function dragstart(event) {
-        event.target.setAttribute('dragged', '');
-      }
-
-      function dragend(event) {
-
-        try {
-          dest = document.querySelector('.panel[drop-before], .panel[drop-after]');
-
-          if (!dest)
-            return;
-
-          if (dest.hasAttribute('drop-before')) {
-            dest.parentNode.insertBefore(event.target, dest);
-          } else {
-            dest.parentNode.insertBefore(event.target, dest.nextSibling);
-          }
-        } finally {
-
-          // remove dragged, drop-before and drop-after
-          event.target.removeAttribute('dragged');
-          document.querySelectorAll('.panel').forEach(function (p) {
-            p.removeAttribute('drop-before');
-            p.removeAttribute('drop-after');
-          });
-
-        }
-      }
-
-      function dragenter(event) {
-
-        target = get_panel(event.target);
-        event.preventDefault();
-
-        document.querySelectorAll('.panel').forEach(function (p) {
-          if (!target || p !== target) {
-            p.removeAttribute('drop-before');
-            p.removeAttribute('drop-after');
-          }
-        });
-
-        if (!target || target === document.querySelector('*[dragged]'))
-          return true;
-
-        rect = target.getBoundingClientRect();
-        y = event.clientY;
-        py = (y - rect.top) / (rect.bottom - rect.top)
-
-        if (py > 0.5) {
-          target.removeAttribute('drop-before');
-          target.setAttribute('drop-after', '');
-        } else {
-          target.removeAttribute('drop-after');
-          target.setAttribute('drop-before', '');
-        }
-
-        return false;
-      }
-
-      function get_panel(element, max_iter = 50) {
-
-        try {
-          for (let i = 0; i < max_iter; i++) {
-            if (element.parentElement.classList.contains('panel'))
-              return element.parentElement;
-            element = element.parentElement;
-          }
-        } catch {
-          return null;
-        }
-
-        return null;
-      }
-
-      function keypress(event) {
-        if (!isNaN(Number(event.key))
-          && !event.altKey
-          && !event.ctrlKey
-          && !event.metaKey
-          && event.target.tagName !== 'INPUT'
-          && event.target.tagName !== 'TEXTAREA'
-        ) {
-          event.preventDefault();
-          select_tab(Number(event.key) - 1);
-        }
-      } 
-
-      function toggle_panel(panel) {
-        if (!panel.hasAttribute('closed')) {
-          panel.setAttribute('closed', '');
-        } else {
-          panel.removeAttribute('closed');
-        }
-      }
-
-      function select_tab(tab) {
-
-        // handle number
-        if (Number.isInteger(tab)) {
-          try {
-            href = document.querySelectorAll('nav > a')[tab].getAttribute('href');
-            select_tab(href.substr(1));
-          } catch {
-          }
-          return;
-        }
-
-        // remove hash if empty without reload
-        if (!tab) {
-          history.pushState("", document.title, window.location.pathname + window.location.search);
-        } else {
-          history.pushState("", document.title, window.location.pathname + window.location.search + '#' + tab);
-        }
-
-        // unselect all
-        document.querySelectorAll('nav > a').forEach(a => a.removeAttribute('selected'));
-        document.querySelectorAll('.tabcontent').forEach(a => a.setAttribute('hidden', ''));
-
-        // get default tab
-        if (!tab) {
-          tab = document.querySelector('nav > a[default]').getAttribute('href').substr(1);
-        }
-
-        try {
-          document.querySelector('nav > a[href="#' + tab + '"]').setAttribute('selected', '');
-          document.querySelector('.tabcontent[name="' + tab + '"]').removeAttribute('hidden');
-        } catch {
-          if (window.location.hash) {
-            select_tab();
-          }
-        }
-      }
-
-    </script>
+  </head>
+  <body>
 
     <header>
       <img src='ressources/logo_bw.svg'>
@@ -185,259 +42,69 @@
       </div>
     </header>
 
+    <tabs-nav for='boards' loading>
+    </tabs-nav>
+
+    <template id='template-panel-header'>
+      <header>
+        <h1></h1>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path>
+        </svg>
+      </header>
+      <loading-animation></loading-animation>
+      <div class='content'></div>
+    </template>
+
+    <div id='boards'>
+    </div>
+
+    <!---
     <nav>
       <a href="#dashboard" default selected>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M20.3215 0.75C17.581 0.75 14.9439 1.79667 12.9494 3.67607L11.6448 4.90525C11.106 5.41297 10.5916 5.94521 10.1033 6.50012H5.06619C4.45148 6.50012 3.88184 6.82265 3.56558 7.34975L0.856882 11.8643C0.732085 12.0722 0.715585 12.3278 0.812592 12.5501C0.909599 12.7724 1.10814 12.9341 1.34549 12.984L5.91718 13.9465C5.95586 13.9957 5.99866 14.0426 6.04552 14.0866L8.0415 15.9597L9.91345 17.9545C9.95745 18.0014 10.0043 18.0442 10.0536 18.0829L11.0161 22.6546C11.0661 22.892 11.2277 23.0905 11.4501 23.1875C11.6724 23.2845 11.9279 23.268 12.1359 23.1432L16.6504 20.4345C17.1775 20.1183 17.5 19.5486 17.5 18.9339V13.8965C18.0551 13.4079 18.5876 12.8932 19.0955 12.354L20.3236 11.0504C22.2033 9.05515 23.2497 6.41718 23.2489 3.67596L23.2485 2.49949C23.2482 1.53319 22.4648 0.75 21.4985 0.75H20.3215ZM16 15.1122C15.6673 15.3601 15.3281 15.5994 14.9825 15.8298L11.5885 18.0924L12.267 21.3153L15.8786 19.1483C15.9539 19.1031 16 19.0217 16 18.9339V15.1122ZM5.9076 12.4116L8.17097 9.01654C8.40111 8.67134 8.64011 8.33242 8.88772 8.00012H5.06619C4.97838 8.00012 4.897 8.0462 4.85182 8.1215L2.68484 11.7331L5.9076 12.4116ZM13.978 4.76778C15.6943 3.15062 17.9634 2.25 20.3215 2.25H21.4985C21.6366 2.25 21.7485 2.36188 21.7485 2.49993L21.7489 3.6764C21.7496 6.03512 20.8492 8.305 19.2318 10.0219L18.0037 11.3255C16.8469 12.5535 15.5541 13.6459 14.1504 14.5817L10.8624 16.7737L9.11901 14.9159C9.10814 14.9043 9.09691 14.8931 9.08534 14.8822L7.22634 13.1377L9.41904 9.8486C10.3544 8.44554 11.4462 7.15337 12.6735 5.99696L13.978 4.76778ZM17.5 8C17.5 8.82843 16.8284 9.5 16 9.5C15.1716 9.5 14.5 8.82843 14.5 8C14.5 7.17157 15.1716 6.5 16 6.5C16.8284 6.5 17.5 7.17157 17.5 8ZM6.49998 21C7.39982 20.1002 7.39985 18.3999 6.50001 17.5C5.60016 16.6002 3.89982 16.6002 2.99998 17.5C1.79119 18.7088 1.55499 21.4013 1.51016 22.2433C1.50266 22.3843 1.61572 22.4973 1.75674 22.4898C2.59877 22.4449 5.29138 22.2086 6.49998 21Z"></path>
-        </svg>
-
         <p>Dashboard</p></a>
+
       <a href="#story">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M0 3.75C0 3.33579 0.335786 3 0.75 3H8.24687C9.81303 3 11.1924 3.80012 11.9984 5.01401C12.8044 3.80017 14.1838 3 15.75 3H23.25C23.6642 3 24 3.33579 24 3.75V18.8125C24 19.0123 23.9203 19.2039 23.7785 19.3447C23.6368 19.4855 23.4447 19.5639 23.2449 19.5625L15.5631 19.5106C14.7604 19.5052 13.989 19.8216 13.4215 20.3892L12.5303 21.2803C12.2374 21.5732 11.7626 21.5732 11.4697 21.2803L10.568 20.3787C10.0054 19.8161 9.24235 19.5 8.4467 19.5H0.75C0.335786 19.5 0 19.1642 0 18.75V3.75ZM11.2469 7.4975C11.2455 5.84162 9.90275 4.5 8.24687 4.5H1.5V18H8.4467C9.46997 18 10.4573 18.3485 11.25 18.9798L11.2469 7.4975ZM12.75 18.982V7.5C12.75 5.84315 14.0931 4.5 15.75 4.5H22.5V18.0575L15.5732 18.0106C14.5439 18.0037 13.549 18.3496 12.75 18.982Z"></path>
-        </svg>
         <p>Story</p>
       </a>
+
       <a href="#cameras">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M24 5.25C24 4.9798 23.8547 4.73048 23.6195 4.59735C23.3844 4.46422 23.0958 4.46786 22.8641 4.60688L16.5 8.42536V6.25C16.5 5.2835 15.7165 4.5 14.75 4.5H1.75C0.783502 4.5 0 5.2835 0 6.25V17.25C0 18.2165 0.783502 19 1.75 19H14.75C15.7165 19 16.5 18.2165 16.5 17.25V15.0746L22.8641 18.8931C23.0958 19.0321 23.3844 19.0358 23.6195 18.9027C23.8547 18.7695 24 18.5202 24 18.25V5.25ZM16.5 13.3254L22.5 16.9254V6.57464L16.5 10.1746V13.3254ZM15 9.75V6.25C15 6.11193 14.8881 6 14.75 6H1.75C1.61193 6 1.5 6.11193 1.5 6.25V17.25C1.5 17.3881 1.61193 17.5 1.75 17.5H14.75C14.8881 17.5 15 17.3881 15 17.25V13.75V9.75Z"></path>
-        </svg>
         <p>Cameras</p>
       </a>
       <a href="#clues">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M3.25 4C3.11193 4 3 4.11193 3 4.25V16.75C3 16.8881 3.11193 17 3.25 17H5.75C6.16421 17 6.5 17.3358 6.5 17.75V20.9393L10.2197 17.2197C10.3603 17.079 10.5511 17 10.75 17H20.75C20.8881 17 21 16.8881 21 16.75V4.25C21 4.11193 20.8881 4 20.75 4H3.25ZM1.5 4.25C1.5 3.2835 2.2835 2.5 3.25 2.5H20.75C21.7165 2.5 22.5 3.2835 22.5 4.25V16.75C22.5 17.7165 21.7165 18.5 20.75 18.5H11.0607L7.48744 22.0732C7.21418 22.3465 6.84356 22.5 6.45711 22.5C5.65237 22.5 5 21.8476 5 21.0429V18.5H3.25C2.2835 18.5 1.5 17.7165 1.5 16.75V4.25Z"></path>
-        </svg>
         <p>Clues</p>
       </a>
       <a href="#room">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M11.0295 2.58982C11.5893 2.11484 12.4107 2.11484 12.9705 2.58982L20.4705 8.95345C20.8064 9.23846 21 9.6567 21 10.0972V19.5C21 20.3284 20.3284 21 19.5 21H13.75C13.3358 21 13 20.6642 13 20.25V14H11V20.25C11 20.6642 10.6642 21 10.25 21H4.5C3.67157 21 3 20.3284 3 19.5V10.0972C3 9.6567 3.19364 9.23846 3.52953 8.95345L11.0295 2.58982ZM12 3.73358L4.5 10.0972L4.5 19.5H9.5V13.25C9.5 12.8358 9.83579 12.5 10.25 12.5H13.75C14.1642 12.5 14.5 12.8358 14.5 13.25V19.5H19.5V10.0972L12 3.73358Z"></path>
-        </svg>
         <p>Room</p>
       </a>
     </nav>
 
-    <div class="tabcontent" name='dashboard'>
-
-      <div class='panel timer'>
-        <link rel='stylesheet' type='text/css' href='ressources/timer.css'>
-        <header>
-          <h1>Timer</h1>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" onclick='toggle_panel(this.parentElement.parentElement);'>
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path>
-          </svg>
-        </header>
-        <div class='content page'>
-          <div style='display: flex; justify-content: center;'>
-            <span class='time'>00:00</span>
-            <span class='controls'>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M12.75 7.75C12.75 7.33579 12.4142 7 12 7C11.5858 7 11.25 7.33579 11.25 7.75V11.25H7.75C7.33579 11.25 7 11.5858 7 12C7 12.4142 7.33579 12.75 7.75 12.75H11.25V16.25C11.25 16.6642 11.5858 17 12 17C12.4142 17 12.75 16.6642 12.75 16.25V12.75H16.25C16.6642 12.75 17 12.4142 17 12C17 11.5858 16.6642 11.25 16.25 11.25H12.75V7.75Z"></path>
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 1C5.92487 1 1 5.92487 1 12C1 18.0751 5.92487 23 12 23C18.0751 23 23 18.0751 23 12C23 5.92487 18.0751 1 12 1ZM2.5 12C2.5 6.75329 6.75329 2.5 12 2.5C17.2467 2.5 21.5 6.75329 21.5 12C21.5 17.2467 17.2467 21.5 12 21.5C6.75329 21.5 2.5 17.2467 2.5 12Z"></path>
-              </svg>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M2.5 12a9.5 9.5 0 1119 0 9.5 9.5 0 01-19 0zM12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1zm6.25 11.75a.75.75 0 000-1.5H5.75a.75.75 0 000 1.5h12.5z"></path>
-              </svg>
-            </span>
-          </div>
-        </div>
-      </div>
+    <div class="tabcontent dashboard" name='dashboard'>
 
       <div class='panel'>
         <header>
-          <h1>Game</h1>
+          <h1>Devices</h1>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" onclick='toggle_panel(this.parentElement.parentElement);'>
             <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path>
           </svg>
         </header>
-        <div class='content'>
-
-          <div class='page'>
-            <div class='content'>
-              <button class='big'>New game</button>
-            </div>
-          </div>
-
-          <div class='page'>
-
-            <header>
-              <h2>Group info</h2>
-            </header>
-
-            <div class='content'>
-
-              <fieldset id='group-info'>
-
-                <div class='split-x'>
-                  <div style='flex: 3;'>
-                    <label>Nom</label>
-                    <input name='group_name'>
-                  </div>
-                  <div style='min-width: 64px;'>
-                    <label>Taille</label>
-                    <input type='number' min='1' name='group_size'>
-                  </div>
-                </div>
-
-                <div>
-                  <label>Date planifiée</label>
-                  <div class='split-x'>
-                    <input type='date' name='planned_date'>
-                    <select name='planned_date' style='flex: 0;'>
-                      <option>00:00</option>
-                      <option>00:15</option>
-                      <option>00:30</option>
-                      <option>00:45</option>
-                      <option>01:00</option>
-                      <option>01:15</option>
-                      <option>01:30</option>
-                      <option>01:45</option>
-                      <option>02:00</option>
-                      <option>02:15</option>
-                      <option>02:30</option>
-                      <option>02:45</option>
-                    </select>
-                  </div>
-                </div>
-
-              </fieldset>
-
-            </div>
-
-          </div>
-
-          <div class='page'>
-
-            <header>
-              <h2>Leader info</h2>
-            </header>
-
-            <div class='content'>
-
-              <fieldset id='leader-info'>
-
-                <div class='split-x'>
-                  <div>
-                    <label>Firstname</label>
-                    <input name='leader_firstname'>
-                  </div>
-                  <div>
-                    <label>Lastname</label>
-                    <input name='leader_lastname'>
-                  </div>
-                </div>
-
-                <div class='split-x'>
-                  <div style='flex: 2;'>
-                    <label>Email</label>
-                    <input name='leader_email'>
-                  </div>
-                  <div style='flex: 1; min-width: 70px;'>
-                    <label>Postcode</label>
-                    <input name='leader_postcode'>
-                  </div>
-                </div>
-
-                <div>
-                  <label>Comments</label>
-                  <textarea name='comments'></textarea>
-                </div>
-
-              </fieldset>
-
-            </div>
-
-          </div>
-
+        <div class='page content' style='display: flex; flex-flow: row;'>
+          <ul>
+            <li>Device 1</li>
+            <li>Device 2</li>
+            <li>Device 3</li>
+            <li>Device 4</li>
+            <li>Device 5</li>
+          </ul>
+          <div>woeijfwoiefjwoie fjwioef wuioejif owiejf woi</div>
         </div>
       </div>
 
-      <div class='panel'>
-        <link rel='stylesheet' type='text/css' href='ressources/story.css'/>
-        <header>
-          <h1>Story</h1>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" onclick='toggle_panel(this.parentElement.parentElement);'>
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path>
-          </svg>
-        </header>
-        <div class='content'>
-          <div class='metro darkbox'>
-            <img src='ressources/icons/metro.svg'/>
-          </div>
-          <div class='page'>
-
-            <h1>En attente des socles</h1>
-            <p>Tous les socles pour que les chaussettes du perroquet soient misent avec amitier d'une trousse balconnée.</p>
-            <div class='controls'>
-              <div>
-                <button>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.78033 12.7803C9.48744 13.0732 9.01256 13.0732 8.71967 12.7803L4.46967 8.53033C4.17678 8.23744 4.17678 7.76256 4.46967 7.46967L8.71967 3.21967C9.01256 2.92678 9.48744 2.92678 9.78033 3.21967C10.0732 3.51256 10.0732 3.98744 9.78033 4.28033L6.06066 8L9.78033 11.7197C10.0732 12.0126 10.0732 12.4874 9.78033 12.7803Z"></path></svg>
-                  <span>Fermer la porte</span>
-                </button>
-                <button>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.78033 12.7803C9.48744 13.0732 9.01256 13.0732 8.71967 12.7803L4.46967 8.53033C4.17678 8.23744 4.17678 7.76256 4.46967 7.46967L8.71967 3.21967C9.01256 2.92678 9.48744 2.92678 9.78033 3.21967C10.0732 3.51256 10.0732 3.98744 9.78033 4.28033L6.06066 8L9.78033 11.7197C10.0732 12.0126 10.0732 12.4874 9.78033 12.7803Z"></path></svg>
-                  <span>Ranger la chambre et aussi le coffre au fond du salon</span>
-                </button>
-                <button>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.78033 12.7803C9.48744 13.0732 9.01256 13.0732 8.71967 12.7803L4.46967 8.53033C4.17678 8.23744 4.17678 7.76256 4.46967 7.46967L8.71967 3.21967C9.01256 2.92678 9.48744 2.92678 9.78033 3.21967C10.0732 3.51256 10.0732 3.98744 9.78033 4.28033L6.06066 8L9.78033 11.7197C10.0732 12.0126 10.0732 12.4874 9.78033 12.7803Z"></path></svg>
-                  <span>Enlever le fusible</span>
-                </button>
-              </div>
-              <div>
-                <button>
-                  <span>Mettre le socle</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.21967 3.21967C6.51256 2.92678 6.98744 2.92678 7.28033 3.21967L11.5303 7.46967C11.8232 7.76256 11.8232 8.23744 11.5303 8.53033L7.28033 12.7803C6.98744 13.0732 6.51256 13.0732 6.21967 12.7803C5.92678 12.4874 5.92678 12.0126 6.21967 11.7197L9.93934 8L6.21967 4.28033C5.92678 3.98744 5.92678 3.51256 6.21967 3.21967Z"></path></svg>
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      <div class='panel'>
-        <header>
-          <h1>Clues</h1>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" onclick='toggle_panel(this.parentElement.parentElement);'>
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path>
-          </svg>
-        </header>
-        <div class='page content'>
-          <fieldset>
-            <textarea>
-            </textarea>
-            <button class='big'>Envoyer</button>
-          </fieldset>
-        </div>
-      </div>
-
-      <div class='panel cameras'>
-        <link rel='stylesheet' type='text/css' href='ressources/cameras.css'/>
-        <header>
-          <h1>Cameras</h1>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" onclick='toggle_panel(this.parentElement.parentElement);'>
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path>
-          </svg>
-        </header>
-        <div class='content'>
-          <div class='darkbox'>
-            <img src='ressources/cam/cam1.jpg'/>
-            <img src='ressources/cam/cam2.jpg'/>
-            <img src='ressources/cam/cam3.jpg'/>
-            <img src='ressources/cam/cam4.jpg'/>
-          </div>
-        </div>
-      </div>
 
     </div>
 
     <div class="tabcontent" name='story'>
       story
-    </div>
-
-    <div class="tabcontent" name='cameras'>
-      cameras
     </div>
 
     <div class="tabcontent" name='clues'>
@@ -447,7 +114,7 @@
     <div class="tabcontent" name='room'>
       room
     </div>
+    --->
 
   </body>
 </html>
-

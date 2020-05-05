@@ -1,10 +1,28 @@
 .panel {
+  display: block;
   border: 1px solid #bbb;
   margin: 0px 0px 18px 1px;
   break-inside: avoid;
   position: relative;
   transition: transform 0.2s, opacity 0.2s;
 }
+
+.panel * {
+  break-inside: avoid;
+}
+
+.panel loading-animation {
+  padding: 20px 0px;
+}
+
+.panel[folded] .content {
+  display: none 
+}
+
+.panel[folded] > header > svg {
+  transform: rotateZ(180deg);
+}
+
 
 .panel[dragged] {
   opacity: 0.2;
@@ -55,7 +73,7 @@
   height: 16px;
   cursor: pointer;
   border-radius: 50%;
-  transition: transform 0.2s;
+  transition: transform 0.3s;
 }
 
 .panel > header > svg:hover {
@@ -66,19 +84,11 @@
   box-shadow: 0px 0px 2px var(--active-color);
 }
 
-.panel[closed] > .content {
-  display: none;
-}
-
-.panel[closed] > header > svg {
-  transform: rotateZ(180deg);
-}
-
-.darkbox {
-  background: linear-gradient(#1b262c, #29363D, #1b262c);
-  text-align: center;
-}
-
-.darkbox:not(:last-child) {
-  border-bottom: 1px solid #bbb;
+.panel img {
+  border: 1px solid green;
+  -moz-user-drag: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-drag: none; 
 }

@@ -11,16 +11,78 @@ body {
   background: var(--light-color);
 }
 
-.tabcontent {
+.loadable loading-animation {
+  display: none;
+}
+
+.loadable[loading] loading-animation {
+  display: flex;
+}
+
+.loadable[loading] .content {
+  display: none;
+}
+
+.tab {
+  display: block;
   margin: 0;
   margin-left: 160px;
   padding: 16px 16px;
+}
+
+.tab.columns {
   columns: 2;
+}
+
+@keyframes collision {
+  0% {
+    transform: translateX(-4px);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+  100% {
+    transform: translateX(-4px);
+  }
+}
+
+loading-animation {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.loading div {
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  border-radius: 1px;
+  margin: 0px 3px;
+  background: #bbb;
+  animation-name: collision;
+  animation-duration: 1.6s;
+  animation-iteration-count: infinite;
+}
+
+.loading div:nth-child(2) {
+  animation-delay: 0.20s;
+}
+
+.loading div:nth-child(3) {
+  animation-delay: 0.40s;
+}
+
+.loading div:nth-child(4) {
+  animation-delay: 0.60s;
+}
+
+.loading div:nth-child(5) {
+  animation-delay: 0.80s;
 }
 
 @media only screen and (max-width: 800px) {
 
-  .tabcontent {
+  .tab {
     margin-left: 52px;
   }
 
@@ -28,15 +90,15 @@ body {
 
 @media only screen and (max-width: 690px) {
   
-  .tabcontent {
-    column-count: 1;
+  .tab.columns {
+    columns: 1;
   }
 
 }
 
 @media only screen and (max-width: 500px) {
 
-  .tabcontent {
+  .tab {
     margin-left: 0;
   }
 
