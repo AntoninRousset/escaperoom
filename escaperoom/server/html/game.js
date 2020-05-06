@@ -125,17 +125,24 @@ GameMenu = class GameMenu extends HTMLElement {
   }
 
   update(data) {
+    console.log('update:', data);
     this.update_options(data.game.options, data.gamemasters);
     if (data.game.running) {
       this.querySelector('#new-game').setAttribute('hidden', '');
       this.querySelector('#back-to-game').removeAttribute('hidden');
       this.querySelector('#stop-game').disabled = false;
-      return this.querySelector('#game-creation').disabled = true;
+      this.querySelector('label[for="game-option-gamemaster"]').disabled = true;
+      this.querySelector('label[for="game-option-test"]').disabled = true;
+      this.querySelector('#game-option-gamemaster').disabled = true;
+      return this.querySelector('#game-option-test').disabled = true;
     } else {
       this.querySelector('#new-game').removeAttribute('hidden');
       this.querySelector('#back-to-game').setAttribute('hidden', '');
       this.querySelector('#stop-game').disabled = true;
-      return this.querySelector('#game-creation').disabled = false;
+      this.querySelector('label[for="game-option-gamemaster"]').disabled = false;
+      this.querySelector('label[for="game-option-test"]').disabled = false;
+      this.querySelector('#game-option-gamemaster').disabled = false;
+      return this.querySelector('#game-option-test').disabled = false;
     }
   }
 
@@ -182,7 +189,6 @@ GameMenu = class GameMenu extends HTMLElement {
 
   async new_game() {
     boundMethodCheck(this, GameMenu);
-    this.querySelector('#game-creation').disabled = true;
     await post_control(this.getAttribute('src'), {
       action: 'new_game'
     });

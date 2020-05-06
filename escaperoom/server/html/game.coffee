@@ -85,18 +85,24 @@ class GameMenu extends HTMLElement
 
   update: (data) ->
 
+    console.log('update:', data)
+
     @update_options(data.game.options, data.gamemasters)
 
     if data.game.running
       @querySelector('#new-game').setAttribute('hidden', '')
       @querySelector('#back-to-game').removeAttribute('hidden')
       @querySelector('#stop-game').disabled = false
-      @querySelector('#game-creation').disabled = true
+
+      @querySelector('#game-option-gamemaster').disabled = true
+      @querySelector('#game-option-test').disabled = true
     else
       @querySelector('#new-game').removeAttribute('hidden')
       @querySelector('#back-to-game').setAttribute('hidden', '')
       @querySelector('#stop-game').disabled = true
-      @querySelector('#game-creation').disabled = false
+
+      @querySelector('#game-option-gamemaster').disabled = false
+      @querySelector('#game-option-test').disabled = false
 
   update_options: (options, gamemasters) ->
 
@@ -134,7 +140,6 @@ class GameMenu extends HTMLElement
         e.setCustomValidity('')
 
   new_game: () =>
-    @querySelector('#game-creation').disabled = true
     await post_control(@getAttribute('src'), {
       action: 'new_game'
     })
