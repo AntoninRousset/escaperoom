@@ -25,7 +25,6 @@ def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
 
     import fractions
     import time
-    print('------------- READY')
 
     audio_fifo = av.AudioFifo()
     audio_format_name = "s16"
@@ -45,7 +44,6 @@ def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
     video_print_warning = True
     full_print_warning = True
 
-    print('--------------- GOOOOOO')
 
     def iter_tracks(kind=None):
         with lock_tracks:
@@ -81,17 +79,17 @@ def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
                 run_threadsafe(track._queue.put(frame))
                 full_print_warning = True
 
-    i = 0
+    # i = 0
 
     while not quit_event.is_set():
 
-        i += 1
-
+        '''
         if i > 10:
             print('-' * 40)
             for n, track in enumerate(iter_tracks()):
                 print(f'queue {n:2d} {track.kind:16s}:', track._queue.qsize())
             i = 0
+        '''
 
         # clean invalid ref
         cleanup_tracks()
