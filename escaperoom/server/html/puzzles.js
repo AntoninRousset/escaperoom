@@ -49,39 +49,66 @@ PuzzlesGraph = class PuzzlesGraph extends Container {
   }
 
   add_item(id, data) {
-    var item;
+    var circle, g, label;
+    // check data completeness
     if (!((data.row != null) || (data.col != null))) {
       return;
     }
-    item = document.createElementNS(svgns, 'circle');
-    item.setAttributeNS(null, 'class', 'item');
-    item.setAttributeNS(null, 'item_id', id);
-    item.setAttributeNS(null, 'r', 20);
-    item.onclick = (event) => {
+    
+    // create group filled with a circle and text
+    g = document.createElementNS(svgns, 'g');
+    g.setAttributeNS(null, 'class', 'item');
+    g.setAttributeNS(null, 'item_id', id);
+    circle = document.createElementNS(svgns, 'circle');
+    circle.setAttributeNS(null, 'r', 16);
+    g.appendChild(circle);
+    label = document.createElementNS(svgns, 'text');
+    label.classList.add('label');
+    label.textContent = 'salut';
+    label.setAttributeNS(null, 'text-anchor', 'middle');
+    label.setAttributeNS(null, 'x', 0);
+    label.setAttributeNS(null, 'y', 32);
+    g.appendChild(label);
+    g.onclick = (event) => {
       var puzzle_info;
       puzzle_info = this.parentNode.parentNode.querySelector('puzzle-info');
-      return puzzle_info.select(id);
+      puzzle_info.select(id);
+      this.querySelectorAll(".item").forEach((e) => {
+        return e.removeAttributeNS(null, 'selected');
+      });
+      return this.querySelector(`.item[item_id="${id}"]`).setAttributeNS(null, 'selected', '');
     };
-    return this.graph.appendChild(item);
+    return this.graph.appendChild(g);
   }
 
   update_item(id, data) {
-    var color, item;
-    item = this.get_item(id);
-    if (item == null) {
+    var circle, g, label, x, y;
+    // get group
+    g = this.get_item(id);
+    if (g == null) {
       return;
     }
-    item.setAttributeNS(null, 'cx', 70 * data['col']);
-    item.setAttributeNS(null, 'cy', 100 * data['row']);
+    // get circle and label
+    circle = g.querySelector('circle');
+    label = g.querySelector('text');
+    // set completed
     if (data['state']) {
-      color = 'green';
+      g.setAttributeNS(null, 'completed', '');
     } else {
-      color = 'red';
+      g.removeAttributeNS(null, 'completed');
     }
+    // set desactivated
     if (data['desactivated']) {
-      color = 'gray';
+      g.setAttributeNS(null, 'desactivated', '');
+    } else {
+      g.removeAttributeNS(null, 'desactivated');
     }
-    return item.setAttributeNS(null, 'style', 'fill: ' + color + ';');
+    // group position
+    x = 50 * data['col'];
+    y = 90 * data['row'];
+    g.setAttributeNS(null, 'transform', `translate(${x}, ${y})`);
+    // set label content
+    return label.textContent = data.name;
   }
 
   onupdated(datas) {
@@ -221,7 +248,6 @@ ConditionItem = class ConditionItem extends Subscriber {
     div = this.shadowRoot.querySelector('div');
     button = this.shadowRoot.querySelector('div').querySelector('button');
     this.state = datas['state'];
-    console.log(datas.state);
     if (datas.state == null) {
       div.style.borderColor = 'orange';
     } else if (datas['state']) {

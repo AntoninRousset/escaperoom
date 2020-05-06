@@ -113,6 +113,48 @@ puzzle-info {
   margin: 2px 0px; 
 }
 
+svg .item {
+  cursor: pointer;
+}
+
+svg .item text.label {
+  fill: white;
+  opacity: 0.8;
+  font: normal 12px sans-serif;
+  transition: opacity 0.1s;
+}
+
+svg .item circle {
+  fill: #FE4A49;
+  stroke-width: 2px;
+  transition: transform 0.1s;
+}
+
+svg .item:hover > text.label {
+  opacity: 1;
+}
+
+svg .item:hover > circle {
+  stroke: white;
+}
+
+svg .item:active > circle {
+  stroke: #0779e4;
+}
+
+svg .item[completed]:not([desactivated]) circle {
+  fill: #5BDA0A;
+}
+
+svg .item[desactivated] circle {
+  fill: #9C9A9A;
+}
+
+svg .item[selected] circle {
+  stroke: white;
+  transform: scale(1.2);
+}
+
 @media only screen and (max-width: 800px) {
 
   .screen[name='graph'] {

@@ -131,16 +131,12 @@ GameMenu = class GameMenu extends HTMLElement {
       this.querySelector('#new-game').setAttribute('hidden', '');
       this.querySelector('#back-to-game').removeAttribute('hidden');
       this.querySelector('#stop-game').disabled = false;
-      this.querySelector('label[for="game-option-gamemaster"]').disabled = true;
-      this.querySelector('label[for="game-option-test"]').disabled = true;
       this.querySelector('#game-option-gamemaster').disabled = true;
       return this.querySelector('#game-option-test').disabled = true;
     } else {
       this.querySelector('#new-game').removeAttribute('hidden');
       this.querySelector('#back-to-game').setAttribute('hidden', '');
       this.querySelector('#stop-game').disabled = true;
-      this.querySelector('label[for="game-option-gamemaster"]').disabled = false;
-      this.querySelector('label[for="game-option-test"]').disabled = false;
       this.querySelector('#game-option-gamemaster').disabled = false;
       return this.querySelector('#game-option-test').disabled = false;
     }
