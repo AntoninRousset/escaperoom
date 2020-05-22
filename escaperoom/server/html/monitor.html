@@ -103,7 +103,7 @@
 						</fieldset>
 					</game-menu>
 				</div>
-				<puzzles-box class='screen' name='puzzles' src='/conditions'>
+				<puzzles-box class='screen' name='puzzles' src='/story'>
 					<template>
 						<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
 						<div class='screen' name='graph'>
@@ -115,60 +115,19 @@
 								<puzzles-graph class='scroll-y'> 
 								</puzzles-graph>
 							</div>
-							<puzzle-info class='section scroll-y' src='/condition'>
+							<puzzle-info class='section scroll-y' src='/state'>
 								<template>
 									<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
 									<div class='screen' name='info'>
-										<h1 id='puzzle-name'><slot name='desc'></slot></h1>
-										<div id='puzzle-state'><slot name='state'></slot></div>
+										<h1 id='state-name'><slot name='name'></slot></h1>
+										<div id='state-active'><slot name='active'></slot></div>
 										<p id='puzzle-description'><slot name='msg'></slot></p>
-										<h2>Conditions</h2>
-										<conditions-list>
-											<template class='item selectable'>
-												<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
-												<condition-item src='/condition'>
-													<template>
-														<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
-														<div class='condition-item'>
-															<div>
-																<slot name='desc'></slot>
-															</div>
-															<button>
-																Restore
-															</button>
-														</div>
-													</template>
-												</condition-item>
-											</template>
-										</conditions-list>
-										<h2>Actions</h2>
-										<actions-list>
-											<template class='item selectable'>
-												<action-item src='/action'>
-													<template>
-														<link rel='stylesheet' type='text/css' href='ressources/puzzles.css'>
-														<div class='action-item'>
-															<div>
-																<slot name='desc'></slot>
-															</div>
-															<button>
-																Abort
-															</button>
-														</div>
-													</template>
-												</action-item>
-											</template>
-										</actions-list>
-										<p>Un puzzle s'active lorsqu'un de ces parents est complété.</p>
-										<p>Un puzzle est complété lorsque, actif, toutes ses conditions sont satisfaites.</p>
-										<div id='puzzle-controls'>
-											<button class='puzzle-control' id='puzzle-activate' dangerous>Activer</button>
-											<button class='puzzle-control' id='puzzle-desactivate' dangerous>Désactiver</button>
-											<button class='puzzle-control' id='puzzle-complete' dangerous>Compléter</button>
-											<button class='puzzle-control' id='puzzle-uncomplete' dangerous>Décompléter</button>
-											<button class='puzzle-control' id='puzzle-restore' dangerous>Restaurer</button>
-										</div>
+										<h2>Transitions</h2>
+                    <div id='state-transitions'>
+                    </div>
+                    <button id='state-activate' dangerous>Activer</button>
 									</div>
+
 									<div class='screen' name='loading'>Loading</div>
 									<div class='screen' name='empty'>
 										<span class='screen-text'>Select a puzzle</span>

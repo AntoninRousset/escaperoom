@@ -34,6 +34,8 @@ async def control(params, service, query=None, server=None):
             data = await game_control(params)
         elif service == 'condition':
             data = await condition_control(params, query)
+        elif service == 'state':
+            data = await state_control(params, query)
         else:
             raise RuntimeError('service not found: '+service)
         if data is None:
@@ -42,6 +44,17 @@ async def control(params, service, query=None, server=None):
     except Exception as error:
         logger.exception('Failed to execute control')
         return {'state': 'failed', 'reason': str(error)}
+
+
+async def state_control(params, query):
+    game = Game.get()
+    if params['action'] == 'force_transition':
+        game.get_by_id(params['id']).force()
+    elif params['action'] == 'activate':
+        game.activate_state(params['id'])
+    else:
+        raise RuntimeError('action not implemented: ' + params['action'])
+
 
 
 async def action_control(params, query):

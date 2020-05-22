@@ -28,7 +28,7 @@ PuzzlesBox = class PuzzlesBox extends Subscriber {
   update(datas) {
     this.set_screen('graph');
     this.update_plugs(datas);
-    return this.shadowRoot.querySelector('puzzles-graph').read_items(datas.conditions);
+    return this.shadowRoot.querySelector('puzzles-graph').read_items(datas.states);
   }
 
 };
@@ -49,13 +49,37 @@ PuzzlesGraph = class PuzzlesGraph extends Container {
   }
 
   add_item(id, data) {
-    var circle, g, label;
+    var g;
     // check data completeness
-    if (!((data.row != null) || (data.col != null))) {
+    if (!(data.position != null)) {
+      console.warn('Incomplete data', data);
+      return;
+    }
+    // create svg shape
+    if (data.stype === 'rect') {
+      g = this.create_rect(id, data);
+    } else if (data.stype === 'circle') {
+      g = this.create_circle(id, data);
+    } else {
+      console.warn('Invalid stype', data.stype);
       return;
     }
     
-    // create group filled with a circle and text
+    // add onclick event
+    g.onclick = (event) => {
+      var puzzle_info;
+      puzzle_info = this.parentNode.parentNode.querySelector('puzzle-info');
+      puzzle_info.select(id);
+      this.querySelectorAll(".item").forEach((e) => {
+        return e.removeAttributeNS(null, 'selected');
+      });
+      return this.querySelector(`.item[item_id="${id}"]`).setAttributeNS(null, 'selected', '');
+    };
+    return this.graph.appendChild(g);
+  }
+
+  create_circle(id, data) {
+    var circle, g, label;
     g = document.createElementNS(svgns, 'g');
     g.setAttributeNS(null, 'class', 'item');
     g.setAttributeNS(null, 'item_id', id);
@@ -69,16 +93,34 @@ PuzzlesGraph = class PuzzlesGraph extends Container {
     label.setAttributeNS(null, 'x', 0);
     label.setAttributeNS(null, 'y', 32);
     g.appendChild(label);
-    g.onclick = (event) => {
-      var puzzle_info;
-      puzzle_info = this.parentNode.parentNode.querySelector('puzzle-info');
-      puzzle_info.select(id);
-      this.querySelectorAll(".item").forEach((e) => {
-        return e.removeAttributeNS(null, 'selected');
-      });
-      return this.querySelector(`.item[item_id="${id}"]`).setAttributeNS(null, 'selected', '');
-    };
-    return this.graph.appendChild(g);
+    return g;
+  }
+
+  create_rect(id, data) {
+    var g, h, label, mx, my, rect, w, x, xmax, xmin, y, ymax, ymin;
+    [xmin, xmax, ymin, ymax] = data.rect_size;
+    [mx, my] = data.margin;
+    x = -90 * mx - 16;
+    y = 70 * (ymin - my);
+    w = 90 * (xmax - xmin + 2 * mx) + 16 + 32;
+    h = 70 * (ymax - ymin + 2 * my);
+    g = document.createElementNS(svgns, 'g');
+    g.setAttributeNS(null, 'class', 'item');
+    g.setAttributeNS(null, 'item_id', id);
+    rect = document.createElementNS(svgns, 'rect');
+    rect.setAttributeNS(null, 'x', y);
+    rect.setAttributeNS(null, 'y', x);
+    rect.setAttributeNS(null, 'width', h);
+    rect.setAttributeNS(null, 'height', w);
+    g.appendChild(rect);
+    label = document.createElementNS(svgns, 'text');
+    label.classList.add('label');
+    label.textContent = 'salut';
+    label.setAttributeNS(null, 'text-anchor', 'start');
+    label.setAttributeNS(null, 'x', y + 10);
+    label.setAttributeNS(null, 'y', -70 * mx - 24);
+    g.appendChild(label);
+    return g;
   }
 
   update_item(id, data) {
@@ -92,20 +134,14 @@ PuzzlesGraph = class PuzzlesGraph extends Container {
     circle = g.querySelector('circle');
     label = g.querySelector('text');
     // set completed
-    if (data['state']) {
-      g.setAttributeNS(null, 'completed', '');
+    if (data['active']) {
+      g.setAttributeNS(null, 'active', '');
     } else {
-      g.removeAttributeNS(null, 'completed');
-    }
-    // set desactivated
-    if (data['desactivated']) {
-      g.setAttributeNS(null, 'desactivated', '');
-    } else {
-      g.removeAttributeNS(null, 'desactivated');
+      g.removeAttributeNS(null, 'active');
     }
     // group position
-    x = 50 * data['col'];
-    y = 90 * data['row'];
+    x = 70 * data['position'][1];
+    y = 90 * data['position'][0];
     g.setAttributeNS(null, 'transform', `translate(${x}, ${y})`);
     // set label content
     return label.textContent = data.name;
@@ -125,27 +161,15 @@ customElements.define('puzzles-graph', PuzzlesGraph);
 PuzzleInfo = class PuzzleInfo extends Subscriber {
   constructor() {
     super();
-    this.set_force = this.set_force.bind(this);
+    this.activate_state = this.activate_state.bind(this);
+    this.force_transition = this.force_transition.bind(this);
     this.restore = this.restore.bind(this);
     this.set_active = this.set_active.bind(this);
     this.apply_template();
     this.state = null;
-    this.shadowRoot.querySelector('#puzzle-complete').onclick = (event) => {
-      return this.set_force(true);
-    };
-    this.shadowRoot.querySelector('#puzzle-uncomplete').onclick = (event) => {
-      return this.set_force(false);
-    };
-    this.shadowRoot.querySelector('#puzzle-restore').onclick = this.restore;
-    this.shadowRoot.querySelector('#puzzle-activate').onclick = (event) => {
-      return this.set_active(true);
-    };
-    this.shadowRoot.querySelector('#puzzle-desactivate').onclick = (event) => {
-      return this.set_active(false);
-    };
     this.set_screen('empty');
-    this.conditions_list = this.shadowRoot.querySelector('conditions-list');
-    this.actions_list = this.shadowRoot.querySelector('actions-list');
+    this.transitions_list = this.shadowRoot.querySelector('#state-transitions');
+    this.activate_button = this.shadowRoot.querySelector('#state-activate');
   }
 
   select(id) {
@@ -153,38 +177,50 @@ PuzzleInfo = class PuzzleInfo extends Subscriber {
   }
 
   update(data) {
+    var div, name, ref, set_onclick, target_name, trans_name, transition;
     this.update_plugs(data);
-    if (data['state']) {
-      this.shadowRoot.querySelector('#puzzle-complete').hidden = true;
-      this.shadowRoot.querySelector('#puzzle-uncomplete').hidden = false;
-    } else {
-      this.shadowRoot.querySelector('#puzzle-complete').hidden = false;
-      this.shadowRoot.querySelector('#puzzle-uncomplete').hidden = true;
+    this.activate_button.onclick = (event) => {
+      return this.activate_state(data.id);
+    };
+    this.transitions_list.innerHTML = '';
+    ref = data.transitions;
+    for (name in ref) {
+      transition = ref[name];
+      div = document.createElement('div');
+      // set target
+      target_name = document.createElement('span');
+      target_name.innerText = transition.target.name;
+      div.appendChild(target_name);
+      // set transition name
+      trans_name = document.createElement('span');
+      trans_name.innerText = transition.name;
+      div.appendChild(trans_name);
+      // set onclick (hack)
+      set_onclick = (trans_id) => {
+        return div.onclick = (event) => {
+          console.log(trans_id);
+          return this.force_transition(trans_id);
+        };
+      };
+      set_onclick(transition.id);
+      this.transitions_list.appendChild(div);
     }
-    if (data['forced']) {
-      this.shadowRoot.querySelector('#puzzle-complete').hidden = true;
-      this.shadowRoot.querySelector('#puzzle-uncomplete').hidden = true;
-      this.shadowRoot.querySelector('#puzzle-restore').hidden = false;
-    } else {
-      this.shadowRoot.querySelector('#puzzle-restore').hidden = true;
-    }
-    if (data['desactivated']) {
-      this.shadowRoot.querySelector('#puzzle-activate').hidden = false;
-      this.shadowRoot.querySelector('#puzzle-desactivate').hidden = true;
-    } else {
-      this.shadowRoot.querySelector('#puzzle-activate').hidden = true;
-      this.shadowRoot.querySelector('#puzzle-desactivate').hidden = false;
-    }
-    this.conditions_list.read_items(data.siblings);
-    this.actions_list.read_items(data.actions);
     return this.set_screen('info');
   }
 
-  set_force(state) {
+  activate_state(state) {
     boundMethodCheck(this, PuzzleInfo);
     return post_control(this.loc, {
-      action: 'force',
-      state: state
+      action: 'activate',
+      id: state
+    });
+  }
+
+  force_transition(transition) {
+    boundMethodCheck(this, PuzzleInfo);
+    return post_control(this.loc, {
+      action: 'force_transition',
+      id: transition
     });
   }
 

@@ -35,12 +35,18 @@ class Server(Registered):
 
 @interface_routes.get('/')
 async def monitor(request):
-    return web.FileResponse(f'{ROOT}/html/monitor.html')
+    try:
+        return web.FileResponse(f'{ROOT}/html/monitor.html')
+    except BaseException:
+        logger.exception('GET "/" failed')
 
 
 @routes.get('/favicon.svg')
 async def favicon(request):
-    return web.FileResponse(f'{ROOT}/html/icons/favicon.svg')
+    try:
+        return web.FileResponse(f'{ROOT}/html/icons/favicon.svg')
+    except BaseException:
+        logger.exception('GET "/favicon.svg" failed')
 
 
 @routes.get('/events')
@@ -51,22 +57,29 @@ async def events(request):
                 await resp.send(to_json(event))
         return resp
     except BaseException:
-        logger.exception('get /events failed')
+        logger.exception('GET "/events" failed')
 
 
 @routes.get('/{service}')
 async def reader(request):
     service = request.match_info['service']
-    data = await readers.read(service, request.query, request.app)
-    return web.Response(content_type='application/json', text=to_json(data))
+    try:
+        data = await readers.read(service, request.query, request.app)
+        return web.Response(content_type='application/json',
+                            text=to_json(data))
+    except BaseException:
+        logger.exception(f'GET "{service}" failed')
 
 
 @routes.post('/{service}')
 async def control(request):
     service = request.match_info['service']
-    ans = await controls.control(await request.json(), service, request.query,
-                                 server=request.app)
-    return web.Response(content_type='application/json', text=to_json(ans))
+    try:
+        ans = await controls.control(await request.json(), service,
+                                     request.query, server=request.app)
+        return web.Response(content_type='application/json', text=to_json(ans))
+    except BaseException:
+        logger.exception(f'POST "{service}" failed')
 
 
 class HTTPServer(Server, web.Application):

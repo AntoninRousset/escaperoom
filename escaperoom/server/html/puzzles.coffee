@@ -16,7 +16,7 @@ class PuzzlesBox extends Subscriber
   update: (datas) ->
     @set_screen('graph')
     @update_plugs(datas)
-    @shadowRoot.querySelector('puzzles-graph').read_items(datas.conditions)
+    @shadowRoot.querySelector('puzzles-graph').read_items(datas.states)
 
 customElements.define('puzzles-box', PuzzlesBox)
 
@@ -35,10 +35,30 @@ class PuzzlesGraph extends Container
   add_item: (id, data) ->
 
     # check data completeness
-    if not (data.row? or data.col?)
+    if not (data.position?)
+      console.warn('Incomplete data', data)
       return
-  
-    # create group filled with a circle and text
+
+    # create svg shape
+    if data.stype == 'rect'
+      g = @create_rect(id, data)
+    else if data.stype == 'circle'
+      g = @create_circle(id, data)
+    else
+      console.warn('Invalid stype', data.stype)
+      return
+    
+    # add onclick event
+    g.onclick = (event) =>
+      puzzle_info = @parentNode.parentNode.querySelector('puzzle-info')
+      puzzle_info.select(id)
+      @querySelectorAll(".item").forEach((e) =>
+        e.removeAttributeNS(null, 'selected'))
+      @querySelector(".item[item_id=\"#{id}\"]").setAttributeNS(null, 'selected', '')
+
+    @graph.appendChild(g)
+
+  create_circle: (id, data) ->
     g = document.createElementNS(svgns, 'g')
     g.setAttributeNS(null, 'class', 'item')
     g.setAttributeNS(null, 'item_id', id)
@@ -54,15 +74,37 @@ class PuzzlesGraph extends Container
     label.setAttributeNS(null, 'x', 0)
     label.setAttributeNS(null, 'y', 32)
     g.appendChild(label)
+    return g
 
-    g.onclick = (event) =>
-      puzzle_info = @parentNode.parentNode.querySelector('puzzle-info')
-      puzzle_info.select(id)
-      @querySelectorAll(".item").forEach((e) =>
-        e.removeAttributeNS(null, 'selected'))
-      @querySelector(".item[item_id=\"#{id}\"]").setAttributeNS(null, 'selected', '')
+  create_rect: (id, data) ->
 
-    @graph.appendChild(g)
+    [xmin, xmax, ymin, ymax] = data.rect_size
+    [mx, my] = data.margin
+
+    x = - 90 * mx - 16
+    y = 70 * (ymin - my)
+    w = 90 * (xmax - xmin + 2 * mx) + 16 + 32
+    h = 70 * (ymax - ymin + 2 * my)
+
+    g = document.createElementNS(svgns, 'g')
+    g.setAttributeNS(null, 'class', 'item')
+    g.setAttributeNS(null, 'item_id', id)
+
+    rect = document.createElementNS(svgns, 'rect')
+    rect.setAttributeNS(null, 'x', y)
+    rect.setAttributeNS(null, 'y', x)
+    rect.setAttributeNS(null, 'width', h)
+    rect.setAttributeNS(null, 'height', w)
+    g.appendChild(rect)
+
+    label = document.createElementNS(svgns, 'text')
+    label.classList.add('label')
+    label.textContent = 'salut'
+    label.setAttributeNS(null, 'text-anchor', 'start')
+    label.setAttributeNS(null, 'x', y + 10)
+    label.setAttributeNS(null, 'y', - 70 * mx - 24)
+    g.appendChild(label)
+    return g
 
   update_item: (id, data) ->
 
@@ -76,20 +118,14 @@ class PuzzlesGraph extends Container
     label = g.querySelector('text')
 
     # set completed
-    if data['state']
-      g.setAttributeNS(null, 'completed', '')
+    if data['active']
+      g.setAttributeNS(null, 'active', '')
     else
-      g.removeAttributeNS(null, 'completed')
-
-    # set desactivated
-    if data['desactivated']
-      g.setAttributeNS(null, 'desactivated', '')
-    else
-      g.removeAttributeNS(null, 'desactivated')
+      g.removeAttributeNS(null, 'active')
 
     # group position
-    x = 50 * data['col']
-    y = 90 * data['row']
+    x = 70 * data['position'][1]
+    y = 90 * data['position'][0]
     g.setAttributeNS(null, 'transform', "translate(#{x}, #{y})")
 
     # set label content
@@ -109,48 +145,49 @@ class PuzzleInfo extends Subscriber
     super()
     @apply_template()
     @state = null
-    @shadowRoot.querySelector('#puzzle-complete').onclick = (event) =>
-      @set_force(true)
-    @shadowRoot.querySelector('#puzzle-uncomplete').onclick = (event) =>
-      @set_force(false)
-    @shadowRoot.querySelector('#puzzle-restore').onclick = @restore
-    @shadowRoot.querySelector('#puzzle-activate').onclick = (event) =>
-      @set_active(true)
-    @shadowRoot.querySelector('#puzzle-desactivate').onclick = (event) =>
-      @set_active(false)
     @set_screen('empty')
-    @conditions_list = @shadowRoot.querySelector('conditions-list')
-    @actions_list = @shadowRoot.querySelector('actions-list')
+    @transitions_list = @shadowRoot.querySelector('#state-transitions')
+    @activate_button = @shadowRoot.querySelector('#state-activate')
 
   select: (id) ->
     @subscribe('?id='+id)
 
   update: (data) ->
     @update_plugs(data)
-    if data['state']
-      @shadowRoot.querySelector('#puzzle-complete').hidden = true
-      @shadowRoot.querySelector('#puzzle-uncomplete').hidden = false
-    else
-      @shadowRoot.querySelector('#puzzle-complete').hidden = false
-      @shadowRoot.querySelector('#puzzle-uncomplete').hidden = true
-    if data['forced']
-      @shadowRoot.querySelector('#puzzle-complete').hidden = true
-      @shadowRoot.querySelector('#puzzle-uncomplete').hidden = true
-      @shadowRoot.querySelector('#puzzle-restore').hidden = false
-    else
-      @shadowRoot.querySelector('#puzzle-restore').hidden = true
-    if data['desactivated']
-      @shadowRoot.querySelector('#puzzle-activate').hidden = false
-      @shadowRoot.querySelector('#puzzle-desactivate').hidden = true
-    else
-      @shadowRoot.querySelector('#puzzle-activate').hidden = true
-      @shadowRoot.querySelector('#puzzle-desactivate').hidden = false
-    @conditions_list.read_items(data.siblings)
-    @actions_list.read_items(data.actions)
+
+    @activate_button.onclick = (event) =>
+      @activate_state(data.id)
+
+    @transitions_list.innerHTML = ''
+    for name, transition of data.transitions
+      div = document.createElement('div')
+
+      # set target
+      target_name = document.createElement('span')
+      target_name.innerText = transition.target.name
+      div.appendChild(target_name)
+
+      # set transition name
+      trans_name = document.createElement('span')
+      trans_name.innerText = transition.name
+      div.appendChild(trans_name)
+
+      # set onclick (hack)
+      set_onclick = (trans_id) =>
+        div.onclick = (event) =>
+          console.log(trans_id)
+          @force_transition(trans_id)
+      set_onclick(transition.id)
+
+      @transitions_list.appendChild(div)
+
     @set_screen('info')
 
-  set_force: (state) =>
-    post_control(@loc, {action: 'force', state: state})
+  activate_state: (state) =>
+    post_control(@loc, {action: 'activate', id: state})
+  
+  force_transition: (transition) =>
+    post_control(@loc, {action: 'force_transition', id: transition})
 
   restore: () =>
     post_control(@loc, {action: 'restore'})

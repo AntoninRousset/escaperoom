@@ -3,6 +3,7 @@
 
 .section[name='graph'] {
 	display: flex;
+  flex: 2;
 }
 
 #puzzles-menu {
@@ -12,7 +13,7 @@
 	right: 0;
 	background: rgba(0,0,0,0.15);
 	border-radius: 4px;
-    margin: 10px;
+  margin: 10px;
 	padding: 5px;
 }
 
@@ -21,13 +22,13 @@
 }
 
 #puzzles-chronometer {
-	position: relative;
-	flex: 1;
-	width: 100%;
-    font-size: 32pt;
-	font-weight: normal;
-    text-align: center;
-    cursor: pointer;
+  position: relative;
+  flex: 1;
+  width: 100%;
+  font-size: 32pt;
+  font-weight: normal;
+  text-align: center;
+  cursor: pointer;
 }
 
 puzzles-graph {
@@ -113,46 +114,88 @@ puzzle-info {
   margin: 2px 0px; 
 }
 
-svg .item {
+#state-transitions > div {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  border: 1px solid #00000040;
   cursor: pointer;
+  background: #eee;
+  transition: background 0.2s ease;
+  border-radius: 4px;
+  margin: 4px 0px;
 }
 
-svg .item text.label {
-  fill: white;
-  opacity: 0.8;
-  font: normal 12px sans-serif;
+#state-transitions > div:hover {
+  background: #a9d7d8;
+}
+
+#state-transitions > div > span {
+
+}
+
+#state-transitions > div > span:first-child {
+  font-weight: bold;
+  text-align: left;
+}
+
+#state-transitions > div > span:last-child {
+  font-size: x-small;
+  font-style: italic;
+  text-align: right;
+  opacity: 0.6;
+}
+
+svg .item {
+  cursor: pointer;
+  opacity: 0.5;
   transition: opacity 0.1s;
 }
 
-svg .item circle {
-  fill: #FE4A49;
-  stroke-width: 2px;
-  transition: transform 0.1s;
+svg .item text.label {
+  fill: #eeeeee;
+  font: normal 10px sans-serif;
 }
 
-svg .item:hover > text.label {
+svg .item circle {
+  fill: #eeeeee;
+  stroke: #eeeeee;
+  stroke-width: 4px;
+}
+
+svg .item rect {
+  stroke: #eeeeee;
+  fill: none;
+  stroke-width: 4px;
+}
+
+svg .item:hover {
+  opacity: 0.8;
+}
+
+svg .item[active] {
   opacity: 1;
 }
 
-svg .item:hover > circle {
-  stroke: white;
-}
-
-svg .item:active > circle {
-  stroke: #0779e4;
-}
-
-svg .item[completed]:not([desactivated]) circle {
+svg .item[active] circle {
   fill: #5BDA0A;
+  stroke: #5BDA0A;
 }
 
-svg .item[desactivated] circle {
-  fill: #9C9A9A;
+svg .item[active] rect {
+  stroke: #5BDA0A;
+}
+
+svg .item[selected] {
+  opacity: 1;
 }
 
 svg .item[selected] circle {
-  stroke: white;
-  transform: scale(1.2);
+  stroke: #f5b971;
+}
+
+svg .item[selected] rect {
+  stroke: #f5b971;
 }
 
 @media only screen and (max-width: 800px) {

@@ -16,6 +16,7 @@ from ..logic import Action, Condition
 from ..network import Device
 from ..misc import Chronometer
 
+
 class SharedQueue(asyncio.Queue, asyncio.Condition):
     def __init__(self):
         asyncio.Queue.__init__(self)
@@ -31,12 +32,14 @@ class SharedQueue(asyncio.Queue, asyncio.Condition):
             await super().put(item)
             super().notify_all()
 
+
 events_queues = dict()
+
 
 async def generator():
     events_queue = SharedQueue()
     categories = {game_events, actions_events, chronometer_events,
-                  conditions_events, devices_events}
+                  conditions_events, devices_events, story_event}
     for events in categories:
         asyncio.create_task(events(events_queue))
     while True:
@@ -46,12 +49,24 @@ async def generator():
             event = await events_queue.get()
         yield event
 
+
+async def story_event(events_queue):
+    game = Game.get()
+    # not using asyncio.Condition! but asyncio.Event (tmp)
+    while True:
+        await game.room.changed.wait()
+        game.room.changed.clear()
+        await events_queue.put({'type': 'update', 'url': f'/story'})
+        await events_queue.put({'type': 'update', 'url': f'/state'})
+
+
 async def game_events(events_queue):
     game = Game.get()
     while True:
         async with game.changed:
             await game.changed.wait()
-            await events_queue.put({'type' : 'update', 'url' : f'/game'})
+            await events_queue.put({'type': 'update', 'url': f'/game'})
+
 
 async def chronometer_events(events_queue):
     while True:
@@ -59,7 +74,8 @@ async def chronometer_events(events_queue):
         if chronometer is None: return
         async with chronometer.changed:
             await chronometer.changed.wait()
-            await events_queue.put({'type' : 'update', 'url' : f'/chronometer'})
+            await events_queue.put({'type': 'update', 'url': f'/chronometer'})
+
 
 async def actions_events(events_queue):
     action_events = dict()
@@ -73,16 +89,17 @@ async def actions_events(events_queue):
             if t.done():
                 action_events.pop(id)
         await Action.group_changed().wait()
-        await events_queue.put({'type' : 'update', 'url' : f'/actions'})
+        await events_queue.put({'type': 'update', 'url': f'/actions'})
+
 
 async def _action_events(action, events_queue):
     while action in action.entries():
         async with action.changed:
             await action.changed.wait()
-            await events_queue.put({'type' : 'update',
-                                    'url' : f'/action',
-                                    'id' : action.id})
-            await events_queue.put({'type' : 'update', 'url' : f'/actions'})
+            await events_queue.put({'type': 'update',
+                                    'url': f'/action',
+                                    'id': action.id})
+            await events_queue.put({'type': 'update', 'url': f'/actions'})
 
 
 async def conditions_events(events_queue):

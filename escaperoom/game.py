@@ -122,12 +122,13 @@ class Game(Registered):
     def get(cls):
         return cls._current
 
-    def __init__(self, name, *, ready=False):
+    def __init__(self, name, room, *, ready=False):
 
         if self._current is not None:
             raise RuntimeError('There can be only one game running')
 
         super().__init__(name, register=False)
+        self.room = room
 
         self.ended = asyncio.Event()
 
@@ -153,6 +154,20 @@ class Game(Registered):
         async with self.changed:
             await self._chronometer.start()
             self.changed.notify_all()
+            asyncio.ensure_future(self.run_room())
+
+    async def run_room(self):
+        state = self.room
+        while state is not None:
+            try:
+                if isinstance(state, list):
+                    state = await state[0].activate(target=state[1:])
+                else:
+                    state = await state.activate()
+            except:
+                import logging
+                logging.exception('Room failed')
+                state = self.room
 
     async def _reset(self):
         await asyncio.wait({e.changed.acquire() for e in Registered.entries()})
@@ -176,6 +191,46 @@ class Game(Registered):
     @property
     def running(self):
         return self._chronometer.running
+
+    def get_story(self):
+        return {
+            'states': {s.__qualname__: s.__json__()
+                       for s in self.room.all_states}
+        }
+
+    def get_by_id(self, obj_id):
+
+        obj_id = obj_id.split('.')
+        obj = self.room
+
+        # check room name
+        if obj_id[0] != obj.__name__:
+            raise ValueError(f'Game room is not {obj_id[0]} but '
+                             f'{obj.__name__}')
+
+        for s in obj_id[1:]:
+            obj = getattr(obj, s)
+
+        return obj
+
+    def get_target_by_state_id(self, state_id):
+
+        state_id = state_id.split('.')
+        target = [self.room]
+
+        # check room name
+        if state_id[0] != self.room.__name__:
+            raise ValueError(f'Game room is not {state_id[0]} but '
+                             f'{self.room.__name__}')
+
+        for s in state_id[1:]:
+            target += [getattr(target[-1], s)]
+
+        return target
+
+    def activate_state(self, state_id):
+        target = self.get_target_by_state_id(state_id)
+        self.room.goto(target)
 
     def __json__(self):
         return {

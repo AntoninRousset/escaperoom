@@ -37,17 +37,32 @@ async def read(service, query=None, server=None):
         return await conditions_reader()
     if service == 'gamemasters':
         return await gamemasters_reader()
+    if service == 'story':
+        return await story_reader()
+    if service == 'state':
+        return await state_reader(query)
     raise KeyError(service)
+
+
+async def story_reader():
+    game = Game.get()
+    return game.get_story()
+
+
+async def state_reader(query):
+    game = Game.get()
+    # TODO shouldn't be able to return other obj than states
+    return game.get_by_id(query['id'])
 
 #TODO a reader should take a set of entries, like actions so it can be reused
 async def actions_reader():
     actions = {
-            action.id : {
-                'name' : action.name,
-                'desactivated' : action.desactivated,
-                'desc' : action.name if action.desc is None else action.desc,
-                'running' : action.running,
-                'failed' : action.failed
+            action.id: {
+                'name': action.name,
+                'desactivated': action.desactivated,
+                'desc': action.name if action.desc is None else action.desc,
+                'running': action.running,
+                'failed': action.failed
                 } for action in Action.entries()
             }
     return {'actions' : actions}
@@ -55,12 +70,12 @@ async def actions_reader():
 async def action_reader(query):
     action = Action.find_entry(**query)
     return {
-            'id' : action.id,
-            'name' : action.name,
-            'desactivated' : action.desactivated,
-            'desc' : action.name if action.desc is None else action.desc,
-            'running' : action.running,
-            'failed' : action.failed
+            'id': action.id,
+            'name': action.name,
+            'desactivated': action.desactivated,
+            'desc': action.name if action.desc is None else action.desc,
+            'running': action.running,
+            'failed': action.failed
             }
 
 async def cameras_reader():
