@@ -21,167 +21,167 @@ from ..network.devices import Device
 _packets = asyncio.Queue()
 
 _devices_defaults = {
-        1 : {
-            'name' : 'lights',
-            'attrs' : {
-                0 : {
-                    'name' : 'room1',
-                    'type' : 'bool',
-                    'value' : '1'
-                    },
-                1 : {
-                    'name' : 'room2',
-                    'type' : 'bool',
-                    'value' : '1'
-                    },
-                2 : {
-                    'name' : 'vessel',
-                    'type' : 'bool',
-                    'value' : '1'
-                    },
-                3 : {
-                    'name' : 'uv',
-                    'type' : 'bool',
-                    'value' : '0'
-                    }
-                }
+    1 : {
+        'name' : 'lights',
+        'attrs' : {
+            0 : {
+                'name' : 'room1',
+                'type' : 'bool',
+                'value' : '1'
             },
-        2 : {
-            'name' : 'base_cross',
-            'attrs' : {
-                0 : {
-                    'name' : 'hall',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                1 : {
-                    'name' : 'light',
-                    'type' : 'bool',
-                    'value' : '0'
-                    }
-                }
+            1 : {
+                'name' : 'room2',
+                'type' : 'bool',
+                'value' : '1'
             },
-        3 : {
-            'name' : 'base_hexagon',
-            'attrs' : {
-                0 : {
-                    'name' : 'hall',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                1 : {
-                    'name' : 'light',
-                    'type' : 'bool',
-                    'value' : '0'
-                    }
-                }
+            2 : {
+                'name' : 'vessel',
+                'type' : 'bool',
+                'value' : '1'
             },
-        4 : {
-            'name' : 'base_triangle',
-            'attrs' : {
-                0 : {
-                    'name' : 'hall',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                1 : {
-                    'name' : 'light',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                2 : {
-                    'name' : 'fuse',
-                    'type' : 'bool',
-                    'value' : '1'
-                    },
-                3 : {
-                    'name' : 'led',
-                    'type' : 'bool',
-                    'value' : '0'
-                    }
-                }
-            },
-        5 : {
-            'name' : 'base_star',
-            'attrs' : {
-                0 : {
-                    'name' : 'hall',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                1 : {
-                    'name' : 'light',
-                    'type' : 'bool',
-                    'value' : '0'
-                    }
-                }
-            },
-        6 : {
-            'name' : 'box_connect',
-            'attrs' : {
-                0 : {
-                    'name' : 'fuse0',
-                    'type' : 'bool',
-                    'value' : '1'
-                    },
-                1 : {
-                    'name' : 'fuse1',
-                    'type' : 'bool',
-                    'value' : '1'
-                    },
-                2 : {
-                    'name' : 'fuse2',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                3 : {
-                    'name' : 'led0',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                4 : {
-                    'name' : 'led1',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                5 : {
-                    'name' : 'led2',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                6 : {
-                    'name' : 'jacks',
-                    'type' : 'bool',
-                    'value' : '0'
-                    }
-                }
-            },
-        7 : {
-            'name' : 'box_code',
-            'attrs' : {
-                0 : {
-                    'name' : 'state',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                1 : {
-                    'name' : 'target',
-                    'type' : 'int',
-                    'value' : 1234
-                    },
-                2 : {
-                    'name' : 'red',
-                    'type' : 'bool',
-                    'value' : '0'
-                    },
-                3 : {
-                    'name' : 'green',
-                    'type' : 'bool',
-                    'value' : '0'
-                    }
-                }
+            3 : {
+                'name' : 'uv',
+                'type' : 'bool',
+                'value' : '0'
             }
+        }
+    },
+    2 : {
+        'name' : 'base_cross',
+        'attrs' : {
+            0 : {
+                'name' : 'hall',
+                'type' : 'bool',
+                'value' : '0'
+            },
+            1 : {
+                'name' : 'light',
+                'type' : 'bool',
+                'value' : '0'
+            }
+        }
+    },
+    3 : {
+        'name' : 'base_hexagon',
+        'attrs' : {
+            0 : {
+                'name' : 'hall',
+                'type' : 'bool',
+                'value' : '0'
+            },
+            1 : {
+                'name' : 'light',
+                'type' : 'bool',
+                'value' : '0'
+            }
+        }
+    },
+    4 : {
+        'name' : 'base_triangle',
+        'attrs' : {
+            0 : {
+                'name' : 'hall',
+                'type' : 'bool',
+                'value' : '0'
+            },
+            1 : {
+                'name' : 'light',
+                'type' : 'bool',
+                'value' : '0'
+            },
+            2 : {
+                'name' : 'fuse',
+                'type' : 'bool',
+                'value' : '1'
+            },
+            3 : {
+                'name' : 'led',
+                'type' : 'bool',
+                'value' : '0'
+            }
+        }
+    },
+    5 : {
+        'name' : 'base_star',
+        'attrs' : {
+            0 : {
+                'name' : 'hall',
+                'type' : 'bool',
+                'value' : '0'
+            },
+            1 : {
+                'name' : 'light',
+                'type' : 'bool',
+                'value' : '0'
+            }
+        }
+    },
+    6 : {
+        'name' : 'box_connect',
+        'attrs' : {
+            0 : {
+                'name' : 'fuse0',
+                'type' : 'bool',
+                'value' : '1'
+            },
+            1 : {
+                'name' : 'fuse1',
+                'type' : 'bool',
+                'value' : '1'
+            },
+            2 : {
+                'name' : 'fuse2',
+                'type' : 'bool',
+                'value' : '0'
+            },
+            3 : {
+                'name' : 'led0',
+                'type' : 'bool',
+                'value' : '0'
+            },
+            4 : {
+                'name' : 'led1',
+                'type' : 'bool',
+                'value' : '0'
+            },
+            5 : {
+                'name' : 'led2',
+                'type' : 'bool',
+                'value' : '0'
+            },
+            6 : {
+                'name' : 'jacks',
+                'type' : 'bool',
+                'value' : '0'
+            }
+        }
+    },
+    7 : {
+        'name' : 'box_code',
+        'attrs' : {
+            0 : {
+                'name' : 'state',
+                'type' : 'bool',
+                'value' : '0'
+            },
+            1 : {
+                'name' : 'target',
+                'type' : 'int',
+                'value' : 1234
+            },
+            2 : {
+                'name' : 'red',
+                'type' : 'bool',
+                'value' : '0'
+            },
+            3 : {
+                'name' : 'green',
+                'type' : 'bool',
+                'value' : '0'
+            }
+        }
     }
+}
 
 _devices = deepcopy(_devices_defaults)
 

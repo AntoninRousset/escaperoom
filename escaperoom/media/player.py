@@ -70,7 +70,7 @@ def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
         for track in iter_tracks(kind=kind):
             if track._queue.full():
                 if full_print_warning:
-                    logger.warn('Track is full')
+                    #logger.warn('Track is full')
                     full_print_warning = False
                 if force:
                     run_threadsafe(track._queue.get())
