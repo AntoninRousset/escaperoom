@@ -168,7 +168,15 @@ class Device(Network):
         #if reset: asyncio.create_task(self.reset()) #TODO?
 
     def add_tasks(self, tasks):
-        {asyncio.create_task(task(self)) for task in ensure_iter(tasks)}
+
+        async def task_wrapper(task):
+            try:
+                await task(self)
+            except BaseException:
+                self._logger.exception(f'{self} task {task} failed')
+
+        for task in ensure_iter(tasks):
+            asyncio.create_task(task_wrapper(task))
 
     def __str__(self):
         return f'device "{self.name}"'
