@@ -16,10 +16,11 @@ import logging
 from .logging import ColoredFormatter
 from .game import Game
 from .logic import Action, action, Condition, condition
-from .misc import Camera, LocalCamera, RemoteCamera, LocalCluesDisplay, \
-    RemoteCluesDisplay, Chronometer, Timer
+from .misc import (Camera, LocalCamera, RemoteCamera, LocalCluesDisplay,
+                   RemoteCluesDisplay, Chronometer, Timer)
 from .media import Audio
-from .network import SerialBus, Device, device, SerialDevice, Cluster
+from .network import (Bus, SerialBus, TestSerialBus, Device, device,
+                      EtcdDevice, etcd_device, SerialDevice, Cluster)
 from .registered import Registered
 from .server import HTTPServer
 from .subprocess import SubProcess
@@ -67,4 +68,5 @@ async def clean_up():
 __all__ = ['Action', 'action', 'Condition', 'condition', 'Camera', 'asyncio',
            'LocalCamera', 'RemoteCamera', 'LocalCluesDisplay', 'Game', 'loop',
            'RemoteCluesDisplay', 'Chronometer', 'Audio', 'SerialBus', 'Device',
-           'device', 'SerialDevice', 'HTTPServer', 'SubProcess', 'Timer']
+           'device', 'EtcdDevice', 'etcd_device', 'SerialDevice', 'HTTPServer',
+           'SubProcess', 'Timer']
