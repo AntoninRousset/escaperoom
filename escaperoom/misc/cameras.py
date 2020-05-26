@@ -50,7 +50,7 @@ class LocalCamera(Camera):
     def __init__(self, name, *, codec_prefs=None,
                  v_file, v_format=None, v_options={}, v_effect=None,
                  a_file=None, a_format='alsa', a_options={}, a_effect=None,
-                 v4l2_ctl=None):
+                 v4l2_ctl=None, always_running=False):
         super().__init__(name)
         self.pcs = set()
         self.codec_prefs = dict() if codec_prefs is None else codec_prefs
@@ -60,12 +60,9 @@ class LocalCamera(Camera):
 
         try:
             self.v_player = MediaPlayer(v_file, v_format, v_options,
-                                        a_effect=a_effect, v_effect=v_effect)
-            '''
-            self.v_player = MediaPlayer(v_file, v_format, v_options,
-                                        video_effect=v_effect,
-                                        audio_effect=a_effect)
-            '''
+                                        a_effect=a_effect, v_effect=v_effect,
+                                        always_running=always_running)
+
             if a_file is None:
                 self.a_player = self.v_player
             else:
