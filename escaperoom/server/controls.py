@@ -125,7 +125,7 @@ async def game_control(params):
         # TODO buzzer and self do not exist
         if server.buzzer is None:
             raise RuntimeError('buzzer is not implemented by the room')
-        await self.buzzer()
+        await server.buzzer()
     elif params['action'] == 'end_game':
         print('end_game')
         await game.end()
