@@ -31,7 +31,7 @@ async def control(params, service, query=None, server=None):
         elif service == 'display':
             data = await cluesdisplay_control(params, query, server)
         elif service == 'game':
-            data = await game_control(params)
+            data = await game_control(params, server)
         elif service == 'condition':
             data = await condition_control(params, query)
         else:
@@ -100,7 +100,7 @@ async def device_control(params, query):
         raise RuntimeError('action not implemented: '+params['action'])
 
 
-async def game_control(params):
+async def game_control(params, server):
     game = Game.get()
     if game is None:
         raise KeyError('no game defined for the room')
@@ -108,9 +108,7 @@ async def game_control(params):
         await game.start()
 
     elif params['action'] == 'update_options':
-
         options = params['options']
-
         # convert planned_date isoformat to datetime.datetime
         if 'planned_date' in options:
             import dateutil.parser
@@ -122,7 +120,6 @@ async def game_control(params):
     elif params['action'] == 'stop_game':
         await game.stop()
     elif params['action'] == 'buzzer':
-        # TODO buzzer and self do not exist
         if server.buzzer is None:
             raise RuntimeError('buzzer is not implemented by the room')
         await server.buzzer()

@@ -150,7 +150,8 @@ def device(name=None, *args, **kwargs):
 
 import etcd3_asyncio as etcd
 
-
+# Lease every values ? maybe not
+# For reboot let's del every key and every node are responsible to repopulate
 class EtcdDevice(Device):
 
     def __init__(self, name, *args, **kwargs):
@@ -170,7 +171,11 @@ class EtcdDevice(Device):
         async with self.changed:
             for path, data in attrs.items():
                 name = path.rsplit(b'/', 1)[-1].decode()
-                type, value = data.decode().split(maxsplit=1)
+                words = data.decode().split(maxsplit=1)
+                try:
+                    type, value = words
+                except ValueError:
+                    type, value = words[0], ''
                 try:
                     attr = self._find_attr(name)
                     attr.type = type

@@ -50,55 +50,62 @@
 							<div class='game-option'>
 								<label for='game-option-test'>Mode test</label>
 								<input type='checkbox' id='game-option-test' name='test'>
-              </div>
-              <div id='game-controls'>
-                <button class='game-control' id='stop-game' dangerous disabled>Arrêter la partie</button>
-                <input class='game-control' type='submit' id='new-game' value='Nouvelle partie' hidden>
-                <button class='game-control' id='back-to-game' hidden>Continuer</button>
-              </div>
-            </fieldset>
+							</div>
+							<div id='game-controls'>
+								<button class='game-control' id='stop-game' dangerous disabled>Arrêter la partie</button>
+								<input class='game-control' type='submit' id='new-game' value='Nouvelle partie' hidden>
+								<button class='game-control' id='back-to-game' hidden>Continuer</button>
+							</div>
+						</fieldset>
 						<fieldset id='game-options'>
 							<legend>Groupe</legend>
 							<div class='game-option'>
 								<label for='game-option-group_name'>Nom</label>
-                <input type='text' id='game-option-group_name' name='group_name'>
+								<input type='text' id='game-option-group_name' name='group_name'>
 							</div>
 							<div class='game-option'>
 								<label for='game-option-planned_date-date'>Date planifiée</label>
-                <input type='date' id='game-option-planned_date-date' name='planned_date'>
+								<input type='date' id='game-option-planned_date-date' name='planned_date'>
 							</div>
 							<div class='game-option'>
 								<label for='game-option-planned_date-time'>Heure de passage</label>
-                <select id='game-option-planned_date-time' name='planned_date'>
-                </select>
+								<select id='game-option-planned_date-time' name='planned_date'>
+								</select>
 							</div>
 							<div class='game-option'>
 								<label for='game-option-group_size'>Nombre de participants</label>
-                <input type='number' id='game-option-group_size' min='1' name='group_size'>
+								<input type='number' id='game-option-group_size' min='1' name='group_size'>
 							</div>
-            </fieldset>
+						</fieldset>
 						<fieldset id='game-options'>
 							<legend>Leader</legend>
 							<div class='game-option'>
 								<label for='game-option-leader_firstname'>Prénom</label>
-                <input type='text' id='game-option-leader_firstname' name='leader_firstname'>
+								<input type='text' id='game-option-leader_firstname' name='leader_firstname'>
 							</div>
 							<div class='game-option'>
 								<label for='game-option-leader_lastname'>Nom</label>
-                <input type='text' id='game-option-leader_lastname' name='leader_lastname'>
+								<input type='text' id='game-option-leader_lastname' name='leader_lastname'>
 							</div>
 							<div class='game-option'>
 								<label for='game-option-leader_email'>Email</label>
-                <input type='text' id='game-option-leader_email' name='leader_email'>
+								<input type='text' id='game-option-leader_email' name='leader_email'>
 							</div>
 							<div class='game-option'>
 								<label for='game-option-leader_postcode'>Code postal</label>
-                <input type='text' id='game-option-leader_postcode' name='leader_postcode'>
+								<input type='text' id='game-option-leader_postcode' name='leader_postcode'>
 							</div>
 							<div class='game-option big'>
 								<label for='game-option-comments'>Commentaires</label>
-                <textarea id='game-option-comments' name='comments'>
-                </textarea>
+								<textarea id='game-option-comments' name='comments'>
+								</textarea>
+							</div>
+						</fieldset>
+						<fieldset id='game-options'>
+							<legend>Options</legend>
+							<div class='game-option'>
+								<label for='game-option-master_volume'>Volume</label>
+								<input type='range' min='1' max='128' id='game-option-master_volume' name='master_volume'>
 							</div>
 						</fieldset>
 					</game-menu>

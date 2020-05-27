@@ -17,7 +17,7 @@ from sdl2 import SDL_Init, SDL_INIT_AUDIO, SDL_GetError
 from sdl2.ext.compat import byteify
 from sdl2.sdlmixer import (Mix_OpenAudio, MIX_DEFAULT_FORMAT, Mix_GetError,
                            Mix_GroupChannel, Mix_LoadWAV, Mix_PlayChannel,
-                           Mix_HaltGroup, Mix_ChannelFinished)
+                           Mix_HaltGroup, Mix_ChannelFinished, Mix_Volume)
 
 import ctypes
 import threading
@@ -32,6 +32,8 @@ class Audio(Media):
         raise RuntimeError('Cannot initialize audio: ' + SDL_GetError())
     if Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024):
         raise RuntimeError('Cannot open mixed audio: ' + Mix_GetError())
+
+    _volume = None
 
     @classmethod
     def _channel_finished(cls, channel):
@@ -52,6 +54,12 @@ class Audio(Media):
         with cls._channels_groups_lock:
             cls._channels_groups.append(dict())
             return len(cls._channels_groups) - 1
+
+    @classmethod
+    def set_volume(cls, value: int):
+        value = int(value)
+        Mix_Volume(-1, value)
+        cls._volume = value
 
     def __init__(self, files, *, loop=False, loop_last=False):
         files = ensure_iter(files)
@@ -114,6 +122,7 @@ class Audio(Media):
 
     def play(self):
         self._play(self._samples[0], loop=self.loop)
+        # TODO return self instead which can be awaited
         return asyncio.create_task(self._ended.wait())
 
     async def _reset(self):
@@ -129,3 +138,6 @@ class Audio(Media):
 c_wrapper = ctypes.CFUNCTYPE(None, ctypes.c_int)
 c_func = c_wrapper(Audio._channel_finished)
 Mix_ChannelFinished(c_func)
+
+Audio.set_volume(128)
+
