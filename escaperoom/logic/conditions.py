@@ -12,8 +12,9 @@
 
 from . import action, asyncio, BoolLogic
 from ..logging import ANSI
-from ..network.devices import NotReady
+from ..network.devices import Device, NotReady
 from ..utils import ensure_iter
+
 
 class Condition(BoolLogic):
 
@@ -28,7 +29,7 @@ class Condition(BoolLogic):
         self.actions = set(ensure_iter(actions))
         self.on_trues = set(ensure_iter(on_trues))
         self.on_falses = set(ensure_iter(on_falses))
-        self.siblings = None #Could be solved algorithmically
+        self.siblings = None  # Could be solved algorithmically
         self._listens = set()
         self.add_listens(listens)
         self._parents = set()
@@ -54,7 +55,12 @@ class Condition(BoolLogic):
         for parent in self._parents:
             if not parent:
                 self._log_debug(f'parents are {ANSI["bold"]}{ANSI["red"]} bad')
-                self.msg = f'parent "{parent.name}" pas prêt'
+                if isinstance(parent, Device):
+                    self.msg = f'device "{parent.name}" pas connecté'
+                elif isinstance(parent, Condition):
+                    self.msg = parent.msg
+                else:
+                    self.msg = f'parent "{parent.name}" pas prêt'
                 return False
         self._log_debug(f'parents are {ANSI["bold"]}{ANSI["green"]} good')
         return True
