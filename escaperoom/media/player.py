@@ -42,8 +42,6 @@ def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
 
     audio_print_warning = True
     video_print_warning = True
-    full_print_warning = True
-
 
     def iter_tracks(kind=None):
         with lock_tracks:
@@ -63,33 +61,20 @@ def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
     def run_threadsafe(coro):
         asyncio.run_coroutine_threadsafe(coro, loop)
 
-    def append_frame(frame, kind=None, force=False):
-
-        global full_print_warning
+    def append_frame(frame, kind=None, force=True):
 
         for track in iter_tracks(kind=kind):
             if track._queue.full():
-                if full_print_warning:
-                    #logger.warn('Track is full')
-                    full_print_warning = False
+
+                # remove one frame and append the new frame
                 if force:
                     run_threadsafe(track._queue.get())
                     run_threadsafe(track._queue.put(frame))
+
             else:
                 run_threadsafe(track._queue.put(frame))
-                full_print_warning = True
-
-    # i = 0
 
     while not quit_event.is_set():
-
-        '''
-        if i > 10:
-            print('-' * 40)
-            for n, track in enumerate(iter_tracks()):
-                print(f'queue {n:2d} {track.kind:16s}:', track._queue.qsize())
-            i = 0
-        '''
 
         # clean invalid ref
         cleanup_tracks()
@@ -109,7 +94,8 @@ def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
                 time.sleep(0.1)
 
         # audio
-        if isinstance(frame, av.AudioFrame) and set(iter_tracks('audio')):
+        if isinstance(frame, av.AudioFrame) and (set(iter_tracks('audio'))
+                                                 or player.always_running):
 
             if (
                 frame.format.name != audio_format_name
@@ -145,7 +131,8 @@ def worker(player, loop, container, streams, tracks, lock_tracks, quit_event,
                     break
 
         # video
-        if isinstance(frame, av.VideoFrame) and set(iter_tracks('video')):
+        if isinstance(frame, av.VideoFrame) and (set(iter_tracks('video'))
+                                                 or player.always_running):
 
             if frame.pts is None:  # pragma: no cover
                 logger.warning("Skipping video frame with no pts")
@@ -217,16 +204,20 @@ class MediaPlayer(aiom.MediaPlayer):
     """
 
     def __init__(self, file, format=None, options={}, a_effect=None,
-                 v_effect=None):
+                 v_effect=None, always_running=False):
 
         super().__init__(file, format, options)
 
         self.__lock_started = Lock()
         self.a_effect = a_effect
         self.v_effect = v_effect
+        self.always_running = always_running
 
         logger.debug(f'WebcamSource created file: {file},'
                      f'format: {format}, options: {options}')
+
+        if always_running:
+            self._start(None)
 
     @property
     def audio(self):
@@ -243,9 +234,10 @@ class MediaPlayer(aiom.MediaPlayer):
     def _start(self, track):
 
         # add track
-        with self.__lock_started:
-            track = ref(track) if not isinstance(track, ref) else track
-            self.__started.add(track)
+        if track is not None:
+            with self.__lock_started:
+                track = ref(track) if not isinstance(track, ref) else track
+                self.__started.add(track)
 
         # start thread if not already started
         if self.__thread is None:
@@ -277,104 +269,10 @@ class MediaPlayer(aiom.MediaPlayer):
             self.__started.discard(track)
 
         # stop thread if no remaining tracks
-        if not self.__started and self.__thread is not None:
+        if (not self.always_running
+                and not self.__started
+                and self.__thread is not None):
             logger.debug('Stopping worker thread')
             self.__thread_quit.set()
             self.__thread.join()
             self.__thread = None
-
-
-
-
-'''
-class MediaPlayer(aiom.MediaPlayer):
-
-    def __init__(self, file, format=None, options={}, audio_effect=None,
-                 video_effect=None):
-
-        super().__init__(str(file), format, options)
-
-        self.__audio_effect = audio_effect
-        self.__video_effect = video_effect
-
-    def _start(self, track):
-
-        super()._start(track)
-
-        if self.__effect_audio_thread is None and self.__audio_effect is not None:
-            if self.__audio is None:
-                raise RuntimeError('container has not audio track')
-            self.__log_debug('Starting audio effect worker thread')
-            self.__effect_audio_thread_quit = threading.Event()
-            args = (asyncio.get_event_loop(), self.__audio,
-                    self.__audio_with_effect,
-                    self.__audio_effect,
-                    self.__effect_audio_thread_quit)
-            self.__effect_audio_thread = threading.Thread(name='audio_effect',
-                                                          target=effect_worker,
-                                                          args=args)
-            self.__effect_audio_thread.start()
-
-        if self.__effect_video_thread is None and self.__video_effect is not None:
-            if self.__video is None:
-                raise RuntimeError('container has not video track')
-            self.__log_debug('Starting video effect worker thread')
-            self.__effect_video_thread_quit = threading.Event()
-            args = (asyncio.get_event_loop(), self.__video,
-                    self.__video_with_effect,
-                    self.__video_effect,
-                    self.__effect_video_thread_quit)
-            self.__effect_video_thread = threading.Thread(name='video_effect',
-                                                          target=effect_worker,
-                                                          args=args)
-            self.__effect_video_thread.start()
-
-    @property
-    def audio(self):
-        if self.__audio_effect is None:
-            return self.__audio
-        return self.__audio_with_effect
-
-    @property
-    def video(self):
-        if self.__video_effect is None:
-            return self.__video
-        return self.__video_with_effect
-
-    def _stop(self, track):
-
-        if not self.__started and self.__effect_audio_thread:
-            self.__log_debug("Stopping audio effect worker thread")
-            self.__effect_audio_thread_quit.set()
-            self.__effect_audio_thread.join()
-            self.__effect_audio_thread = None
-
-        if not self.__started and self.__effect_video_thread:
-            self.__log_debug("Stopping video effect worker thread")
-            self.__effect_video_thread_quit.set()
-            self.__effect_video_thread.join()
-            self.__effect_video_thread = None
-
-        super()._stop(track)
-'''
-
-def effect_worker(loop, track_in, track_out, effect, quit_event):
-
-    print_warning = True
-
-    while not quit_event.is_set():
-        future = asyncio.run_coroutine_threadsafe(track_in._queue.get(), loop)
-        frame = future.result()
-
-        try:
-            frame = effect(loop, frame)
-            print_warning = True
-        except BaseException:
-            if print_warning:
-                logger.exception('Failed to apply video effect')
-                print_warning = False
-
-        asyncio.run_coroutine_threadsafe(track_out._queue.put(frame), loop)
-
-
-
