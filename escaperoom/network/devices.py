@@ -28,26 +28,26 @@ class Device(Network):
 
     class Attribute():
 
-        def __init__(self, name=None, type=None, value=None): 
+        @classmethod
+        def convert(cls, value, type):
+            value = str(value)
+            if type == 'bool':
+                if re.match('((T|t)rue|(O|o)n|(Y|y)es)', value):
+                    return '1'
+                elif re.match('((F|f)alse|(O|o)ff|(N|n)o)', value):
+                    return '0'
+            return value
+
+        def __init__(self, name=None, type=None, value=None):
             super().__init__()
             self.name = name
-            self.type = type 
-            self._value = value 
+            self.type = type
+            self._value = value
 
         def __str__(self):
             if self.name is not None and self.value is not None:
                 return f'attribute "{self.name}" [{self.value}]'
             return 'attribute'
-
-        def convert(self, value, type=None):
-            value = str(value)
-            if type is None:
-                type = self.type
-            if type == 'bool':
-                if re.match('((T|t)rue|(O|o)n|(Y|y)es)', value): return '1'
-                elif re.match('((F|f)alse|(O|o)ff|(N|n)o)', value): return '0' 
-                else: return value
-            return value
 
         @property
         def value(self):
@@ -68,94 +68,7 @@ class Device(Network):
 
         @value.setter
         def value(self, value):
-            self._value = self.convert(value)
-
-    @classmethod
-    async def _download_device(cls, host, id):
-        async def fetch(loc):
-            while True:
-                try:
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get(loc) as resp:
-                            return await resp.json()
-                except aiohttp.ClientConnectorError:
-                    await asyncio.sleep(1)
-        loc = host+'/device?id='+id
-        async with cls._downloadings[loc]:
-            data = await fetch(loc)
-            device = cls.find_entry(data['name'])
-            if device is None:
-                device = Device(data['name'], type=data['type'])
-            if device.type is 'unknown':
-                device.type = data['type']
-            device.loc = loc
-            async with device.changed:
-                if data['attrs'] is None and device._attrs is not None:
-                    device._attrs = None
-                    device.changed.notify_all()
-                    return await asyncio.sleep(0)
-                elif data['attrs'] is not None and device._attrs is None:
-                    device._attrs = list()
-                    device.changed.notify_all()
-                for i in range(0, len(data['attrs'])):
-                    attr = data['attrs'][str(i)]
-                    if len(device._attrs) <= i:
-                        device._attrs.append(Device.Attribute(attr['name'],
-                                                              attr['type'],
-                                                              attr['value']))
-                        device.changed.notify_all() 
-                        await asyncio.sleep(0)
-                    else:
-                        d_attr = device._attrs[i]
-                        if ( d_attr.name != attr['name'] or
-                             d_attr.type != attr['type'] or
-                             d_attr.value != attr['value'] ):
-                            device.changed.notify_all() 
-                        d_attr.name = attr['name']
-                        d_attr.type = attr['type']
-                        d_attr.value = attr['value']
-                        await asyncio.sleep(0)
-
-    @classmethod
-    async def _download(cls, host):
-        loc = host+'/devices'
-        async def fetch(loc):
-            while True:
-                try:
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get(loc) as resp:
-                            return await resp.json()
-                except aiohttp.ClientConnectorError:
-                    await asyncio.sleep(1)
-        async with cls._downloadings[loc]:
-            data = await fetch(loc)
-            for id in data['devices'].keys():
-                asyncio.create_task(cls._download_device(host, id))
-        
-    @classmethod
-    async def _HTTP_listener(cls, host):
-        loc = host+'/events'
-        warned = False
-        while True:
-            try:
-                async with sse_client.EventSource(loc) as event_source:
-                    await cls._download(host)
-                    async for event in event_source:
-                        data = json.loads(event.data)
-                        if ( data['type'] == 'update' and
-                             data['url'] == '/devices' ):
-                            await cls._download(host)
-                warned = False
-            except aiohttp.ClientConnectorError:
-                if not warned:
-                    cls._logger.warning(f'failed to connect to {host}')
-                    warned = True
-                await asyncio.sleep(1)
-
-    @classmethod
-    def bind(cls, host):
-        asyncio.create_task(cls._download(host))
-        asyncio.create_task(cls._HTTP_listener(host))
+            self._value = Device.Attribute.convert(value, self.type)
 
     def __init__(self, name, *, desc=None, type='unknown', tasks={},
                  reset=False): 
@@ -194,41 +107,20 @@ class Device(Network):
                     return attr
         raise KeyError(f'Non existent attribute "{name}"')
 
+    async def _set_value(self, name, value, *, type=None):
+        try:
+            attr = self._find_attr(name)
+            attr.value = value
+            if type is not None:
+                attr.type = type
+        except (KeyError, AttributeError):
+            if self._attrs is None:
+                self._attrs = set()
+            self._attrs.add(Device.Attribute(name, type=type,
+                                             value=value))
+
     def get_value(self, name):
         return self._find_attr(name).value
-
-    async def _set_value(self, name, value, *, type=None):
-        if self.loc is None:
-            try:
-                attr = self._find_attr(name)
-            except (KeyError, AttributeError):
-                if self._attrs is None:
-                    self._attrs = set()
-                self._attrs.add(Device.Attribute(name, type=type, value=value))
-            else:
-                attr.value = value
-        else:
-            async def post(loc):
-                 while True:
-                    try:
-                        data = {'action' : 'set_val',
-                                'name' : name, 'value' : value}
-                        async with aiohttp.ClientSession() as session:
-                            async with session.post(loc, json=data) as resp:
-                                return await resp.text()
-                    except aiohttp.ClientConnectorError:
-                        await asyncio.sleep(1)
-            await post(self.loc)
-            while True:
-                try:
-                    attr = self._find_attr(name)
-                    if attr is not None:
-                        if attr.value == value:
-                            return
-                except Exception as e:
-                    print(e)
-                await self.changed.wait()
-
 
     async def set_value(self, name, value):
         async with self.changed:
@@ -238,7 +130,8 @@ class Device(Network):
 
     @property
     def n_attr(self):
-        if self._attrs is None: return None
+        if self._attrs is None:
+            return None
         return len(self._attrs)
 
     @property
@@ -249,9 +142,83 @@ class Device(Network):
 def device(name=None, *args, **kwargs):
     def decorator(func):
         d = Device.find_entry(name)
-        if d is not None: return d
+        if d is not None:
+            return d
         return Device(name, tasks={func}, *args, **kwargs)
     return decorator
+
+
+import etcd3_asyncio as etcd
+
+
+class EtcdDevice(Device):
+
+    def __init__(self, name, *args, **kwargs):
+        super().__init__(name, *args, **kwargs)
+        self._path = f'/devices/{name}/'.encode()
+
+        self._watching = asyncio.Event()
+        asyncio.create_task(self.__watcher())
+
+    async def __watcher(self):
+        async for event in etcd.Watch(self._path, filters=['nodelete']):
+            await self._download()
+            self._watching.set()
+
+    async def _download(self):
+        attrs = await etcd.Range(self._path)
+        async with self.changed:
+            for path, data in attrs.items():
+                name = path.rsplit(b'/', 1)[-1].decode()
+                type, value = data.decode().split(maxsplit=1)
+                try:
+                    attr = self._find_attr(name)
+                    attr.type = type
+                    attr.value = value
+                except (KeyError, AttributeError):
+                    if self._attrs is None:
+                        self._attrs = set()
+                    self._attrs.add(Device.Attribute(name, type=type,
+                                                     value=value))
+            self.changed.notify_all()
+
+    async def _set_value(self, name, value, *, type=None):
+        key = self._path + name.encode()
+
+        if type is None:
+            data = await etcd.Get(key, default=b'str')
+            type = data.split()[0].decode()
+
+        str_value = Device.Attribute.convert(value, type)
+        await etcd.Put(key, f'{type} {str_value}'.encode())
+
+        while True:
+            try:
+                attr = self._find_attr(name)
+                if attr is not None:
+                    if attr._value == str_value:
+                        return
+            except (KeyError, AttributeError):
+                pass
+            except Exception as e:
+                print(repr(e))
+            await self.changed.wait()
+
+    async def set_value(self, name, value):
+        await self._watching.wait()
+        async with self.changed:
+            await self._set_value(name, value)
+            self.changed.notify_all()
+
+
+def etcd_device(name=None, *args, **kwargs):
+    def decorator(func):
+        d = EtcdDevice.find_entry(name)
+        if d is not None:
+            return d
+        return EtcdDevice(name, tasks={func}, *args, **kwargs)
+    return decorator
+
 
 class SerialDevice(Device):
 
@@ -265,16 +232,20 @@ class SerialDevice(Device):
             self.device_id = device_id
 
         def __eq__(self, other):
-            if other is None: return False
-            if self.bus is None or other.bus is None: return False
-            if self.bus != other.bus: return False
-            if self.device_id is None or other.device_id is None: return False
-            if self.device_id != other.device_id: return False
+            if other is None:
+                return False
+            if self.bus is None or other.bus is None:
+                return False
+            if self.bus != other.bus:
+                return False
+            if self.device_id is None or other.device_id is None:
+                return False
+            if self.device_id != other.device_id:
+                return False
             return True
 
         def __str__(self):
             return f'0x{self.device_id:02x}@{self.bus}'
-
 
     @classmethod
     def _find_device(cls, addr):
@@ -321,7 +292,7 @@ class SerialDevice(Device):
         device_id, msg = bus.packet
         addr = SerialDevice.Addr(bus, device_id)
         cls._logger.debug(f'reading packet "{bus.packet}" from {bus}')
-        if re.match('\s*desc\s+\w+\s+\w+\s*', msg):
+        if re.match(r'\s*desc\s+\w+\s+\w+\s*', msg):
             name = msg.split()[1]
             device = Device.find_entry(name)
             if device is None:
@@ -361,7 +332,8 @@ class SerialDevice(Device):
         super().__init__(name, desc=desc, type=type, reset=reset)
         self._has_reset = asyncio.Event()
         self.addr = None
-        if reset: asyncio.create_task(self.__reset_before_start())
+        if reset:
+            asyncio.create_task(self.__reset_before_start())
 
     async def __reset_before_start(self):
         await self.reset()
@@ -371,7 +343,7 @@ class SerialDevice(Device):
     async def _desc_fetching(self):
         while True:
             if self.name is None or self._attrs is None:
-                self._log_debug(f'incomplete desc') 
+                self._log_debug(f'incomplete desc')
                 await self._send(f'get desc')
                 await asyncio.wait({asyncio.sleep(10), self._has_reset.wait()},
                                    return_when=asyncio.FIRST_COMPLETED)
@@ -381,24 +353,24 @@ class SerialDevice(Device):
 
     async def _attrs_fetching(self):
         while True:
-            if self.n_attr is None:
+            async with self.changed:
+                if self.n_attr is None:
+                    await self.changed.wait()
+                    continue
+            cos = set()
+            for attr_id, attr in zip(range(self.n_attr), self._attrs):
+                if attr.name is None or attr.type is None:
+                    cos.add(self._send(f'get attr {attr_id}'))
+                elif attr._value is None:
+                    cos.add(self._send(f'get val {attr_id}'))
+            if cos:
+                self._log_debug(f'incomplete attrs') 
+                await asyncio.gather(*cos)
+                await asyncio.wait({asyncio.sleep(10), self._has_reset.wait()},
+                                   return_when=asyncio.FIRST_COMPLETED)
+            else:
                 async with self.changed:
                     await self.changed.wait()
-            else:
-                cos = set()
-                for attr_id, attr in zip(range(self.n_attr), self._attrs):
-                    if attr.name is None or attr.type is None:
-                        cos.add(self._send(f'get attr {attr_id}'))
-                    elif attr._value is None:
-                        cos.add(self._send(f'get val {attr_id}'))
-                if cos:
-                    self._log_debug(f'incomplete attrs') 
-                    await asyncio.gather(*cos)
-                    await asyncio.wait({asyncio.sleep(10), self._has_reset.wait()},
-                                       return_when=asyncio.FIRST_COMPLETED)
-                else:
-                    async with self.changed:
-                        await self.changed.wait()
 
     def _set_n_attr(self, value):
         if value is None: self._attrs = None
@@ -410,16 +382,16 @@ class SerialDevice(Device):
     async def _read_msg(self, msg):
         words = msg.split()
         self._log_debug(f'reading message: {msg}')
-        if re.match('\s*desc\s+\w*\s+\d+\s*', msg):
+        if re.match(r'\s*desc\s+\w*\s+\d+\s*', msg):
             self._log_debug(f'setting desc from msg')
-            name, n_attr = words[1], int(words[2]) 
+            name, n_attr = words[1], int(words[2])
             if self.name != name or self.n_attr != n_attr:
                 async with self.changed:
                     self.name = name
                     self._set_n_attr(n_attr)
                     self.changed.notify_all()
                     await asyncio.sleep(0)
-        elif re.match('\s*attr\s+\d+\s+\w+\s+\w+\s*', msg):
+        elif re.match(r'\s*attr\s+\d+\s+\w+\s+\w+\s*', msg):
             if self._attrs is not None:
                 self._log_debug(f'setting attribute from msg')
                 attr = self._attrs[int(words[1])]
@@ -429,7 +401,7 @@ class SerialDevice(Device):
                         attr.name, attr.type, attr.value = name, type, val
                         self.changed.notify_all()
                         await asyncio.sleep(0)
-        elif re.match('\s*val\s+\d+\s+\w+\s*', msg):
+        elif re.match(r'\s*val\s+\d+\s+\w+\s*', msg):
             if self._attrs is not None:
                 self._log_debug(f'setting attribute\'s value from msg')
                 attr_id, value = int(words[1]), words[2]
@@ -482,14 +454,14 @@ class SerialDevice(Device):
         while True:
             try:
                 attr_id, attr = await self._find_attr_wait(name)
-                value = attr.convert(value)
+                value = Device.Attribute.convert(value, attr.type)
                 if attr._value == value and not force:
                     return
                 await self._send(f'set val {attr_id} {value}')
                 while attr._value != value:
                     await asyncio.wait_on_condition(self.changed, timeout=5)
                 return
-            except TimeoutError: 
+            except TimeoutError:
                 self._log_warning('cannot set value: attribute did not change')
             except KeyError as e:
                 self._log_warning(f'cannot set value: {e}')
@@ -497,7 +469,7 @@ class SerialDevice(Device):
                     await self.changed.acquire() #TODO, how to do it?
                 raise
             except Exception as e:
-                print('unhandled exception:', e)
+                print('unhandled exception:', repr(e))
             print('retry')
 
     async def reset(self):

@@ -134,7 +134,7 @@ async def condition_reader(query):
 
 async def device_reader(query):
     device = Device.find_entry(**query)
-    attrs = None if device._attrs is None else dict()
+    attrs = set() if device._attrs is None else device._attrs
     if device._attrs is None:
         attrs = None
     else:

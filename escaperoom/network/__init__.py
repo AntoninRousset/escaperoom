@@ -17,12 +17,13 @@ from ..registered import Registered
 
 logger = logging.getLogger('escaperoom.network')
 
+
 class Network(Registered):
 
     _logger = logger
 
 
-from .buses import Bus, SerialBus
-from .devices import Device, device, SerialDevice
+from .buses import Bus, SerialBus, TestSerialBus
+from .devices import Device, device, EtcdDevice, etcd_device, SerialDevice
 from .sharing import Cluster
 
