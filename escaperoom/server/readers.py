@@ -109,7 +109,7 @@ async def condition_reader(query):
 
     c_siblings = condition.siblings
     if c_siblings is None:
-        c_siblings = {s for s in condition._listens | condition._parents if
+        c_siblings = {s for s in condition._parents if
                       isinstance(s, Condition)}
     siblings = {
             sibling.id : {
