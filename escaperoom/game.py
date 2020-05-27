@@ -11,6 +11,7 @@
 '''
 
 from . import asyncio
+from .media import Audio
 from .misc import Chronometer
 from .registered import Registered
 from datetime import datetime
@@ -116,6 +117,7 @@ class Game(Registered):
         GameOption('leader_postcode', int),
         GameOption('planned_date', datetime, datetime(2000, 10, 15, 13, 15)),
         GameOption('comments', str),
+        GameOption('master_volume', int, Audio._volume),
     )
 
     @classmethod
@@ -147,6 +149,8 @@ class Game(Registered):
         async with self.changed:
             for k, v in kwargs.items():
                 self.options[k] = v
+                if k == 'master_volume':
+                    Audio.set_volume(v)
             self.changed.notify_all()
 
     async def start(self):

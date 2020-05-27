@@ -125,7 +125,6 @@ GameMenu = class GameMenu extends HTMLElement {
   }
 
   update(data) {
-    console.log('update:', data);
     this.update_options(data.game.options, data.gamemasters);
     if (data.game.running) {
       this.querySelector('#new-game').setAttribute('hidden', '');

@@ -85,8 +85,6 @@ class GameMenu extends HTMLElement
 
   update: (data) ->
 
-    console.log('update:', data)
-
     @update_options(data.game.options, data.gamemasters)
 
     if data.game.running
