@@ -30,13 +30,26 @@ class Device(Network):
 
         @classmethod
         def convert(cls, value, type):
-            value = str(value)
+            if value is None:
+                return None
+            if type is None:
+                return value
             if type == 'bool':
-                if re.match('((T|t)rue|(O|o)n|(Y|y)es)', value):
-                    return '1'
-                elif re.match('((F|f)alse|(O|o)ff|(N|n)o)', value):
-                    return '0'
-            return value
+                if isinstance(value, str):
+                    if re.match('((T|t)rue|(O|o)n|(Y|y)es)', value):
+                        return True
+                    elif re.match('((F|f)alse|(O|o)ff|(N|n)o)', value):
+                        return False
+                    return bool(float(value))
+                else:
+                    return bool(value)
+            if type == 'int':
+                return int(value)
+            if type == 'float':
+                return float(value)
+            if type == 'str':
+                return str(value)
+            raise ValueError()
 
         def __init__(self, name=None, type=None, value=None):
             super().__init__()
@@ -51,27 +64,14 @@ class Device(Network):
 
         @property
         def value(self):
-            try:
-                if self._value is None:
-                    return None
-                if self.type == 'int':
-                    return int(self._value)
-                if self.type == 'float':
-                    return float(self._value)
-                if self.type == 'bool':
-                    return bool(float(self._value))
-                if self.type == 'str':
-                    return str(self._value)
-                return self._value
-            except ValueError:
-                return None
+            return self._value
 
         @value.setter
         def value(self, value):
             self._value = Device.Attribute.convert(value, self.type)
 
     def __init__(self, name, *, desc=None, type='unknown', tasks={},
-                 reset=False): 
+                 reset=False):
         super().__init__(name, desc)
         self._attrs = None
         self._connected = asyncio.Event()
@@ -110,9 +110,9 @@ class Device(Network):
     async def _set_value(self, name, value, *, type=None):
         try:
             attr = self._find_attr(name)
-            attr.value = value
             if type is not None:
                 attr.type = type
+            attr.value = value
         except (KeyError, AttributeError):
             if self._attrs is None:
                 self._attrs = set()
@@ -126,7 +126,7 @@ class Device(Network):
         async with self.changed:
             await self._set_value(name, value)
             self.changed.notify_all()
-            await asyncio.sleep(0)
+            await asyncio.sleep(0)  # TODO? remove
 
     @property
     def n_attr(self):
@@ -194,19 +194,19 @@ class EtcdDevice(Device):
             data = await etcd.Get(key, default=b'str')
             type = data.split()[0].decode()
 
-        str_value = Device.Attribute.convert(value, type)
-        await etcd.Put(key, f'{type} {str_value}'.encode())
+        value = Device.Attribute.convert(value, type)
+        await etcd.Put(key, f'{type} {value}'.encode())
+
+        # TODO, prevent changing type while setting value
 
         while True:
             try:
                 attr = self._find_attr(name)
                 if attr is not None:
-                    if attr._value == str_value:
+                    if attr.value == value:
                         return
             except (KeyError, AttributeError):
                 pass
-            except Exception as e:
-                print(repr(e))
             await self.changed.wait()
 
     async def set_value(self, name, value):
@@ -256,8 +256,8 @@ class SerialDevice(Device):
     def _find_device(cls, addr):
         for device in cls.entries():
             try:
-                if (device.addr.bus == addr.bus and
-                    device.addr.device_id == addr.device_id):
+                if device.addr.bus == addr.bus \
+                   and device.addr.device_id == addr.device_id:
                     return device
             except AttributeError:
                 pass

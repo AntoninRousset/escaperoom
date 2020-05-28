@@ -76,6 +76,7 @@ class Condition(BoolLogic):
             if not self.failed:
                 self._failed.set()
                 self.changed.notify_all()
+                print(self, 'notify')
             return
         finally:
             color = 'green' if self.msg is None else 'red'
@@ -86,9 +87,10 @@ class Condition(BoolLogic):
     def _check(self):
         self._log_debug('checking:')
         state = self.__check_parents()
-        if ( state or state is None ) and self.func is not None:
+        if (state or state is None) and self.func is not None:
             state = self.__check_func()
         if state is not None and self._set_state(state):
+            print(self, 'notify')
             self.changed.notify_all()
 
     async def check(self):
@@ -103,7 +105,7 @@ class Condition(BoolLogic):
                     self._check()
                 else:
                     await self.check()
-    
+
     async def abort_on_trues(self):
         await asyncio.gather(*{on_true.abort() for on_true in self.on_trues})
 
@@ -156,6 +158,7 @@ class Condition(BoolLogic):
         async with self.changed:
             self._reset()
             self.changed.notify_all()
+            print(self, 'notify')
 
     async def force(self, state: bool): #TODO call it force_state
         async with self.changed:
@@ -163,6 +166,7 @@ class Condition(BoolLogic):
             self._force = state
             self.__state_change(old_state) #TODO? aenter for this kind of change
             self.changed.notify_all()
+            print(self, 'notify')
 
     async def restore(self):
         return await self.force(None)
@@ -171,6 +175,7 @@ class Condition(BoolLogic):
         async with self.changed:
             self._desactivated = state == False
             self.changed.notify_all()
+            print(self, 'notify')
 
     async def activate(self):
         return await self.set_active(True)
