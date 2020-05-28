@@ -277,7 +277,7 @@ class SerialDevice(Device):
         while True:
             if cls.discover or lost_device():
                 await asyncio.gather(*{safe_broadcast(b) for b in cls._buses})
-                await asyncio.sleep(10)
+                await asyncio.sleep(5)
             else:
                 await cls.group_changed().wait()
 
