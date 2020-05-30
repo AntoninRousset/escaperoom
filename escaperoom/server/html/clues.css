@@ -1,0 +1,41 @@
+@import 'monitor.css';
+@import 'page.css';
+
+textarea {
+  grid-area: 1 / 1 / span 1 / span 1;
+  text-align: center;
+  resize: none;
+  padding: 30px 20px;
+}
+
+button {
+  grid-area: 2 / 1 / span 1 / span 1;
+}
+
+ul {
+  grid-area: 1 / 2 / span 2 / span 1;
+  border-radius: 4px;
+  border: 1px solid #00000040;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  margin: 0px 0px;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+ul li {
+  font-size: medium;
+  padding: 6px;
+  cursor: pointer;
+}
+
+ul li:nth-child(even) {
+  background: #e6e6ff;
+}
+
+ul li:hover {
+  background: #46b3e6;
+  color: white;
+}

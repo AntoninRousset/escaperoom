@@ -60,44 +60,6 @@ clues-box {
   padding: 8px;
 }
 
-clues-box textarea {
-  grid-area: 1 / 1 / span 1 / span 1;
-  text-align: center;
-  resize: none;
-  padding: 30px 20px;
-}
-
-clues-box button {
-  grid-area: 2 / 1 / span 1 / span 1;
-}
-
-clues-box ul {
-  grid-area: 1 / 2 / span 2 / span 1;
-  border-radius: 4px;
-  border: 1px solid #00000040;
-  overflow-x: hidden;
-  overflow-y: scroll;
-  margin: 0px 0px;
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-}
-
-clues-box ul li {
-  padding: 6px;
-  cursor: pointer;
-}
-
-clues-box ul li:nth-child(even) {
-  background: #e6e6ff;
-}
-
-clues-box ul li:hover {
-  background: #46b3e6;
-  color: white;
-}
-
-
 /** To Check **/
 
 .selectable:hover {

@@ -124,12 +124,14 @@ class Game(Registered):
     def get(cls):
         return cls._current
 
-    def __init__(self, name, *, ready=False):
+    def __init__(self, name, *, ready=False, clues=None):
 
         if self._current is not None:
             raise RuntimeError('There can be only one game running')
 
         super().__init__(name, register=False)
+
+        self.clues = clues or []
 
         self.ended = asyncio.Event()
 

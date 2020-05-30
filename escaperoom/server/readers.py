@@ -37,6 +37,8 @@ async def read(service, query=None, server=None):
         return await conditions_reader()
     if service == 'gamemasters':
         return await gamemasters_reader()
+    if service == 'clues':
+        return await clues_reader()
     raise KeyError(service)
 
 #TODO a reader should take a set of entries, like actions so it can be reused
@@ -165,6 +167,13 @@ async def devices_reader():
                 } for device in Device.entries()
             }
     return {'devices': devices}
+
+
+async def clues_reader():
+    game = Game.get()
+    return {
+        'messages': game.clues,
+    }
 
 
 async def game_reader():
