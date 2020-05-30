@@ -1,11 +1,6 @@
 @import 'monitor.css';
 @import 'page.css';
 
-game-issues {
-  display: block;
-  text-align: center;
-}
-
 .screen[name='game'] {
 	position: absolute;
 	z-index: 1;

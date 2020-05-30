@@ -23,11 +23,6 @@ class GameBox extends Subscriber
 
 customElements.define('game-box', GameBox)
 
-class GameIssues extends Container
-	constructor: () ->
-		super()
-
-customElements.define('game-issues', GameIssues)
 
 class GameMenu extends HTMLElement
   constructor: () ->
