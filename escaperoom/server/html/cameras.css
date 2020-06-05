@@ -26,28 +26,41 @@ cameras-list {
 	justify-content: center;
 	background-color: rgba(0, 0, 0, 0.2);
 	white-space: nowrap;
-	height: 80px;
+	height: 100px;
 }
 
 cameras-list div.item {
 	display: contents;
-	border: 1px solid green;
 }
 
 camera-video {
-	display: contents;
-	height: 100%;
+  display: block;
+  position: relative;
+	margin: 4px 10px;
+	cursor: pointer;
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.4);
+  height: 92px;
+}
+
+camera-video:hover {
+  box-shadow: 0px 0px 6px #46b3e6;
 }
 
 camera-video video {
-	height: calc(100% - 8px);
-	margin: 4px 10px;
-	cursor: pointer;
-  box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.5);
+  height: 100%;
 }
 
-camera-video video:hover {
-  box-shadow: 0px 0px 6px #46b3e6;
+camera-video legend {
+  position: relative;
+  background: black;
+  color: white;
+  opacity: 0.6;
+  height: 14px;
+  top: -22px;
+  z-index: 4;
+  font-weight: normal;
+  font-size: x-small;
+  padding: 2px 8px;
 }
 
 #bigscreen {

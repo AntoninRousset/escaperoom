@@ -54,7 +54,8 @@ CamerasList = class CamerasList extends Container {
 
   add_item(id, data) {
     var item;
-    item = this.create_item(id);
+    item = this.create_item(data.name);
+    item.shadowRoot.querySelector('camera-video').setAttribute('name', data.name);
     item.onclick = async(event) => {
       var bigscreen, camera;
       camera = item.shadowRoot.querySelector('camera-video');
@@ -103,13 +104,19 @@ CameraVideo = class CameraVideo extends HTMLElement {
   }
 
   create_video() {
-    var video;
+    var legend, video;
+    // video
     video = document.createElement('video');
     video.muted = true;
     video.autoplay = true;
     video.textContent = this.textContent;
     this.textContent = null;
     this.appendChild(video);
+    // legend
+    legend = document.createElement('legend');
+    //legend.innerText = @parentNode.getAttribute('name')
+    legend.innerText = this.getAttribute('name');
+    this.appendChild(legend);
     return video;
   }
 
