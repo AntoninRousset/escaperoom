@@ -10,10 +10,18 @@ class CluesBox extends Subscriber
     @shadowRoot.querySelector('button').onclick = @send_clue
     @clues_list = @shadowRoot.querySelector('ul')
     @subscribe()
+    @textarea = @shadowRoot.querySelector('textarea')
+    @length_warning = 6
+    @textarea.oninput = (event) =>
+      if @length_warning > 0 and @textarea.value.length >= @length_warning
+        @textarea.classList.add('length-warning')
+      else
+        @textarea.classList.remove('length-warning')
 
   update: (datas) ->
     @update_plugs(datas)
     @clues_list.read_items(datas.messages)
+    @length_warning = datas.length_warning
 
   send_clue: (event) =>
     text = event.target.parentNode.querySelector('textarea').value

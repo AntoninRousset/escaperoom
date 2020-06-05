@@ -8,6 +8,10 @@ textarea {
   padding: 30px 20px;
 }
 
+textarea.length-warning {
+  box-shadow: 0px 0px 8px #f37121 inset;
+}
+
 button {
   grid-area: 2 / 1 / span 1 / span 1;
 }

@@ -20,11 +20,21 @@ CluesBox = class CluesBox extends Subscriber {
     this.shadowRoot.querySelector('button').onclick = this.send_clue;
     this.clues_list = this.shadowRoot.querySelector('ul');
     this.subscribe();
+    this.textarea = this.shadowRoot.querySelector('textarea');
+    this.length_warning = 6;
+    this.textarea.oninput = (event) => {
+      if (this.length_warning > 0 && this.textarea.value.length >= this.length_warning) {
+        return this.textarea.classList.add('length-warning');
+      } else {
+        return this.textarea.classList.remove('length-warning');
+      }
+    };
   }
 
   update(datas) {
     this.update_plugs(datas);
-    return this.clues_list.read_items(datas.messages);
+    this.clues_list.read_items(datas.messages);
+    return this.length_warning = datas.length_warning;
   }
 
   send_clue(event) {

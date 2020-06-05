@@ -173,6 +173,7 @@ async def clues_reader():
     game = Game.get()
     return {
         'messages': game.clues,
+        'length_warning': game.clue_length_warning,
     }
 
 
