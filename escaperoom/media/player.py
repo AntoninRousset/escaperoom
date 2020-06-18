@@ -176,18 +176,22 @@ class PlayerStreamTrack(MediaStreamTrack):
     async def recv(self):
 
         if self.readyState != "live":
-            raise MediaStreamError
+            logger.error('Ready state in not "live"')
+            raise MediaStreamError()
 
         frame = await self._queue.get()
 
         # TODO why stop if no frame?
         if frame is None:
+            logger.error('Got None as a frame')
             self.stop()
-            raise MediaStreamError
+            raise MediaStreamError()
 
         return frame
 
     def stop(self):
+
+        logger.info('Steam is stopping')
 
         if not self.__ended:
             self.__ended = True
@@ -205,6 +209,8 @@ class MediaPlayer(aiom.MediaPlayer):
 
     def __init__(self, file, format=None, options={}, a_effect=None,
                  v_effect=None, always_running=False):
+
+        logger.info(f'New media player for {file}')
 
         super().__init__(file, format, options)
 

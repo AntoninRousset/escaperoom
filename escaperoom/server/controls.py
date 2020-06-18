@@ -47,20 +47,24 @@ async def control(params, service, query=None, server=None):
 async def action_control(params, query):
     action = Action.find_entry(**query)
     if action is None:
-        raise RuntimeError('camera not found')
+        raise RuntimeError('action not found')
     if params['action'] == 'call':
         action.call()
     elif params['action'] == 'abort':
         await action.abort()
     else:
-        raise RuntimeError('action not implemented: '+params['action'])
+        raise RuntimeError('action not implemented: ' + params['action'])
 
 
 async def camera_control(params, query):
-    camera = Camera.find_entry(**query)
-    if camera is None:
-        raise RuntimeError('camera not found')
-    return await camera.handle_sdp(params['sdp'], params['type'])
+    try:
+        camera = Camera.find_entry(**query)
+        if camera is None:
+            raise RuntimeError('camera not found')
+        return await camera.handle_sdp(params['sdp'], params['type'])
+
+    except BaseException:
+        logger.exception('Camera control failed')
 
 
 async def condition_control(params, query):
