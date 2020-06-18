@@ -58,6 +58,20 @@ class LocalCamera(Camera):
         if v4l2_ctl:
             self.set_v4l2_ctl(v_file, v4l2_ctl)
 
+        self._player_options = {
+            'v_file': v_file, 'v_format': v_format, 'v_options': v_options,
+            'v_effect': v_effect, 'a_file': a_file, 'a_format': a_format,
+            'a_options': a_options, 'a_effect': a_effect,
+            'always_running': always_running,
+        }
+
+        self.v_player = None
+        self.a_player = None
+        self._open_players(**self._player_options)
+
+    def _open_players(self, v_file, v_format, v_options, v_effect, a_file,
+                      a_format, a_options, a_effect, always_running):
+
         try:
             self.v_player = MediaPlayer(v_file, v_format, v_options,
                                         a_effect=a_effect, v_effect=v_effect,
@@ -67,8 +81,9 @@ class LocalCamera(Camera):
                 self.a_player = self.v_player
             else:
                 self.a_player = MediaPlayer(a_file, a_format, a_options)
-        except Exception as e:
-            self._log_exception(f'Cannot open camera {e}')
+
+        except Exception:
+            logger.exception(f'Cannot open players')
 
     @staticmethod
     def set_v4l2_ctl(devfile, ctl):
@@ -109,21 +124,33 @@ class LocalCamera(Camera):
         transceiver.setCodecPreferences(prefs)
 
     async def handle_sdp(self, sdp, type):
-        offer = aiortc.RTCSessionDescription(sdp, type)
-        pc = self._create_peer_connection()
-        self.pcs.add(pc)
-        await pc.setRemoteDescription(offer)
 
-        for t in pc.getTransceivers():
-            if t.kind == 'audio' and self.audio:
-                pc.addTrack(self.audio)
-            elif t.kind == 'video' and self.v_player:
-                pc.addTrack(self.video)
+        while True:
+            try:
+                offer = aiortc.RTCSessionDescription(sdp, type)
+                pc = self._create_peer_connection()
+                self.pcs.add(pc)
+                await pc.setRemoteDescription(offer)
 
-        answer = await pc.createAnswer()
-        await pc.setLocalDescription(answer)
-        return {'sdp': pc.localDescription.sdp,
-                'type': pc.localDescription.type}
+                if self.v_player is None and self.a_player is None:
+                    self._open_players(**self._player_options)
+
+                for t in pc.getTransceivers():
+                    if t.kind == 'audio' and self.audio:
+                        pc.addTrack(self.audio)
+                    elif t.kind == 'video' and self.v_player:
+                        pc.addTrack(self.video)
+
+                answer = await pc.createAnswer()
+                await pc.setLocalDescription(answer)
+                return {'sdp': pc.localDescription.sdp,
+                        'type': pc.localDescription.type}
+
+            except BaseException:
+                logger.exception('Failed to handle sdp. Resetting players.')
+                self.v_player = None
+                self.a_player = None
+                await asyncio.sleep(1)
 
     async def _close_pc(self, pc):
         try:
