@@ -22,20 +22,18 @@ setuptools.setup(
         'Operating System :: POSIX',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    python_requires='>=3.6, <3.8',
-    install_requires=[
-        'aiortc>=0.9.22'
-        'aiohttp>=3.6.1'
-        'aiohttp_jinja>=0.15.0'
-        'aiohttp_sse>=2.0.0'
-        'PJON-daemon-client>=1.0.0'
-    ],
+    python_requires='>=3.7, <3.8',
+    install_requires=[],
+    extras_require = {
+        'serial':  ['PJON-daemon-client>=1.0.0'],
+        'server': ['aiohttp>=3.6.1', 'aiortc>=0.9.22'],
+
+    },
     entry_points={
         'console_scripts': [
-            'escaperoom=escaperoom.__main__:main',
+            'escaperoom=escaperoom.__main__:run',
         ]
     }
 )
