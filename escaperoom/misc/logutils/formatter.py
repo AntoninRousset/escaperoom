@@ -41,7 +41,7 @@ class ColoredFormatter(Formatter):
     levelcolors = {
         'ERROR': ANSI['bold'] + ANSI['bright_red'],
         'WARNING': ANSI['bold'] + ANSI['bright_yellow'],
-        'INFO': ANSI['bold'] + ANSI['bright_black'],
+        'INFO': ANSI['bold'] + ANSI['bright_green'],
         'DEBUG': ANSI['bold'] + ANSI['bright_blue']
     }
 
