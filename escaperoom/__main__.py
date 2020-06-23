@@ -18,13 +18,6 @@ def main():
     from .misc.logutils import init_logging_system
     init_logging_system(level='WARNING')
 
-    import logging
-    logger = logging.getLogger()
-    logger.debug('debug')
-    logger.info('info')
-    logger.warning('warning')
-    logger.error('error')
-
     loop = asyncio.get_event_loop()
     loop.run_until_complete(asyncio.sleep(2))
 
