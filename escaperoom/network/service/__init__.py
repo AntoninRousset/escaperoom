@@ -9,7 +9,7 @@ SERVICE_TYPE = 'escaperoom'
 # TODO more a etcd service?
 class EscaperoomService:
 
-    logger = logging.getLogger('escaperoom.network.service.service')
+    logger = logging.getLogger(__name__)
 
     # default port checked on Wikipedia "List of TCP and UDP port numbers" for
     # conflict
