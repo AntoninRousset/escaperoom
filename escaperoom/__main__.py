@@ -18,6 +18,9 @@ def main():
     from .misc.logutils import init_logging_system
     init_logging_system(level='WARNING')
 
+    from .network.service import EscaperoomService
+    service = EscaperoomService()
+
     loop = asyncio.get_event_loop()
     loop.run_until_complete(asyncio.sleep(2))
 

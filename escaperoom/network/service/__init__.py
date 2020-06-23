@@ -20,7 +20,7 @@ class EscaperoomService:
         from .ip import get_interfaces, get_addresses
 
         self.logger.debug(f'Creating a new service with name: {name}, '
-                          f'interfaces: {interfaces}, ip_version: ',
+                          f'interfaces: {interfaces}, ip_version: '
                           f'{ip_version}, port: {port}')
 
         if interfaces == 'all':
