@@ -11,19 +11,59 @@
 '''
 
 import asyncio
+from sys import argv
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def parse_args():
+
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser(description='Escape room server')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Print info log')
+    parser.add_argument('-vv', '--debug', action='store_true',
+                        help='Print debug log')
+    parser.add_argument('--master', action='store_true',
+                        help='Start server as the master node')
+    return parser.parse_args()
+
+
 
 
 def main():
 
+    args = parse_args()
+
     from .misc.logutils import init_logging_system
-    init_logging_system(level='WARNING')
+    level = (args.debug and 'DEBUG') or (args.verbose and 'INFO') or 'WARNING'
+    init_logging_system(level=level)
 
-    from .network.service import EscaperoomService
-    service = EscaperoomService()
+    if args.master:
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(2))
+        from .network.service import EscaperoomUnitService
+        service = EscaperoomUnitService()
+        service.start()
+
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(asyncio.sleep(100))
+
+    else:
+
+        from .network.service import EscaperoomUnitDiscovery
+        discovery = EscaperoomUnitDiscovery()
+        discovery.start()
+
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(asyncio.sleep(100))
 
 
 if __name__ == '__main__':
-    main()
+
+    try:
+        main()
+
+    except KeyboardInterrupt:
+        logger.warning('Keyboard interrupted')

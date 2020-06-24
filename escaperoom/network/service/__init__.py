@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 # TODO more a etcd service?
-class EscaperoomUnit:
+class EscaperoomUnitService:
 
     # default port checked on Wikipedia "List of TCP and UDP port numbers" for
     # conflict
@@ -68,8 +68,6 @@ class EscaperoomUnit:
         self.stop()
 
 
-class EscaperoomService
-
 class EscaperoomUnitDiscovery:
 
     def __init__(self, ip_version='all'):
@@ -100,8 +98,8 @@ class EscaperoomUnitDiscovery:
 
     def add_service(self, zeroconf, type, name):
         name = name.split('.')[0]
-        logger.debug(f'Find service "{name}"')
+        logger.debug(f'Service found: "{name}"')
 
     def remove_service(self, zeroconf, type, name):
         name = name.split('.')[0]
-        logger.debug(f'Lost service "{name}"')
+        logger.debug(f'Service lost: "{name}"')
