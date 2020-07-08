@@ -13,8 +13,6 @@ class TabNav extends FetchedElement
     # set loading mode by default
     @setAttribute('loading', '')
 
-    window.addEventListener('hashchange', @select_from_hash)
-
   connectedCallback: () =>
 
     super.connectedCallback()
@@ -28,7 +26,7 @@ class TabNav extends FetchedElement
     content.classList.add('content')
     @appendChild(content)
 
-    @load_from(@src)
+    @load_from_src()
 
   onnewdata: (data) =>
 
@@ -63,14 +61,20 @@ class TabNav extends FetchedElement
         group_div.appendChild(a)
 
       main_screen.appendChild(group_div)
-      @set_screen('main')
 
-      @select_from_hash()
+    @set_screen('main')
+    console.log('done')
+
+    window.addEventListener('hashchange', @select_from_hash)
+    @select_from_hash()
 
   select_from_hash: () =>
+    console.log('select', location.hash.substr(1))
     @select(location.hash.substr(1))
 
   select: (tab_id) =>
+
+    console.log(@querySelectorAll('a[href="#' + tab_id + '"]'))
 
     # remove all selected
     for a in @querySelectorAll('a')

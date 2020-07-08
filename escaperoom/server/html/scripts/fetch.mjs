@@ -38,7 +38,7 @@ export var fetch_data = async function(url, data_type, emul_slow = false) {
 };
 
 export var FetchedElement = class FetchedElement extends MultiScreenElement {
-  constructor(src = null, data_type1 = 'json', emul_slow1 = false) {
+  constructor(src = null, data_type1 = 'json', emul_slow1 = true) {
     super();
     this.onloading = this.onloading.bind(this);
     this.onnewdata = this.onnewdata.bind(this);
