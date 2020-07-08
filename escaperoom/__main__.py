@@ -47,8 +47,17 @@ def main():
         service = EscaperoomUnitService()
         service.start()
 
+        class Context:
+
+            units_discovery = 42
+
+        from .server import HTTPServer
+        context = Context()
+        server = HTTPServer(context)
+
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(asyncio.sleep(100))
+        loop.run_until_complete(server.start())
+        loop.run_until_complete(asyncio.sleep(1000))
 
     else:
 
@@ -57,7 +66,7 @@ def main():
         discovery.start()
 
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(asyncio.sleep(100))
+        loop.run_until_complete(asyncio.sleep(1000))
 
 
 if __name__ == '__main__':

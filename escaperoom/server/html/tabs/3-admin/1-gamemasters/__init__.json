@@ -1,0 +1,6 @@
+{
+  "name": "Gamemasters",
+  "icon": "icon.svg",
+  "content": "content.html",
+  "script": "script.mjs"
+}

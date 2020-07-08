@@ -11,89 +11,32 @@
 '''
 
 from aiohttp import web
-from aiohttp_sse import sse_response
 from os.path import dirname
+from pathlib import Path
+import logging
 
-from . import controls, events_generator, readers
-from .json_utils import to_json
-
-from .. import asyncio, logging
-from ..registered import Registered
-
-ROOT = dirname(__file__)
-
-logger = logging.getLogger('escaperoom.server')
-
-routes = web.RouteTableDef()
-interface_routes = web.RouteTableDef()
+logger = logging.getLogger(__name__)
 
 
-class Server(Registered):
+class HTTPServer:
 
-    _logger = logger
+    ROOT = Path(dirname(__file__)) / 'html'
 
+    def __init__(self, context):
 
-@interface_routes.get('/')
-async def monitor(request):
-    return web.FileResponse(f'{ROOT}/html/monitor.html')
+        from .handler import MainHandler
 
+        self.app = MainHandler(self.ROOT, context)
+        self.site = None
 
-@routes.get('/favicon.svg')
-async def favicon(request):
-    return web.FileResponse(f'{ROOT}/html/icons/favicon.svg')
-
-
-@routes.get('/events')
-async def events(request):
-    try:
-        async with sse_response(request) as resp:
-            async for event in events_generator.generator():
-                await resp.send(to_json(event))
-        return resp
-    except BaseException:
-        logger.exception('get /events failed')
-
-
-@routes.get('/{service}')
-async def reader(request):
-    service = request.match_info['service']
-    data = await readers.read(service, request.query, request.app)
-    return web.Response(content_type='application/json', text=to_json(data))
-
-
-@routes.post('/{service}')
-async def control(request):
-    service = request.match_info['service']
-    ans = await controls.control(await request.json(), service, request.query,
-                                 server=request.app)
-    return web.Response(content_type='application/json', text=to_json(ans))
-
-
-class HTTPServer(Server, web.Application):
-
-    def __init__(self, host='0.0.0.0', port=8080, *, interface=False,
-                 main_chronometer=None, give_clue=None, buzzer=None):
-        Server.__init__(self, name=None)
-        web.Application.__init__(self)
-        if interface:
-            self._activate_interface()
-        self.add_routes(routes)
-        runner = web.AppRunner(self, logger=self._logger)
-        asyncio.run_until_complete(runner.setup())
+    async def start(self, host='0.0.0.0', port=8080):
+        runner = web.AppRunner(self.app)
+        await runner.setup()
         self.site = web.TCPSite(runner, host, port)
-        self._start(host, port)
-        self.main_chronometer = main_chronometer
-        self.give_clue = give_clue
-        self.buzzer = buzzer
+        await self.site.start()
+        logger.info(str(self))
 
     def __str__(self):
-        return f'server on {self.site._host}:{self.site._port}'
-
-    def _activate_interface(self):
-        self.router.add_static('/ressources', f'{ROOT}/html/',
-                               append_version=True)
-        self.add_routes(interface_routes)
-
-    def _start(self, host, port):
-        asyncio.run_until_complete(self.site.start())
-        self._log_info(f'started')
+        if not self.site:
+            return f'HTTP server, not running'
+        return f'HTTP server running on {self.site._host}:{self.site._port}'

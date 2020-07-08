@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "loading.js",
+  "sourceRoot": "",
+  "sources": [
+    "loading.coffee"
+  ],
+  "names": [],
+  "mappings": "AAAA;AAAA,MAAA,gBAAA;IAAA;;EAAM,mBAAN,MAAA,iBAAA,QAA+B,YAA/B;IAEE,WAAa,CAAA,CAAA;;UAGb,CAAA,wBAAA,CAAA;IAHa;;IAGb,iBAAmB,CAAA,CAAA;AACjB,UAAA,GAAA,EAAA,CAAA,EAAA,CAAA,EAAA;6BANE;MAMF,IAAC,CAAA,SAAD,GAAa;MACb,IAAA,GAAO,QAAQ,CAAC,aAAT,CAAuB,MAAvB;MACP,IAAI,CAAC,SAAS,CAAC,GAAf,CAAmB,SAAnB;MACA,KAAS,0BAAT;QACE,GAAA,GAAM,QAAQ,CAAC,aAAT,CAAuB,KAAvB;QACN,IAAI,CAAC,WAAL,CAAiB,GAAjB;MAFF;aAGA,IAAC,CAAA,WAAD,CAAa,IAAb;IAPiB;;EALrB;;EAeA,cAAc,CAAC,MAAf,CAAsB,mBAAtB,EAA2C,gBAA3C;AAfA",
+  "sourcesContent": [
+    "class LoadingAnimation extends HTMLElement\n\n  constructor: () ->\n    super()\n\n  connectedCallback: () =>\n    @innerHTML = ''\n    span = document.createElement('span')\n    span.classList.add('loading')\n    for i in [1..5]\n      div = document.createElement('div')\n      span.appendChild(div)\n    @appendChild(span)\n\n\ncustomElements.define('loading-animation', LoadingAnimation)\n"
+  ]
+}

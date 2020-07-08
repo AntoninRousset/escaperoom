@@ -1,0 +1,22 @@
+div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  padding: 4px;
+}
+
+camera-video {
+  display: block;
+  flex-grow: 1;
+  margin: 4px;
+}
+
+video {
+  display: block;
+  width: 100%;
+}
+
+:host > div > .cameras video {
+  max-width: 300px;
+}

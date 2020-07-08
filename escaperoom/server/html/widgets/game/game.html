@@ -1,0 +1,100 @@
+<template>
+  <link rel='stylesheet' type='text/css' href='ressources/page.css'>
+
+  <div class='page'>
+    <div class='content'>
+      <button class='big'>New game</button>
+    </div>
+  </div>
+
+  <div class='page'>
+
+    <header>
+      <h2>Group info</h2>
+    </header>
+
+    <div class='content'>
+
+      <fieldset id='group-info'>
+
+        <div class='split-x'>
+          <div style='flex: 3;'>
+            <label>Nom</label>
+            <input name='group_name'>
+          </div>
+          <div style='min-width: 64px;'>
+            <label>Taille</label>
+            <input type='number' min='1' name='group_size'>
+          </div>
+        </div>
+
+        <div>
+          <label>Date planifiée</label>
+          <div class='split-x'>
+            <input type='date' name='planned_date'>
+            <select name='planned_date' style='flex: 0;'>
+              <option>00:00</option>
+              <option>00:15</option>
+              <option>00:30</option>
+              <option>00:45</option>
+              <option>01:00</option>
+              <option>01:15</option>
+              <option>01:30</option>
+              <option>01:45</option>
+              <option>02:00</option>
+              <option>02:15</option>
+              <option>02:30</option>
+              <option>02:45</option>
+            </select>
+          </div>
+        </div>
+
+      </fieldset>
+
+    </div>
+
+  </div>
+
+  <div class='page'>
+
+    <header>
+      <h2>Leader info</h2>
+    </header>
+
+    <div class='content'>
+
+      <fieldset id='leader-info'>
+
+        <div class='split-x'>
+          <div>
+            <label>Firstname</label>
+            <input name='leader_firstname'>
+          </div>
+          <div>
+            <label>Lastname</label>
+            <input name='leader_lastname'>
+          </div>
+        </div>
+
+        <div class='split-x'>
+          <div style='flex: 2;'>
+            <label>Email</label>
+            <input name='leader_email'>
+          </div>
+          <div style='flex: 1; min-width: 70px;'>
+            <label>Postcode</label>
+            <input name='leader_postcode'>
+          </div>
+        </div>
+
+        <div>
+          <label>Comments</label>
+          <textarea name='comments'></textarea>
+        </div>
+
+      </fieldset>
+
+    </div>
+
+  </div>
+</template>

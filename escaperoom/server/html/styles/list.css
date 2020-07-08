@@ -1,0 +1,97 @@
+.list {
+  display: flex;
+  width: 100%;
+  flex-flow: column nowrap;
+}
+
+.list .lrow {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+}
+
+.list .lbody .lrow, .list .lfoot .lrow {
+  border-top: 1px solid var(--light-gray);
+}
+
+.list .lrow.expandable {
+  flex-flow: column nowrap;
+}
+
+.list .lrow.expandable > div {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.list .lrow .lcell.full {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.list .lrow .lcellgroup {
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+.list .lrow .lcell {
+  padding: 10px 14px;
+}
+
+.list .lhead, .list .lbody, .list .lfoot {
+  display: contents;
+}
+
+.list .lhead {
+  font-weight: normal;
+  color: var(--gray);
+}
+
+.list .lbody .lrow .tcell.less {
+  color: var(--gray);
+  font-size: small;
+}
+
+.list .lcell.expand {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 16px;
+  max-width: 16px;
+  cursor: pointer;
+}
+
+.list .lrow .lcell.expand img {
+  width: 16px;
+  transition: transform 0.3s;
+}
+
+.list .lbody .lrow .lrowextra {
+  display: none;
+  padding: 12px 26px;
+}
+
+.list .lbody .lrow.opened .lrowextra {
+  display: block;
+}
+
+.list .lrow.opened .lcell img {
+  transform: rotate(180deg);
+}
+
+.list .lbody .lrow .lrowextra table {
+  border-collapse: collapse;
+}
+
+.list .lbody .lrow .lrowextra table td {
+  padding: 2px 6px;
+  color: gray;
+  font-size: small;
+}
+
+.list .lbody .lrow .lrowextra table td.header {
+}

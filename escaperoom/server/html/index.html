@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'/>
+    <title>Escape room</title>
+    <link rel="icon" href="favicon.svg" type="xml/svg" sizes="any">
+    <link rel='stylesheet' type='text/css' href='interface/styles/monitor.css'>
+    <link rel='stylesheet' type='text/css' href='interface/styles/header.css'>
+    <link rel='stylesheet' type='text/css' href='interface/styles/nav.css'>
+    <link rel='stylesheet' type='text/css' href='interface/styles/panel.css'>
+    <link rel='stylesheet' type='text/css' href='interface/styles/page.css'>
+    <link rel='stylesheet' type='text/css' href='interface/styles/list.css'>
+
+    <script src="interface/scripts/nav.mjs" type='module' defer></script>
+
+  </head>
+  <body>
+
+    <header>
+      <img src='interface/icons/logo_bw.svg'>
+      <div>
+        <select>
+          <option value="0">mtlotus7</option>
+          <option value="1">Le dirigeable</option>
+          <option value="2">Voltaris</option>
+        </select>
+      </div>
+      <div>
+        <select>
+          <option value="0">Emile Zola</option>
+          <option value="1">Charles Baudelaire<option>
+        </select>
+      </div>
+    </header>
+
+    <tab-nav>
+      <div class='screen' name='loading'>Loading...</div>
+      <div class='screen' name='main'></div>
+    </tab-nav>
+
+    <template id='template-panel-header'>
+      <header>
+        <h1></h1>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path>
+        </svg>
+      </header>
+      <loading-animation></loading-animation>
+      <div class='content'></div>
+    </template>
+
+    <tab-content>
+      <div class='screen' name='loading'>Loading...</div>
+      <div class='screen' name='main'></div>
+    </tab-content>
+
+    <!---
+    <nav>
+      <a href="#dashboard" default selected>
+        <p>Dashboard</p></a>
+
+      <a href="#story">
+        <p>Story</p>
+      </a>
+
+      <a href="#cameras">
+        <p>Cameras</p>
+      </a>
+      <a href="#clues">
+        <p>Clues</p>
+      </a>
+      <a href="#room">
+        <p>Room</p>
+      </a>
+    </nav>
+
+    <div class="tabcontent dashboard" name='dashboard'>
+
+      <div class='panel'>
+        <header>
+          <h1>Devices</h1>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" onclick='toggle_panel(this.parentElement.parentElement);'>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path>
+          </svg>
+        </header>
+        <div class='page content' style='display: flex; flex-flow: row;'>
+          <ul>
+            <li>Device 1</li>
+            <li>Device 2</li>
+            <li>Device 3</li>
+            <li>Device 4</li>
+            <li>Device 5</li>
+          </ul>
+          <div>woeijfwoiefjwoie fjwioef wuioejif owiejf woi</div>
+        </div>
+      </div>
+
+
+    </div>
+
+    <div class="tabcontent" name='story'>
+      story
+    </div>
+
+    <div class="tabcontent" name='clues'>
+      clues
+    </div>
+
+    <div class="tabcontent" name='room'>
+      room
+    </div>
+    --->
+
+  </body>
+</html>

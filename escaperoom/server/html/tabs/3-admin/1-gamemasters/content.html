@@ -1,0 +1,94 @@
+<link rel='stylesheet' type='text/css' href='interface/styles/monitor.css'>
+<link rel='stylesheet' type='text/css' href='interface/styles/page.css'>
+<link rel='stylesheet' type='text/css' href='interface/styles/list.css'>
+<link rel='stylesheet' type='text/css' href='interface/styles/action.css'>
+
+<h1>Gamemasters</h1>
+
+<synced-list src='gamemasters'>
+
+  <div class='lhead'>
+    <div class='lrow'>
+
+      <div class='lcellgroup'>
+        <div class='lcell expand btn'></div>
+        <div class='lcell'>Name</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class='lbody'>
+    <template>
+      <div class='lrow expandable'>
+
+        <div>
+
+          <div class='lcellgroup'>
+            <div class='lcell expand'><img src='interface/icons/chevron-up.svg'></div>
+            <div class='lcell'><slot name='firstname'></slot> <slot name='lastname'></slot></div>
+          </div>
+
+          <div class='lcellgroup'>
+
+            <div class='lcell'>
+              <action-btn screen='main'>
+                <div class='screen' name='main'>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill-rule="evenodd" d="M17.263 2.177a1.75 1.75 0 012.474 0l2.586 2.586a1.75 1.75 0 010 2.474L19.53 10.03l-.012.013L8.69 20.378a1.75 1.75 0 01-.699.409l-5.523 1.68a.75.75 0 01-.935-.935l1.673-5.5a1.75 1.75 0 01.466-.756L14.476 4.963l2.787-2.786zm-2.275 4.371l-10.28 9.813a.25.25 0 00-.067.108l-1.264 4.154 4.177-1.271a.25.25 0 00.1-.059l10.273-9.806-2.94-2.939zM19 8.44l2.263-2.262a.25.25 0 000-.354l-2.586-2.586a.25.25 0 00-.354 0L16.061 5.5 19 8.44z"></path></svg>
+                </div>
+              </action-btn>
+            </div>
+
+            <div class='lcell'>
+              <action-btn>
+                <div class='screen loading inactive' name='loading'>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M3.38 8A9.502 9.502 0 0112 2.5a9.502 9.502 0 019.215 7.182.75.75 0 101.456-.364C21.473 4.539 17.15 1 12 1a10.995 10.995 0 00-9.5 5.452V4.75a.75.75 0 00-1.5 0V8.5a1 1 0 001 1h3.75a.75.75 0 000-1.5H3.38zm-.595 6.318a.75.75 0 00-1.455.364C2.527 19.461 6.85 23 12 23c4.052 0 7.592-2.191 9.5-5.451v1.701a.75.75 0 001.5 0V15.5a1 1 0 00-1-1h-3.75a.75.75 0 000 1.5h2.37A9.502 9.502 0 0112 21.5c-4.446 0-8.181-3.055-9.215-7.182z"></path></svg>
+                </div>
+                <div class='screen' name='normal'>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill-rule="evenodd" d="M2.75 2A1.75 1.75 0 001 3.75v3.5C1 8.216 1.784 9 2.75 9h18.5A1.75 1.75 0 0023 7.25v-3.5A1.75 1.75 0 0021.25 2H2.75zm18.5 1.5H2.75a.25.25 0 00-.25.25v3.5c0 .138.112.25.25.25h18.5a.25.25 0 00.25-.25v-3.5a.25.25 0 00-.25-.25z"></path><path d="M2.75 10a.75.75 0 01.75.75v9.5c0 .138.112.25.25.25h16.5a.25.25 0 00.25-.25v-9.5a.75.75 0 011.5 0v9.5A1.75 1.75 0 0120.25 22H3.75A1.75 1.75 0 012 20.25v-9.5a.75.75 0 01.75-.75z"></path><path d="M9.75 11.5a.75.75 0 000 1.5h4.5a.75.75 0 000-1.5h-4.5z"></path></svg>
+                </div>
+                <div class='screen' name='archived'>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill-rule="evenodd" d="M2.75 2A1.75 1.75 0 001 3.75v3.5C1 8.216 1.784 9 2.75 9h18.5A1.75 1.75 0 0023 7.25v-3.5A1.75 1.75 0 0021.25 2H2.75zm18.5 1.5H2.75a.25.25 0 00-.25.25v3.5c0 .138.112.25.25.25h18.5a.25.25 0 00.25-.25v-3.5a.25.25 0 00-.25-.25z"></path><path d="M2.75 10a.75.75 0 01.75.75v9.5c0 .138.112.25.25.25h16.5a.25.25 0 00.25-.25v-9.5a.75.75 0 011.5 0v9.5A1.75 1.75 0 0120.25 22H3.75A1.75 1.75 0 012 20.25v-9.5a.75.75 0 01.75-.75z"></path><path d="M9.75 11.5a.75.75 0 000 1.5h4.5a.75.75 0 000-1.5h-4.5z"></path></svg>
+                </div>
+              </action-btn>
+            </div>
+
+
+            <div class='lcell'>
+              <action-btn screen='main'>
+                <div class='screen dangerous' name='main'>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill-rule="evenodd" d="M5.72 5.72a.75.75 0 011.06 0L12 10.94l5.22-5.22a.75.75 0 111.06 1.06L13.06 12l5.22 5.22a.75.75 0 11-1.06 1.06L12 13.06l-5.22 5.22a.75.75 0 01-1.06-1.06L10.94 12 5.72 6.78a.75.75 0 010-1.06z"></path></svg>
+                </div>
+              </action-btn>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class='lrowextra'>
+          <div class='labeling'>
+            <div>
+              <span>First name</span>
+              <span><slot name='firstname'></slot></span>
+            </div>
+            <div>
+              <span>Last name</span>
+              <span><slot name='lastname'></slot></span>
+            </div>
+            <div>
+              <span>Email</span>
+              <span><slot name='email'></slot></span>
+            </div>
+            <div>
+              <span>Creation date</span>
+              <span><slot name='creation_date'></slot></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </template>
+  </div>
+
+</synced-list>

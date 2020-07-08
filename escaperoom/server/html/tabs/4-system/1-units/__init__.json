@@ -1,0 +1,6 @@
+{
+  "name": "Units",
+  "icon": "icon.svg",
+  "content": "content.html",
+  "script": "script.mjs"
+}

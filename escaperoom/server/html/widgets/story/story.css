@@ -1,0 +1,68 @@
+.metro {
+  overflow-x: scroll;
+  padding: 8px;
+}
+
+.metro img {
+  height: 200px;
+}
+
+.content h1 {
+  font-size: large;
+} 
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 10px;
+}
+
+.controls div {
+  display: flex;
+  flex-flow: column;
+}
+
+.controls button {
+  display: flex;
+  align-items: center;
+  background: var(--light-color);
+  border: 1px solid #3b6978;
+  border-radius: 4px;
+  font-size: x-small;
+  color: #3b6978;
+  background: #f4eeff;
+  padding: 6px 8px;
+  margin: 4px;
+  cursor: pointer;
+}
+
+.controls button svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  fill: #3b6978;
+  margin: 0px 4px;
+}
+
+.controls div:first-child button {
+  justify-content: left;
+  text-align: left;
+}
+
+.controls div:last-child button {
+  justify-content: right;
+  text-align: right;
+}
+
+.controls button:hover {
+  color: #204051;
+  border-color: #204051;
+}
+
+.controls button:hover svg {
+  fill: #204051;
+}
+
+.controls button:active {
+  box-shadow: 0px 0px 1px #204051;
+}

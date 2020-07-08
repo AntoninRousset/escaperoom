@@ -1,0 +1,88 @@
+<link rel='stylesheet' type='text/css' href='interface/styles/monitor.css'>
+<link rel='stylesheet' type='text/css' href='interface/styles/page.css'>
+<link rel='stylesheet' type='text/css' href='interface/styles/list.css'>
+<link rel='stylesheet' type='text/css' href='interface/styles/action.css'>
+
+<h1>Units</h1>
+<p>Molestiae voluptatem non nostrum. Aliquam nesciunt cumque qui dicta vel asperiores. Deleniti voluptate aut sunt magnam est.</p>
+<p>Modi recusandae nam deleniti nulla quis dolorem ut. Sed voluptatem exercitationem et possimus adipisci quia enim alias. Soluta nulla suscipit cupiditate tempore ex error et. Rerum aut autem modi neque.</p>
+<p>Sapiente corporis unde consequatur error. Delectus et pariatur nemo aut quasi facilis qui. Impedit maiores quo et incidunt. Dolor vero est nam rerum in. Accusantium officia nihil dignissimos enim placeat. Odio et sed quia aliquam voluptas.</p>
+<p>Quaerat aperiam aliquid totam molestias eaque odio voluptatem. Vel facere suscipit omnis. Alias quasi molestias laborum magni aut ea nemo. Sed non et doloribus ad voluptatem. Quaerat aperiam placeat et maxime alias ab veritatis maxime.</p>
+<p>Aliquam est voluptatem distinctio et qui error. Amet ea doloribus quia sapiente neque corrupti magni. Unde quis nihil aut inventore blanditiis impedit expedita aliquid.</p>
+
+<synced-list src='units'>
+
+  <div class='lhead'>
+    <div class='lrow'>
+
+      <div class='lcellgroup'>
+        <div class='lcell expand button'></div>
+        <div class='lcell'>Name</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class='lbody'>
+    <template>
+      <div class='lrow expandable'>
+
+        <div>
+
+          <div class='lcellgroup'>
+            <div class='lcell expand'><img src='interface/icons/chevron-up.svg'></div>
+            <div class='lcell'><slot name='name'></slot></div>
+          </div>
+
+          <div class='lcellgroup'>
+            <div class='lcell'>
+              <action-btn>
+
+                <div class='screen loading inactive' name='loading'>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M3.38 8A9.502 9.502 0 0112 2.5a9.502 9.502 0 019.215 7.182.75.75 0 101.456-.364C21.473 4.539 17.15 1 12 1a10.995 10.995 0 00-9.5 5.452V4.75a.75.75 0 00-1.5 0V8.5a1 1 0 001 1h3.75a.75.75 0 000-1.5H3.38zm-.595 6.318a.75.75 0 00-1.455.364C2.527 19.461 6.85 23 12 23c4.052 0 7.592-2.191 9.5-5.451v1.701a.75.75 0 001.5 0V15.5a1 1 0 00-1-1h-3.75a.75.75 0 000 1.5h2.37A9.502 9.502 0 0112 21.5c-4.446 0-8.181-3.055-9.215-7.182z"></path></svg>
+                </div>
+
+                <div class='screen' name='unchecked'>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M17.28 9.28a.75.75 0 00-1.06-1.06l-5.97 5.97-2.47-2.47a.75.75 0 00-1.06 1.06l3 3a.75.75 0 001.06 0l6.5-6.5z"></path><path fill-rule="evenodd" d="M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1zM2.5 12a9.5 9.5 0 1119 0 9.5 9.5 0 01-19 0z"></path></svg>
+                </div>
+
+                <div class='screen green' name='checked'>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill-rule="evenodd" d="M1 12C1 5.925 5.925 1 12 1s11 4.925 11 11-4.925 11-11 11S1 18.075 1 12zm16.28-2.72a.75.75 0 00-1.06-1.06l-5.97 5.97-2.47-2.47a.75.75 0 00-1.06 1.06l3 3a.75.75 0 001.06 0l6.5-6.5z"></path></svg>
+                </div>
+
+              </action-btn>
+            </div>
+          </div>
+
+        </div>
+
+        <div class='lrowextra'>
+          <div class='labeling'>
+            <div>
+              <span>Hostname</span>
+              <span><slot name='hostname'></slot></span>
+            </div>
+            <div>
+              <span>IP addresses</span>
+              <span><slot name='ipaddr'></slot></span>
+            </div>
+            <div>
+              <span>Port</span>
+              <span><slot name='port'></slot></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </template>
+  </div>
+</synced-list>
+
+  <!---
+  <tfoot>
+    <tr>
+      <td style='text-align: center;' colspan=6>...</td>
+    </tr>
+  </tfoot>
+  --->
+  
