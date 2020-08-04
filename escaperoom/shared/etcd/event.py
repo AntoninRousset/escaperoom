@@ -1,38 +1,63 @@
 from ...event import Event
 
-# TODO to improve
+
+def etcd_event(event):
+
+    from json import loads
+
+    factory = {
+        'CREATE': EtcdCreateNodeEvent,
+        'MODIFY': EtcdModifyNodeEvent,
+        'DELETE': EtcdDeleteNodeEvent,
+    }[event.type]
+
+    return factory(key=event.key.decode(),
+                   value=loads(event.value),
+                   meta=event.meta,
+                   pre_value=loads(event.pre_value),
+                   pre_meta=event.pre_meta,
+                   revision=event.revision)
 
 
 class EtcdEvent(Event):
+    type = 'ETCD'
 
-    def __init__(self, event_type, *, key=None, value=None, meta=None,
-                 pre_value=None, pre_meta=None, revision=None):
 
-        from json import loads
-        from aioetcd3.watch import Event as Aioetcd3Event
+class EtcdNodeEvent(EtcdEvent):
 
-        if isinstance(event_type, Aioetcd3Event):
+    type = 'NODE'
 
-            event = event_type
-            self.key = event.key.decode()
-            if event.type == 'DELETE':
-                self.value = None
-            else:
-                value = event.value.decode()
-                if value.strip() == '':
-                    self.value = None
-                else:
-                    self.value = loads(value)
-            self.meta = event.meta
+    def __init__(self, key=None, value=None, meta=None, pre_value=None,
+                 pre_meta=None, revision=None):
 
-            # TODO failed with json.loads
-            self.pre_value = event.pre_value.decode()
-            self.pre_meta = event.pre_meta
-            self.revision = event.revision
-        else:
-            self.key = key
-            self.value = value
-            self.meta = meta
-            self.pre_value = pre_value
-            self.pre_meta = pre_meta
-            self.revision = revision
+        from .accessor.selector.key import EtcdKey
+
+        super().__init__()
+
+        self.key = EtcdKey(key)
+        self.value = value
+        self.meta = meta
+        self.pre_value = pre_value
+        self.pre_meta = pre_meta
+        self.revision = revision
+
+    def __json__(self):
+        return {
+            'type': self.type,
+            'key': self.key,
+            'value': self.value,
+            'pre_value': self.pre_value,
+            'revision': self.revision,
+        }
+
+
+class EtcdCreateNodeEvent(EtcdNodeEvent):
+    type = 'CREATE'
+
+
+class EtcdModifyNodeEvent(EtcdNodeEvent):
+    type = 'MODIFY'
+
+
+class EtcdDeleteNodeEvent(EtcdNodeEvent):
+    type = 'DELETE'
