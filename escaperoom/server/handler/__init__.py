@@ -1,54 +1,49 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from .events import EventsHandler
 from aiohttp import web
 import logging
+from .base import WebHandler
 from ...misc.jsonutils import to_json
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
-class MainHandler(web.Application):
+class MainHandler(WebHandler):
 
-    def __init__(self, rootdir, context):
+    def __init__(self, context, rootdir):
 
         from .interface import InterfaceHandler
         from .units import UnitsHandler
-        from .gamemaster import GamemastersHandler
+        from .gamemasters import GamemastersHandler
+        from .etcd import EtcdHandler
 
-        super().__init__()
+        super().__init__(context, rootdir)
 
-        self.rootdir = rootdir
-        self.events = EventsHandler()
+        self.app.router.add_get('/', self.get_index)
+        self.app.router.add_get('/events', self.get_events)
 
-        self.router.add_get('/', self.get_index)
-        self.router.add_get('/favicon.svg', self.get_favicon)
-
-        self.add_subapp('/events', self.events)
-        self.add_subapp('/interface',
-                        InterfaceHandler(self.events['interface'],
-                                         self.rootdir))
-        self.add_subapp('/units',
-                        UnitsHandler(self.events['units'],
-                                     context.units_discovery))
-        self.add_subapp('/gamemasters',
-                        GamemastersHandler(self.events['gamemasters']))
+        args = (self.context, self.rootdir)
+        self.add_subhandler('/interface', InterfaceHandler(*args))
+        self.add_subhandler('/etcd', EtcdHandler(*args))
+        self.add_subhandler('/units', UnitsHandler(*args))
+        self.add_subhandler('/gamemasters', GamemastersHandler(*args))
 
     async def get_index(self, request):
         return web.FileResponse(f'{self.rootdir}/index.html')
 
-    async def get_favicon(self, request):
-        return web.FileResponse(f'{self.rootdir}/icons/favicon.svg')
-
     async def get_events(self, request):
 
+        from asyncio import CancelledError
         from aiohttp_sse import sse_response
 
         try:
+            print('## new sse ##')
             async with sse_response(request) as resp:
-                async for event in self.events:
-                    await resp.send(to_json(event))
+                async with self.subscribe() as sub:
+                    async for event in sub:
+                        print('-- event', event)
+                        await resp.send(to_json(event))
+
+        except CancelledError:
+            print('## stop sse ##')
 
         except BaseException:
-            logger.exception('get /events failed')
+            LOGGER.exception('get /events failed')

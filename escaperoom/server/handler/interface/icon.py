@@ -1,27 +1,26 @@
 import logging
-from pathlib import Path
-from aiohttp import web
+from ..base import WebHandler
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class IconHandler(web.Application):
+class IconHandler(WebHandler):
 
     DIRPATH = 'icons/'
 
-    def __init__(self, rootdir):
+    def __init__(self, context, rootdir):
 
-        super().__init__()
-        self.rootdir = Path(rootdir)
+        super().__init__(context, rootdir)
+        self.app.router.add_get('/{name}.svg', self.get_icon)
 
-        self.router.add_get('/{name}.svg', self.get_style)
+    async def get_icon(self, request):
 
-    async def get_style(self, request):
+        from aiohttp.web import FileResponse
 
         name = request.match_info['name']
 
         path = str(self.rootdir / self.DIRPATH / f'{name}.svg')
-        resp = web.FileResponse(path)
+        resp = FileResponse(path)
         resp.headers['Content-Type'] = 'image/svg+xml'
         return resp

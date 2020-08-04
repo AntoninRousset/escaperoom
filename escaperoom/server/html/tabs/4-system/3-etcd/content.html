@@ -1,0 +1,27 @@
+<link rel='stylesheet' type='text/css' href='interface/styles/monitor.css'>
+<link rel='stylesheet' type='text/css' href='interface/styles/page.css'>
+<link rel='stylesheet' type='text/css' href='interface/styles/list.css'>
+<link rel='stylesheet' type='text/css' href='interface/styles/action.css'>
+
+<h1>Etcd</h1>
+
+<synced-list src='etcd/**?list'>
+
+  <div class='lbody'>
+    <template>
+      <div class='lrow expandable'>
+        
+        <div>
+          <div class='lcellgroup'>
+            <div class='lcell'><slot name='name'></div>
+          </div>
+        </div>
+
+        <div class='lrowextra'>
+        </div>
+
+      </div>
+    </template>
+  </div>
+
+</synced-list>

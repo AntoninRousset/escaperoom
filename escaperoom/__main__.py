@@ -10,9 +10,8 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import asyncio
-from sys import argv
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,49 +29,34 @@ def parse_args():
                         help='Start server as the master node')
     return parser.parse_args()
 
-
-
-
 def main():
+
+    from .misc.logutils import init_logging_system
+    from asyncio import get_event_loop
 
     args = parse_args()
 
-    from .misc.logutils import init_logging_system
     level = (args.debug and 'DEBUG') or (args.verbose and 'INFO') or 'WARNING'
     init_logging_system(level=level)
 
-    if args.master:
-
-        from .network.service import EscaperoomUnitService
-        service = EscaperoomUnitService()
-        service.start()
-
-        class Context:
-
-            units_discovery = 42
-
-        from .server import HTTPServer
-        context = Context()
-        server = HTTPServer(context)
-
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(server.start())
-        loop.run_until_complete(asyncio.sleep(1000))
-
-    else:
-
-        from .network.service import EscaperoomUnitDiscovery
-        discovery = EscaperoomUnitDiscovery()
-        discovery.start()
-
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(asyncio.sleep(1000))
-
-
-if __name__ == '__main__':
-
     try:
-        main()
+        loop = get_event_loop()
+        loop.run_until_complete(run_http_server())
 
     except KeyboardInterrupt:
         logger.warning('Keyboard interrupted')
+
+
+
+async def run_http_server():
+
+    from .context import EscaperoomContext
+    from .server import HTTPServer
+
+    async with EscaperoomContext() as context:
+        async with HTTPServer(context):
+            await context.quit_event.wait()
+
+
+if __name__ == '__main__':
+    main()

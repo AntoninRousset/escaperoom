@@ -1,29 +1,25 @@
 import logging
-from pathlib import Path
-from aiohttp import web
+from ..base import WebHandler
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class ScriptHandler(web.Application):
+class ScriptHandler(WebHandler):
 
     DIRPATH = 'scripts/'
 
-    def __init__(self, rootdir):
-
-        super().__init__()
-        self.rootdir = Path(rootdir)
-
-        self.router.add_get('/{name}.mjs', self.get_script)
+    def __init__(self, context, rootdir):
+        super().__init__(context, rootdir)
+        self.app.router.add_get('/{name}.mjs', self.get_script)
 
     async def get_script(self, request):
 
+        from aiohttp.web import FileResponse
+
         name = request.match_info['name']
 
-        print('** get script', name)
-
         path = str(self.rootdir / self.DIRPATH / f'{name}.mjs')
-        resp = web.FileResponse(path)
+        resp = FileResponse(path)
         resp.headers['Content-Type'] = 'application/javascript'
         return resp

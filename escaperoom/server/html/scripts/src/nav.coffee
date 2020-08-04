@@ -63,18 +63,14 @@ class TabNav extends FetchedElement
       main_screen.appendChild(group_div)
 
     @set_screen('main')
-    console.log('done')
 
     window.addEventListener('hashchange', @select_from_hash)
     @select_from_hash()
 
   select_from_hash: () =>
-    console.log('select', location.hash.substr(1))
     @select(location.hash.substr(1))
 
   select: (tab_id) =>
-
-    console.log(@querySelectorAll('a[href="#' + tab_id + '"]'))
 
     # remove all selected
     for a in @querySelectorAll('a')

@@ -66,21 +66,18 @@ TabNav = class TabNav extends FetchedElement {
       main_screen.appendChild(group_div);
     }
     this.set_screen('main');
-    console.log('done');
     window.addEventListener('hashchange', this.select_from_hash);
     return this.select_from_hash();
   }
 
   select_from_hash() {
     boundMethodCheck(this, TabNav);
-    console.log('select', location.hash.substr(1));
     return this.select(location.hash.substr(1));
   }
 
   select(tab_id) {
     var a, i, len, ref;
     boundMethodCheck(this, TabNav);
-    console.log(this.querySelectorAll('a[href="#' + tab_id + '"]'));
     ref = this.querySelectorAll('a');
     // remove all selected
     for (i = 0, len = ref.length; i < len; i++) {

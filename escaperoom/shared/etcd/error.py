@@ -1,0 +1,2 @@
+class EtcdNotOpenedError(Exception):
+    pass

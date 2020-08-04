@@ -9,8 +9,9 @@ export class SyncedElement extends FetchedElement
     data = JSON.parse(event.data)
 
     if data['type'] == 'update'
-
       src = data['url']
+
+    console.log('>', data)
 
     for subscriber in subscribers
       if subscriber.src == src

@@ -1,36 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from aiohttp import web
 import logging
-from . import to_json
-
-logger = logging.getLogger(__name__)
+from .base import WebHandler
 
 
-class UnitsHandler(web.Application):
+LOGGER = logging.getLogger(__name__)
 
-    def __init__(self, events, units_discovery):
 
-        super().__init__()
+class UnitsHandler(WebHandler):
 
-        self.units_discovery = units_discovery
-        self.router.add_get('', self.get_all_units)
+    def __init__(self, context, rootdir):
 
-        self.events = events
-
-        async def periodic_event():
-
-            from asyncio import sleep
-
-            while True:
-                print('--- sending ---')
-                yield 'salut'
-                await sleep(5)
-
-        self.events.add_source(periodic_event())
+        super().__init__(context, rootdir)
+        self.app.router.add_get('', self.get_all_units)
 
     def get_all_units(self, request):
+
+        from . import to_json
+        from random import randint, choices
+        from aiohttp.web import Response
 
         def rstr():
             from string import ascii_lowercase
@@ -46,10 +35,9 @@ class UnitsHandler(web.Application):
             unit['registered'] = choice([False, True])
             return unit
 
-        from random import randint, choices
         n = 5
         units = {k: create_random_unit()
                  for k in choices(range(n), k=randint(1, n))}
 
-        return web.Response(content_type='application/json',
-                            text=to_json(units))
+        return Response(content_type='application/json',
+                        text=to_json(units))
