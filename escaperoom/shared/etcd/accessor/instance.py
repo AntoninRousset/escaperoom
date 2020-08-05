@@ -27,7 +27,8 @@ class EtcdNodeInstance(EtcdInstance):
     def __json__(self):
         return {
             'key': self.key,
-            'value': self.value
+            'value': self.value,
+            'name': str(self.key).split('/')[-1],
         }
 
 

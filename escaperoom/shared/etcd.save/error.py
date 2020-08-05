@@ -1,2 +1,0 @@
-class EtcdNotOpenedError(Exception):
-    pass
