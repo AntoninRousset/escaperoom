@@ -9,72 +9,25 @@ import {
   is_empty
 } from './utils.mjs';
 
+import './libs/morphdom.js';
+
 export var SyncedContainer = class SyncedContainer extends SyncedElement {
   constructor() {
-    super(...arguments);
-    this.onnewdata = this.onnewdata.bind(this);
-    this.onadditem = this.onadditem.bind(this);
-    this.onupdateitem = this.onupdateitem.bind(this);
-    this.onremoveitem = this.onremoveitem.bind(this);
-  }
-
-  onnewdata(data) {
-    var _, e, id, item_data, ref, results;
-    boundMethodCheck(this, SyncedContainer);
-    // remove items
-    if (this.data != null) {
-      ref = this.data;
-      for (id in ref) {
-        _ = ref[id];
-        if (!(id in data)) {
-          try {
-            this.onremoveitem(id);
-          } catch (error) {
-            e = error;
-            console.warn('Failed to remove item', id, e);
-          }
-        }
+    super();
+    this.get_body = this.get_body.bind(this);
+    Object.defineProperty(this, 'body', {
+      get: () => {
+        return this.get_body();
+      },
+      set: (newbody) => {
+        return morphdom(this.body, newbody);
       }
-    }
-    if (is_empty(data) && (this.onempty != null)) {
-      return this.onempty();
-    }
-// update and add items
-    results = [];
-    for (id in data) {
-      item_data = data[id];
-      if ((this.data == null) || !(id in this.data)) {
-        try {
-          results.push(this.onadditem(id, item_data));
-        } catch (error) {
-          e = error;
-          results.push(console.warn('Failed to add item', id, e));
-        }
-      } else {
-        try {
-          results.push(this.onupdateitem(id, item_data));
-        } catch (error) {
-          e = error;
-          results.push(console.warn('Failed to update item', id, e));
-        }
-      }
-    }
-    return results;
+    });
   }
 
-  onadditem(id, data) {
+  get_body() {
     boundMethodCheck(this, SyncedContainer);
-    return console.warn('onadditem not implemented ');
-  }
-
-  onupdateitem(id) {
-    boundMethodCheck(this, SyncedContainer);
-    return console.warn('onupdateitem not implemented ');
-  }
-
-  onremoveitem(id, data) {
-    boundMethodCheck(this, SyncedContainer);
-    return console.warn('onremoveitem not implemented ');
+    return console.warn('getBody not implemented ');
   }
 
 };

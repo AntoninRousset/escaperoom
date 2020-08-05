@@ -27,9 +27,7 @@ export class TemplatedElement extends HTMLElement
     span.setAttribute('slot', slotname)
     return span
 
-  update_item: (item, data, use_shadow=false) ->
-
-    data = @custom_update(item, data)
+  fill_slots: (item, data, use_shadow=false) ->
 
     if use_shadow
 
@@ -44,8 +42,3 @@ export class TemplatedElement extends HTMLElement
       for slot in item.querySelectorAll('slot')
         name = slot.getAttribute('name')
         slot.innerText = data[name]
-
-  # Used for custom item updating. The returned data is used for slot filling.
-  # If null is returned, no extra item update is performed.
-  custom_update: (item, data) ->
-    return data

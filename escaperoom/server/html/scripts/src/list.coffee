@@ -1,4 +1,5 @@
 import {SyncedContainer} from './container.mjs'
+import {is_empty} from './utils.mjs'
 
 toggle_row_expand = () ->
 
@@ -16,35 +17,40 @@ export class SyncedList extends SyncedContainer
     super()
     @classList.add('list')
 
-    Object.defineProperty(this, 'lbody',
-      get: () =>
-        @querySelector('*.lbody')
-    )
-
   connectedCallback: () =>
     @src = @getAttribute('src')
     super.connectedCallback()
 
-  onadditem: (id, data) =>
+  get_body: () =>
+    return @querySelector('*.lbody')
 
-    template = @lbody.querySelector('template')
+  onnewdata: (data) =>
 
-    item = @apply_template(template, @lbody)
-    item.setAttribute('item_id', id)
+    if @sortData?
+      data = @sortData(data)
+
+    newbody = document.createElement('div')
+    newbody.classList.add('lbody')
+
+    for item_id, item_data of data
+      item = @create_item(item_id, item_data)
+      newbody.appendChild(item)
+
+    @body = newbody
+
+  create_item: (item_id, item_data) =>
+
+    template = @body.querySelector('template')
+
+    item = @apply_template(template, @body)
+    item.setAttribute('item_id', item_id)
+
+    @fill_slots(item, item_data)
 
     if 'expandable' in item.classList
       for expand in item.querySelectorAll('.expand')
         expand.addEventListener('click', toggle_row_expand)
 
-    @update_item(item, data)
-
-  onupdateitem: (id, data) =>
-    item = @lbody.querySelector("*[item_id='#{id}']")
-    @update_item(item, data)
-
-  onremoveitem: (id, data) =>
-    item = @lbody.querySelector("*[item_id='#{id}']")
-    item.remove()
-
+    return item
 
 customElements.define('synced-list', SyncedList)

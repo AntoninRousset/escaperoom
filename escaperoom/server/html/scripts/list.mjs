@@ -7,6 +7,10 @@ import {
   SyncedContainer
 } from './container.mjs';
 
+import {
+  is_empty
+} from './utils.mjs';
+
 toggle_row_expand = function() {
   var row;
   row = this.closest('.lrow');
@@ -21,15 +25,10 @@ export var SyncedList = class SyncedList extends SyncedContainer {
   constructor() {
     super();
     this.connectedCallback = this.connectedCallback.bind(this);
-    this.onadditem = this.onadditem.bind(this);
-    this.onupdateitem = this.onupdateitem.bind(this);
-    this.onremoveitem = this.onremoveitem.bind(this);
+    this.get_body = this.get_body.bind(this);
+    this.onnewdata = this.onnewdata.bind(this);
+    this.create_item = this.create_item.bind(this);
     this.classList.add('list');
-    Object.defineProperty(this, 'lbody', {
-      get: () => {
-        return this.querySelector('*.lbody');
-      }
-    });
   }
 
   connectedCallback() {
@@ -38,12 +37,34 @@ export var SyncedList = class SyncedList extends SyncedContainer {
     return super.connectedCallback();
   }
 
-  onadditem(id, data) {
+  get_body() {
+    boundMethodCheck(this, SyncedList);
+    return this.querySelector('*.lbody');
+  }
+
+  onnewdata(data) {
+    var item, item_data, item_id, newbody;
+    boundMethodCheck(this, SyncedList);
+    if (this.sortData != null) {
+      data = this.sortData(data);
+    }
+    newbody = document.createElement('div');
+    newbody.classList.add('lbody');
+    for (item_id in data) {
+      item_data = data[item_id];
+      item = this.create_item(item_id, item_data);
+      newbody.appendChild(item);
+    }
+    return this.body = newbody;
+  }
+
+  create_item(item_id, item_data) {
     var expand, i, item, len, ref, template;
     boundMethodCheck(this, SyncedList);
-    template = this.lbody.querySelector('template');
-    item = this.apply_template(template, this.lbody);
-    item.setAttribute('item_id', id);
+    template = this.body.querySelector('template');
+    item = this.apply_template(template, this.body);
+    item.setAttribute('item_id', item_id);
+    this.fill_slots(item, item_data);
     if (indexOf.call(item.classList, 'expandable') >= 0) {
       ref = item.querySelectorAll('.expand');
       for (i = 0, len = ref.length; i < len; i++) {
@@ -51,21 +72,7 @@ export var SyncedList = class SyncedList extends SyncedContainer {
         expand.addEventListener('click', toggle_row_expand);
       }
     }
-    return this.update_item(item, data);
-  }
-
-  onupdateitem(id, data) {
-    var item;
-    boundMethodCheck(this, SyncedList);
-    item = this.lbody.querySelector(`*[item_id='${id}']`);
-    return this.update_item(item, data);
-  }
-
-  onremoveitem(id, data) {
-    var item;
-    boundMethodCheck(this, SyncedList);
-    item = this.lbody.querySelector(`*[item_id='${id}']`);
-    return item.remove();
+    return item;
   }
 
 };

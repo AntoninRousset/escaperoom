@@ -11,8 +11,6 @@ export class SyncedElement extends FetchedElement
     if data['type'] == 'update'
       src = data['url']
 
-    console.log('>', data)
-
     for subscriber in subscribers
       if subscriber.src == src
         subscriber.load_from_src()

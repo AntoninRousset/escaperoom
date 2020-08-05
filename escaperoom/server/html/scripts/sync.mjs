@@ -55,7 +55,6 @@ export var SyncedElement = (function() {
     if (data['type'] === 'update') {
       src = data['url'];
     }
-    console.log('>', data);
     results = [];
     for (i = 0, len = subscribers.length; i < len; i++) {
       subscriber = subscribers[i];

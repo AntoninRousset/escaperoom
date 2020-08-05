@@ -38,9 +38,8 @@ export var TemplatedElement = class TemplatedElement extends HTMLElement {
     return span;
   }
 
-  update_item(item, data, use_shadow = false) {
+  fill_slots(item, data, use_shadow = false) {
     var i, j, len, len1, name, ref, ref1, results, results1, slot;
-    data = this.custom_update(item, data);
     if (use_shadow) {
       ref = this.shadowRoot.querySelectorAll('slot');
       results = [];
@@ -65,12 +64,6 @@ export var TemplatedElement = class TemplatedElement extends HTMLElement {
       }
       return results1;
     }
-  }
-
-  // Used for custom item updating. The returned data is used for slot filling.
-  // If null is returned, no extra item update is performed.
-  custom_update(item, data) {
-    return data;
   }
 
 };

@@ -1,24 +1,15 @@
 import {SyncedContainer} from './container.mjs'
 
-toggle_row_expand = () ->
 
-  row = this.closest('.lrow')
-
-  if 'opened' in row.classList
-    row.classList.remove('opened')
-  else
-    row.classList.add('opened')
-
-
-export class SyncedTree extends SyncedContainer
+export class SyncedTable extends SyncedContainer
 
   constructor: () ->
     super()
-    @classList.add('list')
+    @classList.add('table')
 
-    Object.defineProperty(this, 'lbody',
+    Object.defineProperty(this, 'tbody',
       get: () =>
-        @querySelector('*.lbody')
+        @querySelector('*.tbody')
     )
 
   connectedCallback: () =>
@@ -27,24 +18,19 @@ export class SyncedTree extends SyncedContainer
 
   onadditem: (id, data) =>
 
-    template = @lbody.querySelector('template')
+    template = @tbody.querySelector('template')
 
-    item = @apply_template(template, @lbody)
+    item = @apply_template(template, @tbody)
     item.setAttribute('item_id', id)
-
-    if 'expandable' in item.classList
-      for expand in item.querySelectorAll('.expand')
-        expand.addEventListener('click', toggle_row_expand)
-
-    @update_item(item, data)
+    @ugpdate_item(item, data, use_shadow=false)
 
   onupdateitem: (id, data) =>
-    item = @lbody.querySelector("*[item_id='#{id}']")
-    @update_item(item, data)
+    item = @tbody.querySelector("*[item_id='#{id}']")
+    @update_item(item, data, use_shadow=false)
 
   onremoveitem: (id, data) =>
-    item = @lbody.querySelector("*[item_id='#{id}']")
+    item = @tbody.querySelector("*[item_id='#{id}']")
     item.remove()
 
 
-customElements.define('synced-list', SyncedList)
+customElements.define('synced-table', SyncedTable)
