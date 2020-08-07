@@ -9,11 +9,12 @@ import {
 
 TabNav = class TabNav extends FetchedElement {
   constructor() {
-    super('interface/tabs', 'json');
+    super();
     this.connectedCallback = this.connectedCallback.bind(this);
     this.onnewdata = this.onnewdata.bind(this);
     this.select_from_hash = this.select_from_hash.bind(this);
     this.select = this.select.bind(this);
+    this.src = 'interface/tabs';
     // set default class
     this.classList.add('loadable');
     // set loading mode by default

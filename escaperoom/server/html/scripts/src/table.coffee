@@ -20,7 +20,7 @@ export class SyncedTable extends SyncedContainer
 
     template = @tbody.querySelector('template')
 
-    item = @apply_template(template, @tbody)
+    item = @instantiate_template(template, @tbody)
     item.setAttribute('item_id', id)
     @ugpdate_item(item, data, use_shadow=false)
 

@@ -1,0 +1,68 @@
+.border {
+  border: 1px solid var(--light-gray);
+  border-radius: 2px;
+}
+
+.tree {
+  display: flex;
+  flex-flow: column nowrap;
+  padding: 6px;
+}
+
+.tree .body {
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.tree .body .row {
+}
+
+.tree .body .row > div:first-child {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  border: 1px solid transparent;
+}
+
+.tree .body .row .foldswitch {
+  visibility: hidden;
+}
+
+.tree .body .row.foldable > div:not(.children) .foldswitch {
+  visibility: visible;
+}
+
+.tree .body .row .rowgroup {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tree .body .row .rowcell {
+  margin: 0px 2px;
+}
+
+
+.etcdtree .row[selected] > div:not(.children) {
+  background: var(--active-color);
+  color: white;
+}
+
+.tree .body .row > .children {
+  margin-left: 16px;
+  display: none;
+}
+
+.tree .body .row[open] > .children {
+  display: block;
+}
+
+.tree.selectable .body .row > div:not(.children), .tree .body .row.selectable > div:first-child {
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.tree.selectable .body .row:not([selected]) > div:not(.children):hover, .tree .body .row.selectable:not([selected]) > div:first-child:hover {
+  border: 1px solid var(--light-gray);
+}

@@ -42,7 +42,7 @@ export class SyncedList extends SyncedContainer
 
     template = @body.querySelector('template')
 
-    item = @apply_template(template, @body)
+    item = @instantiate_template(template, @body)
     item.setAttribute('item_id', item_id)
 
     @fill_slots(item, item_data)

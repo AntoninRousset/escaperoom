@@ -37,54 +37,81 @@ export var fetch_data = async function(url, data_type, emul_slow = false) {
   }
 };
 
-export var FetchedElement = class FetchedElement extends MultiScreenElement {
-  constructor(src = null, data_type1 = 'json', emul_slow1 = true) {
-    super();
-    this.onloading = this.onloading.bind(this);
-    this.onnewdata = this.onnewdata.bind(this);
-    this.load_from_src = this.load_from_src.bind(this);
-    this.load_from = this.load_from.bind(this);
-    this.src = src;
-    this.data_type = data_type1;
-    this.emul_slow = emul_slow1;
-    this._data = null;
-    Object.defineProperty(this, 'data', {
-      get: function() {
-        return this._data;
-      },
-      set: function(data) {
-        this.onnewdata(data);
-        return this._data = data;
-      }
-    });
-  }
-
-  onloading() {
-    boundMethodCheck(this, FetchedElement);
-    return this.set_screen('loading');
-  }
-
-  onnewdata(data) {
-    boundMethodCheck(this, FetchedElement);
-    return console.warn('Unused data', data);
-  }
-
-  async load_from_src() {
-    boundMethodCheck(this, FetchedElement);
-    return (await this.load_from(this.src));
-  }
-
-  async load_from(url) {
-    var data, loading_timeout, now;
-    boundMethodCheck(this, FetchedElement);
-    now = new Date();
-    this.now = now;
-    loading_timeout = setTimeout(this.onloading, 1000);
-    data = (await fetch_data(url, this.data_type, this.emul_slow));
-    clearTimeout(loading_timeout);
-    if (now === this.now) {
-      return this.data = data;
+export var FetchedElement = (function() {
+  class FetchedElement extends MultiScreenElement {
+    constructor(data_type1 = 'json', emul_slow1 = false) {
+      super();
+      this.onloading = this.onloading.bind(this);
+      this.onnewdata = this.onnewdata.bind(this);
+      this.load_from_src = this.load_from_src.bind(this);
+      this.load_from = this.load_from.bind(this);
+      this.attributeChangedCallback = this.attributeChangedCallback.bind(this);
+      this.data_type = data_type1;
+      this.emul_slow = emul_slow1;
+      this._data = null;
+      Object.defineProperty(this, 'data', {
+        get: function() {
+          return this._data;
+        },
+        set: function(data) {
+          this.onnewdata(data);
+          return this._data = data;
+        }
+      });
+      Object.defineProperty(this, 'src', {
+        get: function() {
+          return this.getAttribute('src');
+        },
+        set: function(src) {
+          return this.setAttribute('src', src);
+        }
+      });
     }
-  }
 
-};
+    onloading() {
+      boundMethodCheck(this, FetchedElement);
+      return this.set_screen('loading');
+    }
+
+    onnewdata(data) {
+      boundMethodCheck(this, FetchedElement);
+      return console.warn('Unused data', data);
+    }
+
+    load_from_src() {
+      boundMethodCheck(this, FetchedElement);
+      return this.load_from(this.src);
+    }
+
+    async load_from(src) {
+      var data, loading_timeout, now;
+      boundMethodCheck(this, FetchedElement);
+      now = new Date();
+      this.now = now;
+      loading_timeout = setTimeout(this.onloading, 1000);
+      data = (await fetch_data(src, this.data_type, this.emul_slow));
+      clearTimeout(loading_timeout);
+      if (now === this.now) {
+        return this.data = data;
+      }
+    }
+
+    attributeChangedCallback(name, old_value, new_value) {
+      boundMethodCheck(this, FetchedElement);
+      super.attributeChangedCallback(name, old_value, new_value);
+      if (name === 'src') {
+        return this.load_from(new_value);
+      }
+    }
+
+  };
+
+  Object.defineProperty(FetchedElement, 'observedAttributes', {
+    get: () => {
+      return MultiScreenElement.observedAttributes.concat(['src']);
+    }
+  });
+
+  return FetchedElement;
+
+}).call(this);

@@ -61,11 +61,21 @@ class EtcdNodeAccessor(EtcdSelectorBasedAccessor):
         key = str(self.selector).encode()
         await self.etcd.client.delete(key)
 
+    @property
     def children(self):
         return self / '*'
 
+    @property
     def subtree(self):
         return self / '**'
+
+    async def instantiate(self, with_values=True):
+
+        from .instance import EtcdNodeInstance
+
+        if with_values:
+            return EtcdNodeInstance(self.key, await self.get())
+        return EtcdNodeInstance(self.key)
 
     def __truediv__(self, other):
         from .auto import accessor

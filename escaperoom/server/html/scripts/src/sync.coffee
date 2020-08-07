@@ -2,38 +2,46 @@ import {FetchedElement} from './fetch.mjs'
 
 export class SyncedElement extends FetchedElement
 
-  subscribers = []
+  subscriptions = []
   event_source = new EventSource('events')
   event_source.onmessage = (event) ->
 
     data = JSON.parse(event.data)
 
     if data['type'] == 'update'
-      src = data['url']
+      event_src = data['src']
 
-    for subscriber in subscribers
-      if subscriber.src == src
+    for subscriber, filter of subscriptions
+      if filter(data)
         subscriber.load_from_src()
-
-  connectedCallback: () =>
-    super.connectedCallback()
-
-    if @src?
-      @subscribe(@src)
-      @load_from_src()
 
   disconnectedCallback: () =>
     @unsubscribe()
 
-  subscribe: () ->
+  subscribe: (filter) ->
 
-    # avoid subscribing twice
-    @unsubscribe()
+    if typeof(filter) == 'string'
+      subscriptions[this] = (event) =>
+        event.src == filter
 
-    subscribers.push(this)
+    else if typeof(filter) == 'function'
+      subscriptions[this] = filter
+
+    else
+      log.error('Invalid filter', filter)
 
   unsubscribe: () ->
-    index = subscribers.indexOf(this)
+    delete subscriptions[this]
 
-    if index > -1
-      subscribers.splice(index, 1)
+  onnewdata: (data) =>
+    console.log('new data:', data)
+    @fill_slots(this, data)
+
+  attributeChangedCallback: (name, old_value, new_value) =>
+    
+    super.attributeChangedCallback(name, old_value, new_value)
+
+    if name == 'src'
+      @subscribe(@src)
+
+customElements.define('synced-element', SyncedElement)

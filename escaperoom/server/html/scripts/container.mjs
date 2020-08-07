@@ -20,14 +20,20 @@ export var SyncedContainer = class SyncedContainer extends SyncedElement {
         return this.get_body();
       },
       set: (newbody) => {
-        return morphdom(this.body, newbody);
+        return morphdom(this.body, newbody, {
+          getNodeKey: (node) => {
+            try {
+              return node.getAttribute('item_id');
+            } catch (error) {}
+          }
+        });
       }
     });
   }
 
   get_body() {
     boundMethodCheck(this, SyncedContainer);
-    return console.warn('getBody not implemented ');
+    return this.querySelector('*.body');
   }
 
 };

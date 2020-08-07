@@ -6,22 +6,14 @@ import {
 } from './fetch.mjs';
 
 export var SyncedElement = (function() {
-  var event_source, subscribers;
+  var event_source, subscriptions;
 
   class SyncedElement extends FetchedElement {
     constructor() {
       super(...arguments);
-      this.connectedCallback = this.connectedCallback.bind(this);
       this.disconnectedCallback = this.disconnectedCallback.bind(this);
-    }
-
-    connectedCallback() {
-      boundMethodCheck(this, SyncedElement);
-      super.connectedCallback();
-      if (this.src != null) {
-        this.subscribe(this.src);
-        return this.load_from_src();
-      }
+      this.onnewdata = this.onnewdata.bind(this);
+      this.attributeChangedCallback = this.attributeChangedCallback.bind(this);
     }
 
     disconnectedCallback() {
@@ -29,36 +21,52 @@ export var SyncedElement = (function() {
       return this.unsubscribe();
     }
 
-    subscribe() {
-      // avoid subscribing twice
-      this.unsubscribe();
-      return subscribers.push(this);
+    subscribe(filter) {
+      if (typeof filter === 'string') {
+        return subscriptions[this] = (event) => {
+          return event.src === filter;
+        };
+      } else if (typeof filter === 'function') {
+        return subscriptions[this] = filter;
+      } else {
+        return log.error('Invalid filter', filter);
+      }
     }
 
     unsubscribe() {
-      var index;
-      index = subscribers.indexOf(this);
-      if (index > -1) {
-        return subscribers.splice(index, 1);
+      return delete subscriptions[this];
+    }
+
+    onnewdata(data) {
+      boundMethodCheck(this, SyncedElement);
+      console.log('new data:', data);
+      return this.fill_slots(this, data);
+    }
+
+    attributeChangedCallback(name, old_value, new_value) {
+      boundMethodCheck(this, SyncedElement);
+      super.attributeChangedCallback(name, old_value, new_value);
+      if (name === 'src') {
+        return this.subscribe(this.src);
       }
     }
 
   };
 
-  subscribers = [];
+  subscriptions = [];
 
   event_source = new EventSource('events');
 
   event_source.onmessage = function(event) {
-    var data, i, len, results, src, subscriber;
+    var data, event_src, filter, results, subscriber;
     data = JSON.parse(event.data);
     if (data['type'] === 'update') {
-      src = data['url'];
+      event_src = data['src'];
     }
     results = [];
-    for (i = 0, len = subscribers.length; i < len; i++) {
-      subscriber = subscribers[i];
-      if (subscriber.src === src) {
+    for (subscriber in subscriptions) {
+      filter = subscriptions[subscriber];
+      if (filter(data)) {
         results.push(subscriber.load_from_src());
       } else {
         results.push(void 0);
@@ -70,3 +78,5 @@ export var SyncedElement = (function() {
   return SyncedElement;
 
 }).call(this);
+
+customElements.define('synced-element', SyncedElement);

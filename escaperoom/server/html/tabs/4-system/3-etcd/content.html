@@ -1,27 +1,133 @@
 <link rel='stylesheet' type='text/css' href='interface/styles/monitor.css'>
-<link rel='stylesheet' type='text/css' href='interface/styles/page.css'>
-<link rel='stylesheet' type='text/css' href='interface/styles/list.css'>
-<link rel='stylesheet' type='text/css' href='interface/styles/action.css'>
+<link rel='stylesheet' type='text/css' href='interface/styles/tree.css'>
+<link rel='stylesheet' type='text/css' href='interface/styles/stamp.css'>
+
+<style>
+
+.etcdnav {
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+.etcdnav > * {
+  max-height: 400px;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: var(--light-gray) white; 
+}
+
+.etcdnav > *:first-child {
+  margin-right: 16px;
+}
+
+.etcdtree {
+  flex: 3;
+}
+
+.etcdinspector {
+  flex: 2;
+  min-width: 100px;
+  padding: 6px;
+}
+
+.stamp[type='ghost'] {
+  display: none;
+}
+
+.etcdtree .row.ghost > div:not(.children) {
+  color: gray;
+}
+
+.etcdtree .row.ghost > div:not(.children) .stamp[type='ghost'] {
+  display: block;
+}
+
+.stamp[type='ghost'] svg {
+  fill: var(--light-gray);
+}
+
+.etcdinspector {
+}
+
+.etcdinspector table {
+  width: 100%;
+}
+
+.etcdinspector table tr td {
+  margin: 0px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.etcdinspector table tr:last-child td {
+  border-bottom: none;
+}
+
+.etcdinspector table tr td:first-child {
+  font-weight: bold;
+}
+
+.etcdinspector table tr td:last-child {
+  font-family: monospace;
+}
+
+@media only screen and (max-width: 700px) {
+
+  .etcdnav {
+    flex-flow: column-reverse nowrap;
+  }
+  
+  .etcdnav > *:first-child {
+    margin-right: 0;
+    margin-top: 16px;
+  }
+
+}
+
+</style>
 
 <h1>Etcd</h1>
 
-<synced-list src='etcd/**?list'>
+<div class='etcdnav'>
 
-  <div class='lbody'>
-    <template>
-      <div class='lrow expandable'>
-        
-        <div>
-          <div class='lcellgroup'>
-            <div class='lcell'><slot name='name'></div>
+  <synced-tree class='border etcdtree' src='etcd/**'>
+
+    <div class='body'>
+      <template>
+        <div class='row'>
+
+          <div>
+            <div class='rowgroup'>
+              <div class='rowcell'><stamp-switch class='foldswitch' type='triangle'></stamp-switch></div>
+              <div class='rowcell'><slot name='name'></slot></div>
+              <div class='rowcell'><stamp-icon class='small' type='ghost'></stamp-icon></div>
+            </div>
           </div>
+
+          <div class='children'>
+          </div>
+
         </div>
+      </template>
+    </div>
 
-        <div class='lrowextra'>
-        </div>
+  </synced-tree>
 
-      </div>
-    </template>
-  </div>
+  <synced-element class='etcdinspector border'>
+    <table>
+      <tr>
+        <td>Name</td>
+        <td><slot name='name'></slot>
+      </tr>
+      <tr>
+        <td>Key</td>
+        <td><slot name='key'></slot>
+      </tr>
+      <tr>
+        <td>Value</td>
+        <td><slot name='value'></slot>
+      </tr>
+    </table>
+  </synced-element>
 
-</synced-list>
+</div>

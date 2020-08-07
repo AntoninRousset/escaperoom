@@ -16,6 +16,10 @@ export var MultiScreenElement = (function() {
       this.default_screen = default_screen;
     }
 
+    static get_observed_attributes() {
+      return ['screen'];
+    }
+
     connectedCallback() {
       boundMethodCheck(this, MultiScreenElement);
       if (!this.hasAttribute('screen')) {
@@ -23,25 +27,30 @@ export var MultiScreenElement = (function() {
       }
     }
 
-    attributeChangedCallback(name, oldValue, newValue) {
+    attributeChangedCallback(name, old_value, new_value) {
       var i, len, ref, results, screen;
       boundMethodCheck(this, MultiScreenElement);
-      ref = this.querySelectorAll('.screen');
-      results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        screen = ref[i];
-        if (screen.getAttribute('name') === newValue) {
-          results.push(screen.removeAttribute('hidden'));
-        } else {
-          results.push(screen.setAttribute('hidden', ''));
+      if (name === 'screen') {
+        ref = this.querySelectorAll('.screen');
+        results = [];
+        for (i = 0, len = ref.length; i < len; i++) {
+          screen = ref[i];
+          if (screen.getAttribute('name') === new_value) {
+            results.push(screen.removeAttribute('hidden'));
+          } else {
+            results.push(screen.setAttribute('hidden', ''));
+          }
         }
+        return results;
       }
-      return results;
     }
 
     set_screen(name) {
       boundMethodCheck(this, MultiScreenElement);
-      return this.setAttribute('screen', name);
+      if (name != null) {
+        return this.setAttribute('screen', name);
+      }
+      return this.removeAttribute('screen');
     }
 
     get_screen(name) {
@@ -52,8 +61,8 @@ export var MultiScreenElement = (function() {
   };
 
   Object.defineProperty(MultiScreenElement, 'observedAttributes', {
-    get: function() {
-      return ['screen'];
+    get: () => {
+      return TemplatedElement.observedAttributes.concat(['screen']);
     }
   });
 

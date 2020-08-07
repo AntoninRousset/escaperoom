@@ -30,7 +30,7 @@ export var SyncedTable = class SyncedTable extends SyncedContainer {
     var item, template, use_shadow;
     boundMethodCheck(this, SyncedTable);
     template = this.tbody.querySelector('template');
-    item = this.apply_template(template, this.tbody);
+    item = this.instantiate_template(template, this.tbody);
     item.setAttribute('item_id', id);
     return this.ugpdate_item(item, data, use_shadow = false);
   }

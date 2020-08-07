@@ -33,7 +33,12 @@ export fetch_data = (url, data_type, emul_slow=false) ->
 
 export class FetchedElement extends MultiScreenElement
 
-  constructor: (@src=null, @data_type='json', @emul_slow=false) ->
+  Object.defineProperty(FetchedElement, 'observedAttributes', {
+    get: () =>
+      return MultiScreenElement.observedAttributes.concat(['src'])
+  })
+
+  constructor: (@data_type='json', @emul_slow=false) ->
 
     super()
     @_data = null
@@ -46,6 +51,13 @@ export class FetchedElement extends MultiScreenElement
         @_data = data
     )
 
+    Object.defineProperty(this, 'src',
+      get: () ->
+        return @getAttribute('src')
+      set: (src) ->
+        return @setAttribute('src', src)
+    )
+
   onloading: () =>
     @set_screen('loading')
 
@@ -53,16 +65,23 @@ export class FetchedElement extends MultiScreenElement
     console.warn('Unused data', data)
 
   load_from_src: () =>
-    await @load_from(@src)
+    @load_from(@src)
 
-  load_from: (url) =>
+  load_from: (src) =>
 
     now = new Date()
     @now = now
 
     loading_timeout = setTimeout(@onloading, 1000)
-    data = await fetch_data(url, @data_type, @emul_slow)
+    data = await fetch_data(src, @data_type, @emul_slow)
     clearTimeout(loading_timeout)
 
     if now is @now
       @data = data
+
+  attributeChangedCallback: (name, old_value, new_value) =>
+    
+    super.attributeChangedCallback(name, old_value, new_value)
+
+    if name == 'src'
+      @load_from(new_value)

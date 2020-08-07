@@ -1,5 +1,5 @@
 import '/interface/scripts/list.mjs'
-import '/interface/scripts/action.mjs'
+import '/interface/scripts/stamp.mjs'
 
 
 export onload = (root) ->

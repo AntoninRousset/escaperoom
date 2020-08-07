@@ -86,6 +86,7 @@ class EtcdTreeInstance(EtcdInstance):
     def __json__(self):
         return {
             'key': self.root_key,
+            'name': str(self.root_key).split('/')[-1],
             'node': self.root_node,
             'children': {inst.root_key.path[-1]: inst for inst in self},
         }

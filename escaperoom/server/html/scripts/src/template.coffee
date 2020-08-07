@@ -1,16 +1,17 @@
 export class TemplatedElement extends HTMLElement
 
-  apply_template: (template, dest, use_shadow=false) ->
+  Object.defineProperty(TemplatedElement, 'observedAttributes', {
+    get: () =>
+      return []
+  })
+
+  instantiate_template: (template, use_shadow=false) ->
 
     new_element = template.content.cloneNode(true)
     first_child = new_element.firstElementChild
 
     if not use_shadow
-      dest.appendChild(new_element)
       return first_child
-
-    dest.attachShadow({mode: 'open'})
-    dest.shadowRoot.appendChild(new_element)
 
     # create all plugs
     # TODO use '> slot'
@@ -35,10 +36,18 @@ export class TemplatedElement extends HTMLElement
         name = slot.getAttribute('name')
         slot = dest.querySelector("*[slot='#{name}']")
         if slot?
-          slot.textContent = data[name]
+          if typeof(data[name]) == 'object'
+            slot.textContent = JSON.stringify(data[name], null, ' ')
+          else
+            slot.textContent = data[name]
 
     else
 
       for slot in item.querySelectorAll('slot')
         name = slot.getAttribute('name')
-        slot.innerText = data[name]
+        if typeof(data[name]) == 'object'
+          slot.innerText = JSON.stringify(data[name], null, ' ')
+        else
+          slot.innerText = data[name]
+
+  attributeChangedCallback: (name, old_value, new_value) =>

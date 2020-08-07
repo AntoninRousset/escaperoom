@@ -1,0 +1,37 @@
+.stamp {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+.stamp.small {
+  width: 16px;
+  height: 16px;
+}
+
+stamp-button {
+  display: block;
+}
+
+stamp-switch {
+  cursor: pointer;
+}
+
+/* switch "triangle" */
+
+stamp-switch[type='triangle'] svg {
+  fill: var(--light-gray);
+  transition: transform 0.2s;
+}
+
+stamp-switch[type='triangle']:hover svg {
+  fill: var(--gray);
+}
+
+stamp-switch[type='triangle']:active svg {
+  fill: var(--active-color);
+}
+
+stamp-switch[type='triangle'][state='on'] svg {
+  transform: rotate(90deg);
+}

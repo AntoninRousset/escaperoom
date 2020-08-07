@@ -1,5 +1,5 @@
 import '/interface/scripts/list.mjs'
-import '/interface/scripts/action.mjs'
+import '/interface/scripts/stamp.mjs'
 
 
 export onload = (root) ->
@@ -12,11 +12,11 @@ export onload = (root) ->
     else
       item.setAttribute('disabled', '')
 
-    btn = item.querySelector('action-btn')
+    button = item.querySelector('stamp-button')
     if data.registered
-      btn.set_screen('checked')
+      button.set_screen('checked')
     else
-      btn.set_screen('unchecked')
+      button.set_screen('unchecked')
 
     return data
 

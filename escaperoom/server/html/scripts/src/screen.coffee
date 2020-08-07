@@ -3,28 +3,38 @@ import {TemplatedElement} from './template.mjs'
 
 export class MultiScreenElement extends TemplatedElement
 
+  Object.defineProperty(MultiScreenElement, 'observedAttributes', {
+    get: () =>
+      return TemplatedElement.observedAttributes.concat(['screen'])
+  })
+
   constructor: (@default_screen) ->
+
     super()
 
-  Object.defineProperty(MultiScreenElement, 'observedAttributes',
-                        {get: -> ['screen']})
+  @get_observed_attributes: () =>
+    return ['screen']
 
   connectedCallback: () =>
 
     if not @hasAttribute('screen')
       @set_screen(@default_screen)
 
-  attributeChangedCallback: (name, oldValue, newValue) =>
+  attributeChangedCallback: (name, old_value, new_value) =>
 
-    for screen in @querySelectorAll('.screen')
+    if name == 'screen'
+      for screen in @querySelectorAll('.screen')
 
-      if screen.getAttribute('name') == newValue
-        screen.removeAttribute('hidden')
-      else
-        screen.setAttribute('hidden', '')
+        if screen.getAttribute('name') == new_value
+          screen.removeAttribute('hidden')
+        else
+          screen.setAttribute('hidden', '')
 
   set_screen: (name) =>
-    @setAttribute('screen', name)
+    if name?
+      return @setAttribute('screen', name)
+    @removeAttribute('screen')
+
 
   get_screen: (name) =>
     return @querySelector(".screen[name='#{name}']")

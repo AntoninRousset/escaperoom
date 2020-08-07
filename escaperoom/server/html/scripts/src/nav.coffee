@@ -5,7 +5,9 @@ class TabNav extends FetchedElement
 
   constructor: () ->
 
-    super('interface/tabs', 'json')
+    super()
+
+    @src = 'interface/tabs'
 
     # set default class
     @classList.add('loadable')

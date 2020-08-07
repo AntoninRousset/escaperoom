@@ -12,8 +12,12 @@ export class SyncedContainer extends SyncedElement
       get: () =>
         return @get_body()
       set: (newbody) =>
-        morphdom(@body, newbody)
+        morphdom(@body, newbody,
+          getNodeKey: (node) =>
+            try
+              return node.getAttribute('item_id')
+        )
     )
 
   get_body: () =>
-    console.warn('getBody not implemented ')
+    return @querySelector('*.body')

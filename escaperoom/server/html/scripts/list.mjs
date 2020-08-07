@@ -62,7 +62,7 @@ export var SyncedList = class SyncedList extends SyncedContainer {
     var expand, i, item, len, ref, template;
     boundMethodCheck(this, SyncedList);
     template = this.body.querySelector('template');
-    item = this.apply_template(template, this.body);
+    item = this.instantiate_template(template, this.body);
     item.setAttribute('item_id', item_id);
     this.fill_slots(item, item_data);
     if (indexOf.call(item.classList, 'expandable') >= 0) {

@@ -19,6 +19,7 @@ class EtcdHandler(WebHandler):
         from aiohttp.web import Response
 
         accessor = self.context.etcd.root / request.match_info['selector']
+
         with_values = ('with_values' in request.query)
 
         if 'list' in request.query:
