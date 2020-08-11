@@ -16,7 +16,6 @@ export onload = (root) ->
         row.removeAttribute('selected')
       row = event.target.closest('.row')
       row.setAttribute('selected', '')
-      console.log('etcd' + row.getAttribute('item_id'))
 
       # set etcd inspector
       src = 'etcd' + row.getAttribute('item_id') + '?with_values'

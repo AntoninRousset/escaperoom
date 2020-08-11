@@ -9,7 +9,6 @@ export class MultiScreenElement extends TemplatedElement
   })
 
   constructor: (@default_screen) ->
-
     super()
 
   @get_observed_attributes: () =>
@@ -34,7 +33,6 @@ export class MultiScreenElement extends TemplatedElement
     if name?
       return @setAttribute('screen', name)
     @removeAttribute('screen')
-
 
   get_screen: (name) =>
     return @querySelector(".screen[name='#{name}']")

@@ -3,7 +3,14 @@ from ...event import Event
 
 def etcd_event(event):
 
-    from json import loads
+    def load_json(string):
+
+        from json import loads
+
+        if len(string.strip()) == 0:
+            return None
+
+        return loads(string)
 
     factory = {
         'CREATE': EtcdCreateNodeEvent,
@@ -12,9 +19,9 @@ def etcd_event(event):
     }[event.type]
 
     return factory(key=event.key.decode(),
-                   value=loads(event.value),
+                   value=load_json(event.value),
                    meta=event.meta,
-                   pre_value=loads(event.pre_value),
+                   pre_value=load_json(event.pre_value),
                    pre_meta=event.pre_meta,
                    revision=event.revision)
 

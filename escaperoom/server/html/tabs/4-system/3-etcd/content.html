@@ -24,12 +24,6 @@
   flex: 3;
 }
 
-.etcdinspector {
-  flex: 2;
-  min-width: 100px;
-  padding: 6px;
-}
-
 .stamp[type='ghost'] {
   display: none;
 }
@@ -47,10 +41,22 @@
 }
 
 .etcdinspector {
+  flex: 2;
+  min-width: 100px;
+  padding: 6px;
+}
+
+.etcdinspector[screen='empty'] {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray);
 }
 
 .etcdinspector table {
   width: 100%;
+  border-collapse: collapse;
 }
 
 .etcdinspector table tr td {
@@ -90,7 +96,7 @@
 
 <div class='etcdnav'>
 
-  <synced-tree class='border etcdtree' src='etcd/**'>
+  <synced-tree class='border etcdtree' src='etcd/**' eventtype='ETCD.NODE'>
 
     <div class='body'>
       <template>
@@ -113,21 +119,29 @@
 
   </synced-tree>
 
-  <synced-element class='etcdinspector border'>
-    <table>
-      <tr>
-        <td>Name</td>
-        <td><slot name='name'></slot>
-      </tr>
-      <tr>
-        <td>Key</td>
-        <td><slot name='key'></slot>
-      </tr>
-      <tr>
-        <td>Value</td>
-        <td><slot name='value'></slot>
-      </tr>
-    </table>
+  <synced-element class='etcdinspector border' screen='empty' eventtype='ETCD.NODE'>
+
+    <div class='screen' name='empty'>
+      Please select a node.
+    </div>
+
+    <div class='screen' name='main'>
+      <table>
+        <tr>
+          <td>Name</td>
+          <td><slot name='name'></slot>
+        </tr>
+        <tr>
+          <td>Key</td>
+          <td><slot name='key'></slot>
+        </tr>
+        <tr>
+          <td>Value</td>
+          <td><slot name='value'></slot>
+        </tr>
+      </table>
+    </div>
+
   </synced-element>
 
 </div>

@@ -23,31 +23,48 @@ export var SyncedElement = (function() {
 
     subscribe(filter) {
       if (typeof filter === 'string') {
-        return subscriptions[this] = (event) => {
-          return event.src === filter;
-        };
+        return subscriptions.push([
+          this,
+          (event) => {
+            return event.src === filter;
+          }
+        ]);
       } else if (typeof filter === 'function') {
-        return subscriptions[this] = filter;
+        return subscriptions.push([this, filter]);
       } else {
         return log.error('Invalid filter', filter);
       }
     }
 
     unsubscribe() {
-      return delete subscriptions[this];
+      return subscriptions = subscriptions.filter((x) => {
+        return x[0] === !this;
+      });
     }
 
     onnewdata(data) {
       boundMethodCheck(this, SyncedElement);
-      console.log('new data:', data);
-      return this.fill_slots(this, data);
+      this.fill_slots(this, data);
+      return this.set_screen('main');
     }
 
     attributeChangedCallback(name, old_value, new_value) {
       boundMethodCheck(this, SyncedElement);
       super.attributeChangedCallback(name, old_value, new_value);
-      if (name === 'src') {
-        return this.subscribe(this.src);
+      if (name === 'src' || name === 'eventsrc' || name === 'eventtype') {
+        if (!this.hasAttribute('eventsrc') && !this.hasAttribute('eventtype')) {
+          return this.subscribe(this.src);
+        } else {
+          return this.subscribe((event) => {
+            if (this.hasAttribute('eventsrc') && event.src !== this.getAttribute('eventsrc')) {
+              return false;
+            }
+            if (this.hasAttribute('eventtype') && !event.type.join('.').startsWith(this.getAttribute('eventtype'))) {
+              return false;
+            }
+            return true;
+          });
+        }
       }
     }
 
@@ -58,22 +75,30 @@ export var SyncedElement = (function() {
   event_source = new EventSource('events');
 
   event_source.onmessage = function(event) {
-    var data, event_src, filter, results, subscriber;
+    var data, event_src, filter, i, len, results, sub, subscriber;
     data = JSON.parse(event.data);
     if (data['type'] === 'update') {
       event_src = data['src'];
     }
     results = [];
-    for (subscriber in subscriptions) {
-      filter = subscriptions[subscriber];
+    for (i = 0, len = subscriptions.length; i < len; i++) {
+      sub = subscriptions[i];
+      subscriber = sub[0];
+      filter = sub[1];
       if (filter(data)) {
-        results.push(subscriber.load_from_src());
+        results.push(subscriber.load_from(subscriber.src));
       } else {
         results.push(void 0);
       }
     }
     return results;
   };
+
+  Object.defineProperty(SyncedElement, 'observedAttributes', {
+    get: () => {
+      return FetchedElement.observedAttributes.concat(['eventsrc', 'eventtype']);
+    }
+  });
 
   return SyncedElement;
 
