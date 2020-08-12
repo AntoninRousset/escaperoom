@@ -24,6 +24,13 @@
   flex: 3;
 }
 
+.etcdtree .screen[name='loading'] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
 .stamp[type='ghost'] {
   display: none;
 }
@@ -98,23 +105,29 @@
 
   <synced-tree class='border etcdtree' src='etcd/**' eventtype='ETCD.NODE'>
 
-    <div class='body'>
-      <template>
-        <div class='row'>
+    <div class='screen' name='loading'>
+      <stamp-icon type='loading'>
+    </div>
 
-          <div>
-            <div class='rowgroup'>
-              <div class='rowcell'><stamp-switch class='foldswitch' type='triangle'></stamp-switch></div>
-              <div class='rowcell'><slot name='name'></slot></div>
-              <div class='rowcell'><stamp-icon class='small' type='ghost'></stamp-icon></div>
+    <div class='screen' name='main'>
+        <div class='body'>
+        <template>
+          <div class='row'>
+
+            <div>
+              <div class='rowgroup'>
+                <div class='rowcell'><stamp-switch class='foldswitch' type='triangle'></stamp-switch></div>
+                <div class='rowcell'><slot name='name'></slot></div>
+                <div class='rowcell'><stamp-icon class='small' type='ghost'></stamp-icon></div>
+              </div>
             </div>
-          </div>
 
-          <div class='children'>
-          </div>
+            <div class='children'>
+            </div>
 
-        </div>
-      </template>
+          </div>
+        </template>
+      </div>
     </div>
 
   </synced-tree>

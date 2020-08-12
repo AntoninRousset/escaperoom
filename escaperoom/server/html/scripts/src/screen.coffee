@@ -8,7 +8,7 @@ export class MultiScreenElement extends TemplatedElement
       return TemplatedElement.observedAttributes.concat(['screen'])
   })
 
-  constructor: (@default_screen) ->
+  constructor: (@default_screen='') ->
     super()
 
   @get_observed_attributes: () =>

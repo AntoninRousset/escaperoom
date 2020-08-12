@@ -3,6 +3,7 @@ import '/interface/scripts/stamp.mjs'
 
 
 export onload = (root) ->
+
   tree = root.querySelector('*.etcdtree')
   tree.custom_item_modification = (item, data) =>
 

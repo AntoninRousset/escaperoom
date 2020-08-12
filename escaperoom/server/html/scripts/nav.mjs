@@ -17,18 +17,12 @@ TabNav = class TabNav extends FetchedElement {
     this.src = 'interface/tabs';
     // set default class
     this.classList.add('loadable');
-    // set loading mode by default
-    this.setAttribute('loading', '');
   }
 
   connectedCallback() {
     var content;
     boundMethodCheck(this, TabNav);
     super.connectedCallback();
-    //# create loading screen
-    //cls = customElements.get('loading-animation')
-    //@appendChild(new cls())
-
     //# create content screen
     content = document.createElement('div');
     content.classList.add('content');
@@ -66,7 +60,6 @@ TabNav = class TabNav extends FetchedElement {
       }
       main_screen.appendChild(group_div);
     }
-    this.set_screen('main');
     window.addEventListener('hashchange', this.select_from_hash);
     return this.select_from_hash();
   }
@@ -98,9 +91,11 @@ TabNav = class TabNav extends FetchedElement {
 
 TabContent = class TabContent extends FetchedElement {
   constructor() {
-    super();
+    var data_type;
+    super(data_type = 'text');
     this.select_from_hash = this.select_from_hash.bind(this);
     this.select = this.select.bind(this);
+    this.onnewdata = this.onnewdata.bind(this);
     window.addEventListener('hashchange', this.select_from_hash);
     window.addEventListener('load', this.select_from_hash);
     this.get_screen('main').attachShadow({
@@ -113,22 +108,26 @@ TabContent = class TabContent extends FetchedElement {
     return this.select(location.hash.substr(1));
   }
 
-  async select(tab_id) {
-    var html, main_screen, module_url;
+  select(tab_id) {
     boundMethodCheck(this, TabContent);
     if (!tab_id) {
       return;
     }
+    this.tab_id = tab_id;
+    return this.src = `interface/tabs/${tab_id}/content`;
+  }
+
+  async onnewdata(html) {
+    var m, module_url;
+    boundMethodCheck(this, TabContent);
+    this.get_screen('main').shadowRoot.innerHTML = html;
+    // load script after html to have access to dom
     // coffeescript dynamic import doesn't seem mature, using pure JS instead
-    module_url = `/interface/tabs/${tab_id}/script`;
-    let m = await import(module_url);
-    html = (await fetch_data(`interface/tabs/${tab_id}/content`, 'text'));
-    main_screen = this.get_screen('main');
-    main_screen.shadowRoot.innerHTML = html;
+    module_url = `/interface/tabs/${this.tab_id}/script`;
+    m = (await import(module_url));
     if (m.onload != null) {
-      m.onload(main_screen.shadowRoot);
+      return m.onload(this.get_screen('main').shadowRoot);
     }
-    return this.set_screen('main');
   }
 
 };

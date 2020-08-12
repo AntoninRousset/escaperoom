@@ -21,7 +21,6 @@ export var onload = function(root) {
       }
       row = event.target.closest('.row');
       row.setAttribute('selected', '');
-      console.log('etcd' + row.getAttribute('item_id'));
       // set etcd inspector
       src = 'etcd' + row.getAttribute('item_id') + '?with_values';
       return tree.closest('.etcdnav').querySelector('.etcdinspector').src = src;

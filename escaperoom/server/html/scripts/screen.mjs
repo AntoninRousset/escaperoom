@@ -7,7 +7,7 @@ import {
 
 export var MultiScreenElement = (function() {
   class MultiScreenElement extends TemplatedElement {
-    constructor(default_screen) {
+    constructor(default_screen = '') {
       super();
       this.connectedCallback = this.connectedCallback.bind(this);
       this.attributeChangedCallback = this.attributeChangedCallback.bind(this);

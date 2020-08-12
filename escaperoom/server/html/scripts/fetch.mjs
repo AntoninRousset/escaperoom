@@ -86,13 +86,17 @@ export var FetchedElement = (function() {
     async load_from(src) {
       var data, loading_timeout, now;
       boundMethodCheck(this, FetchedElement);
-      now = new Date();
-      this.now = now;
-      loading_timeout = setTimeout(this.onloading, 1000);
-      data = (await fetch_data(src, this.data_type, this.emul_slow));
-      clearTimeout(loading_timeout);
-      if (now === this.now) {
-        return this.data = data;
+      loading_timeout = setTimeout(this.onloading, 3000);
+      try {
+        now = new Date();
+        this.now = now;
+        data = (await fetch_data(src, this.data_type, this.emul_slow));
+        if (now === this.now) {
+          return this.data = data;
+        }
+      } finally {
+        clearTimeout(loading_timeout);
+        this.set_screen('main');
       }
     }
 

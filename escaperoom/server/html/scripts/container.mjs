@@ -30,7 +30,8 @@ export var SyncedContainer = class SyncedContainer extends SyncedElement {
             if (this.onBeforeElementUpdated != null) {
               return this.onBeforeElementUpdated(from_element, to_element);
             }
-          }
+          },
+          childrenOnly: true
         });
       }
     });

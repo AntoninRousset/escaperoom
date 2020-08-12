@@ -12,16 +12,10 @@ class TabNav extends FetchedElement
     # set default class
     @classList.add('loadable')
 
-    # set loading mode by default
-    @setAttribute('loading', '')
 
   connectedCallback: () =>
 
     super.connectedCallback()
-
-    ## create loading screen
-    #cls = customElements.get('loading-animation')
-    #@appendChild(new cls())
 
     ## create content screen
     content = document.createElement('div')
@@ -64,8 +58,6 @@ class TabNav extends FetchedElement
 
       main_screen.appendChild(group_div)
 
-    @set_screen('main')
-
     window.addEventListener('hashchange', @select_from_hash)
     @select_from_hash()
 
@@ -90,7 +82,7 @@ class TabContent extends FetchedElement
 
   constructor: () ->
 
-    super()
+    super(data_type='text')
 
     window.addEventListener('hashchange', @select_from_hash)
     window.addEventListener('load', @select_from_hash)
@@ -105,19 +97,20 @@ class TabContent extends FetchedElement
     if not tab_id
       return
 
+    @tab_id = tab_id
+    @src = "interface/tabs/#{tab_id}/content"
+
+  onnewdata: (html) =>
+    @get_screen('main').shadowRoot.innerHTML = html
+
+    # load script after html to have access to dom
     # coffeescript dynamic import doesn't seem mature, using pure JS instead
-    module_url = "/interface/tabs/#{tab_id}/script"
-    `let m = await import(module_url)`
-
-    html = await fetch_data("interface/tabs/#{tab_id}/content", 'text')
-
-    main_screen = @get_screen('main')
-    main_screen.shadowRoot.innerHTML = html
+    module_url = "/interface/tabs/#{@tab_id}/script"
+    m = await `import(module_url)`
 
     if m.onload?
-      m.onload(main_screen.shadowRoot)
+      m.onload(@get_screen('main').shadowRoot)
 
-    @set_screen('main')
 
 
 

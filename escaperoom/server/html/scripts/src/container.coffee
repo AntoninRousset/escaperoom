@@ -21,6 +21,8 @@ export class SyncedContainer extends SyncedElement
           onBeforeElUpdated: (from_element, to_element) =>
             if @onBeforeElementUpdated?
               @onBeforeElementUpdated(from_element, to_element)
+
+          childrenOnly: true,
         )
     )
 

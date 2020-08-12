@@ -22,7 +22,7 @@ tab-nav > .screen {
 }
 
 tab-nav > .screen[name='loading'] {
-  height: 100%;
+  margin-top: 20px;
   align-items: center;
   justify-content: center;
   padding: 16px;
@@ -147,10 +147,6 @@ tab-content {
 
   tab-nav .content > * {
     flex: 1;
-  }
-
-  tab-nav[loading] loading-animation {
-    transform: rotateZ(0deg);
   }
 
   tab-nav a {
