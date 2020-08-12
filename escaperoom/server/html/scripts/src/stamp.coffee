@@ -39,6 +39,9 @@ class StampElement extends MultiScreenElement
     if type == 'ghost'
       @appendChild(stamp_svg.small.ghost.cloneNode(true))
 
+    else if type == 'loading'
+      @appendChild(stamp_svg[size].loading.cloneNode(true))
+
 customElements.define('stamp-icon', StampElement)
 
 

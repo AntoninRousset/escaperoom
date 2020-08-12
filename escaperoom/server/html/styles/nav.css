@@ -11,12 +11,21 @@ tab-nav {
   overflow-x: visible; /* for the selected tab arrow */
   overflow-y: scroll;
   scrollbar-width: none;
+  flex-flow: column nowrap;
+  justify-content: center;
 }
 
 tab-nav > .screen {
   display: flex;
   flex-flow: column nowrap;
   padding: 0px;
+}
+
+tab-nav > .screen[name='loading'] {
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
 }
 
 tab-nav > .screen[name='main'] > div {
