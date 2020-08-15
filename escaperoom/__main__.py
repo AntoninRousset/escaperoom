@@ -10,6 +10,7 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import asyncio
 import logging
 
 
@@ -22,17 +23,33 @@ def parse_args():
 
     parser = ArgumentParser(description='Escape room server')
     parser.add_argument('-v', '--verbose', action='store_true',
-                        help='Print info log')
+                        help='print info log')
     parser.add_argument('-vv', '--debug', action='store_true',
-                        help='Print debug log')
-    parser.add_argument('--master', action='store_true',
-                        help='Start server as the master node')
+                        help='print debug log')
+    parser.add_argument('--http-server', action='store_true',
+                        help='start http server')
+    parser.add_argument('--clusters-urls', action='store', required=True,
+                        help='list of etcd servers to connect to')
+    parser.add_argument('--member-name', action='store', required=True,
+                        help='name for connection to the cluster')
     return parser.parse_args()
+
+
+async def init(args):
+
+    from .shared.cluster import Cluster
+
+    for endpoint in args.clusters_urls.split(','):
+        cluster = Cluster(endpoint, persistent=True)  # TODO Check duplicates
+        asyncio.create_task(cluster.start())
+
+    if args.http_server:
+        asyncio.create_task(run_http_server())
+
 
 def main():
 
     from .misc.logutils import init_logging_system
-    from asyncio import get_event_loop
 
     args = parse_args()
 
@@ -40,18 +57,20 @@ def main():
     init_logging_system(level=level)
 
     try:
-        loop = get_event_loop()
-        loop.run_until_complete(run_http_server())
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(init(args))
+        loop.run_forever()
 
     except KeyboardInterrupt:
         logger.warning('Keyboard interrupted')
-
 
 
 async def run_http_server():
 
     from .context import EscaperoomContext
     from .server import HTTPServer
+
+    print('*****')
 
     async with EscaperoomContext() as context:
         async with HTTPServer(context):
