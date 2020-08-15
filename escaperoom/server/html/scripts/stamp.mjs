@@ -47,6 +47,8 @@ StampElement = (function() {
       size = this.classList.contains('small') ? 'small' : 'big';
       if (type === 'ghost') {
         return this.appendChild(stamp_svg.small.ghost.cloneNode(true));
+      } else if (type === 'loading') {
+        return this.appendChild(stamp_svg[size].loading.cloneNode(true));
       }
     }
 

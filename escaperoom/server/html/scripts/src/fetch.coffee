@@ -69,15 +69,20 @@ export class FetchedElement extends MultiScreenElement
 
   load_from: (src) =>
 
-    now = new Date()
-    @now = now
+    loading_timeout = setTimeout(@onloading, 3000)
 
-    loading_timeout = setTimeout(@onloading, 1000)
-    data = await fetch_data(src, @data_type, @emul_slow)
-    clearTimeout(loading_timeout)
+    try
+      now = new Date()
+      @now = now
 
-    if now is @now
-      @data = data
+      data = await fetch_data(src, @data_type, @emul_slow)
+
+      if now is @now
+        @data = data
+
+    finally
+      clearTimeout(loading_timeout)
+      @set_screen('main')
 
   attributeChangedCallback: (name, old_value, new_value) =>
     

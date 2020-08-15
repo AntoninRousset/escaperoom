@@ -11,9 +11,16 @@ export class SyncedElement extends FetchedElement
     if data['type'] == 'update'
       event_src = data['src']
 
-    for subscriber, filter of subscriptions
+    for sub in subscriptions
+      subscriber = sub[0]
+      filter = sub[1]
       if filter(data)
-        subscriber.load_from_src()
+        subscriber.load_from(subscriber.src)
+
+  Object.defineProperty(SyncedElement, 'observedAttributes', {
+    get: () =>
+      return FetchedElement.observedAttributes.concat(['eventsrc', 'eventtype'])
+  })
 
   disconnectedCallback: () =>
     @unsubscribe()
@@ -21,27 +28,41 @@ export class SyncedElement extends FetchedElement
   subscribe: (filter) ->
 
     if typeof(filter) == 'string'
-      subscriptions[this] = (event) =>
+      subscriptions.push([this, (event) =>
         event.src == filter
+      ])
 
     else if typeof(filter) == 'function'
-      subscriptions[this] = filter
+      subscriptions.push([this, filter])
 
     else
       log.error('Invalid filter', filter)
 
   unsubscribe: () ->
-    delete subscriptions[this]
+    subscriptions = subscriptions.filter((x) => x[0] is not this)
 
   onnewdata: (data) =>
-    console.log('new data:', data)
     @fill_slots(this, data)
+    @set_screen('main')
 
   attributeChangedCallback: (name, old_value, new_value) =>
     
     super.attributeChangedCallback(name, old_value, new_value)
 
-    if name == 'src'
-      @subscribe(@src)
+    if name in ['src', 'eventsrc', 'eventtype']
+
+      if not @hasAttribute('eventsrc') and not @hasAttribute('eventtype')
+        @subscribe(@src)
+      else
+        @subscribe((event) =>
+
+          if @hasAttribute('eventsrc') and event.src != @getAttribute('eventsrc')
+            return false
+
+          if @hasAttribute('eventtype') and not event.type.join('.').startsWith(@getAttribute('eventtype'))
+            return false
+     
+          return true
+        )
 
 customElements.define('synced-element', SyncedElement)

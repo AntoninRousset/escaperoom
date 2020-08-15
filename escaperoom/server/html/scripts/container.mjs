@@ -25,7 +25,13 @@ export var SyncedContainer = class SyncedContainer extends SyncedElement {
             try {
               return node.getAttribute('item_id');
             } catch (error) {}
-          }
+          },
+          onBeforeElUpdated: (from_element, to_element) => {
+            if (this.onBeforeElementUpdated != null) {
+              return this.onBeforeElementUpdated(from_element, to_element);
+            }
+          },
+          childrenOnly: true
         });
       }
     });

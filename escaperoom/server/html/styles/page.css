@@ -28,18 +28,6 @@
   page-break-inside: avoid;
 }
 
-.loading svg {
-  animation:spin 1s linear infinite;
-}
-
-@keyframes spin { 
-
-  100% {
-    transform:rotate(-360deg);
-  }
-
-}
-
 @media only screen and (max-width: 500px) {
 
   .list .lrowextra .labeling {

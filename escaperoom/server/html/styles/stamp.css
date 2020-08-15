@@ -17,6 +17,27 @@ stamp-switch {
   cursor: pointer;
 }
 
+/* loading */
+
+.stamp[type='loading'] svg {
+  animation: spin 1s linear infinite;
+  fill: var(--gray);
+}
+
+@keyframes spin{
+
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
+
+}
+
+
+
 /* switch "triangle" */
 
 stamp-switch[type='triangle'] svg {

@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class Etcd(EventFunnel):
 
-    def __init__(self, endpoint='127.0.0.1:2379'):
+    def __init__(self, endpoint='localhost:2379'):
 
         super().__init__()
 
@@ -60,8 +60,8 @@ class Etcd(EventFunnel):
                 for k, v, meta in res]
 
     def convert_event(self, event):
-        from .event import EtcdEvent
-        return EtcdEvent(event)
+        from .event import etcd_event
+        return etcd_event(event)
 
     async def _watch_etcd(self):
 

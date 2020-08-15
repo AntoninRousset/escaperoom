@@ -20,6 +20,10 @@ export class SyncedTree extends SyncedContainer
     newbody = document.createElement('div')
     newbody.classList.add('body')
 
+    # copy template
+    template = @body.querySelector('template')
+    newbody.appendChild(template.cloneNode(true))
+
     for key in @sort_data(data.children)
       item = @create_item(data.children[key])
       newbody.appendChild(item)
@@ -62,5 +66,23 @@ export class SyncedTree extends SyncedContainer
       item = @custom_item_modification(item, data)
 
     return item
+
+  onBeforeElementUpdated: (from_element, to_element) =>
+
+    # skip if customElement
+    if from_element.classList.contains('stamp')
+      return false
+
+    if from_element.classList.contains('row')
+
+      # keep row open
+      if from_element.hasAttribute('open')
+        to_element.setAttribute('open', '')
+
+      # keep row selected
+      if from_element.hasAttribute('selected')
+        to_element.setAttribute('selected', '')
+
+  
 
 customElements.define('synced-tree', SyncedTree)

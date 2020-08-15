@@ -13,9 +13,16 @@ export class SyncedContainer extends SyncedElement
         return @get_body()
       set: (newbody) =>
         morphdom(@body, newbody,
+
           getNodeKey: (node) =>
             try
               return node.getAttribute('item_id')
+
+          onBeforeElUpdated: (from_element, to_element) =>
+            if @onBeforeElementUpdated?
+              @onBeforeElementUpdated(from_element, to_element)
+
+          childrenOnly: true,
         )
     )
 

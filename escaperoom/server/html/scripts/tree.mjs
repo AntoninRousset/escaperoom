@@ -22,6 +22,7 @@ export var SyncedTree = class SyncedTree extends SyncedContainer {
     this.onnewdata = this.onnewdata.bind(this);
     this.sort_data = this.sort_data.bind(this);
     this.create_item = this.create_item.bind(this);
+    this.onBeforeElementUpdated = this.onBeforeElementUpdated.bind(this);
     this.classList.add('tree');
   }
 
@@ -32,10 +33,13 @@ export var SyncedTree = class SyncedTree extends SyncedContainer {
   }
 
   onnewdata(data) {
-    var i, item, key, len, newbody, ref;
+    var i, item, key, len, newbody, ref, template;
     boundMethodCheck(this, SyncedTree);
     newbody = document.createElement('div');
     newbody.classList.add('body');
+    // copy template
+    template = this.body.querySelector('template');
+    newbody.appendChild(template.cloneNode(true));
     ref = this.sort_data(data.children);
     for (i = 0, len = ref.length; i < len; i++) {
       key = ref[i];
@@ -91,6 +95,24 @@ export var SyncedTree = class SyncedTree extends SyncedContainer {
       item = this.custom_item_modification(item, data);
     }
     return item;
+  }
+
+  onBeforeElementUpdated(from_element, to_element) {
+    boundMethodCheck(this, SyncedTree);
+    // skip if customElement
+    if (from_element.classList.contains('stamp')) {
+      return false;
+    }
+    if (from_element.classList.contains('row')) {
+      // keep row open
+      if (from_element.hasAttribute('open')) {
+        to_element.setAttribute('open', '');
+      }
+      // keep row selected
+      if (from_element.hasAttribute('selected')) {
+        return to_element.setAttribute('selected', '');
+      }
+    }
   }
 
 };

@@ -11,10 +11,6 @@
   break-inside: avoid;
 }
 
-.panel loading-animation {
-  padding: 20px 0px;
-}
-
 .panel[folded] .content {
   display: none 
 }

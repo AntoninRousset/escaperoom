@@ -11,6 +11,7 @@
     <link rel='stylesheet' type='text/css' href='interface/styles/panel.css'>
     <link rel='stylesheet' type='text/css' href='interface/styles/page.css'>
     <link rel='stylesheet' type='text/css' href='interface/styles/list.css'>
+    <link rel='stylesheet' type='text/css' href='interface/styles/stamp.css'>
 
     <script src="interface/scripts/nav.mjs" type='module' defer></script>
     <script src="interface/scripts/sync.mjs" type='module' defer></script>
@@ -38,8 +39,13 @@
     </header>
 
     <tab-nav>
-      <div class='screen' name='loading'>Loading...</div>
+
+      <div class='screen' name='loading'>
+        <stamp-icon type='loading'></stamp-icon>
+      </div>
+
       <div class='screen' name='main'></div>
+
     </tab-nav>
 
     <template id='template-panel-header'>
@@ -54,7 +60,9 @@
     </template>
 
     <tab-content>
-      <div class='screen' name='loading'>Loading...</div>
+      <div class='screen' name='loading'>
+        <stamp-icon type='loading'></stamp-icon>
+      </div>
       <div class='screen' name='main'></div>
     </tab-content>
 
