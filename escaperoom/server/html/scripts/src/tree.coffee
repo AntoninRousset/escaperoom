@@ -47,9 +47,14 @@ export class SyncedTree extends SyncedContainer
     for btn in item.querySelectorAll('stamp-switch.foldswitch')
       btn.onstatechange = @foldswitch_onstatechange
 
-    # add new item action
-    for btn in item.querySelectorAll('stamp-button.newbutton')
-      btn.action = @newbutton_action
+    # add create item action
+    for btn in item.querySelectorAll('stamp-button.create')
+      btn.action = @button_create_action
+
+    # add delete item action
+    for btn in item.querySelectorAll('stamp-button.delete')
+      btn.action = @button_delete_action
+
 
     extra = item.querySelector('*.children')
     for key in @sort_data(data.children)
@@ -111,7 +116,7 @@ export class SyncedTree extends SyncedContainer
     else
       row.removeAttribute('open')
 
-  newbutton_action: () ->
+  button_create_action: () ->
 
     row = this.closest('.row')
     tree = row.closest('synced-tree')
@@ -163,6 +168,19 @@ export class SyncedTree extends SyncedContainer
     )
     
     input.focus()
+
+  button_delete_action: (event) ->
+
+    row = @closest('.row')
+    item_id = row.getAttribute('item_id')
+    etcd_key = "#{item_id}/**"
+
+    response = await fetch('etcd' + etcd_key, {
+      headers: {'Content-Type': 'application/json'},
+      method: 'DELETE'
+    })
+
+    console.log('DELETE', response)
 
 
 customElements.define('synced-tree', SyncedTree)

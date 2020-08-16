@@ -12,6 +12,7 @@ class EtcdHandler(WebHandler):
         super().__init__(context, rootdir)
         self.app.router.add_get('/{selector:.*}', self.get_selector)
         self.app.router.add_put('/{selector:.*}', self.put_selector)
+        self.app.router.add_delete('/{selector:.*}', self.delete_selector)
         self.add_event_source(self.context.etcd.root / '**')
 
     async def get_selector(self, request):
@@ -41,11 +42,17 @@ class EtcdHandler(WebHandler):
         from aiohttp.web import Response
 
         accessor = self.context.etcd.root / request.match_info['selector']
+        await accessor.set(loads(await request._payload.read()))
 
-        from pprint import pprint
-        pprint(request.__dict__)
+        return Response(content_type='application/json', text='{}')
 
-        data = await accessor.set(loads(await request._payload.read()))
+
+    async def delete_selector(self, request):
+
+        from aiohttp.web import Response
+
+        accessor = self.context.etcd.root / request.match_info['selector']
+        await accessor.delete()
 
         return Response(content_type='application/json', text='{}')
 

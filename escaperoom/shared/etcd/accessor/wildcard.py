@@ -5,6 +5,7 @@ class EtcdWildcardAccessor(EtcdSelectorBasedAccessor):
 
     async def delete(self):
 
+        from .auto import accessor
         from aioetcd3 import range_prefix
 
         # if selector selects a single subtree, the whole subtree can be
@@ -12,6 +13,8 @@ class EtcdWildcardAccessor(EtcdSelectorBasedAccessor):
         if str(self.selector) == f'{self.selector.prefix}**':
             prefix = str(self.selector.prefix)
             await self.etcd.client.delete(range_prefix(prefix))
+            await self.etcd.client.delete(range_prefix(prefix))
+            await accessor(self.etcd, self.selector.prefix).delete()
 
         else:
             await super().delete()

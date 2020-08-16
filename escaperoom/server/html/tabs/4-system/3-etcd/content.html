@@ -47,7 +47,7 @@
   fill: var(--light-gray);
 }
 
-.etcdtree .row .stamp[type='plus'] {
+.etcdtree .row stamp-button {
   visibility: hidden;
 }
 
@@ -55,12 +55,16 @@
   fill: var(--light-gray);
 }
 
-.etcdtree .row > div:not(.children):hover .stamp[type='plus'] svg {
+.etcdtree .row > div:not(.children):hover stamp-button {
   visibility: visible;
 }
 
 .etcdtree .row .stamp[type='plus']:hover svg {
   fill: var(--gray);
+}
+
+.etcdtree .row > div:not(.children):hover stamp-button[disabled] {
+  visibility: hidden;
 }
 
 .etcdinspector {
@@ -100,12 +104,12 @@
   font-family: monospace;
 }
 
-.etcdtree stamp-button[type='check'] {
-  fill: var(--gray);
+.etcdtree stamp-button.delete {
+  fill: var(--light-gray);
 }
 
-.etcdtree stamp-button[type='check']:hover {
-  fill: black;
+.etcdtree stamp-button.delete:hover {
+  fill: var(--red);
 }
 
 @media only screen and (max-width: 700px) {
@@ -144,7 +148,8 @@
                   <div class='rowcell'><stamp-switch class='foldswitch' type='triangle'></stamp-switch></div>
                   <div class='rowcell'><slot name='name'></slot></div>
                   <div class='rowcell'><stamp-icon class='small' type='ghost'></stamp-icon></div>
-                  <div class='rowcell'><stamp-button class='newbutton small' type='plus'></stamp-icon></div>
+                  <div class='rowcell'><stamp-button class='create small' type='plus'></stamp-icon></div>
+                  <div class='rowcell'><stamp-button class='delete small' type='x'></stamp-button></div>
                 </div>
               </div>
 

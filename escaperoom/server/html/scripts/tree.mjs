@@ -60,7 +60,7 @@ export var SyncedTree = class SyncedTree extends SyncedContainer {
   }
 
   create_item(data) {
-    var btn, extra, i, item, j, k, key, len, len1, len2, ref, ref1, ref2, template;
+    var btn, extra, i, item, j, k, key, l, len, len1, len2, len3, ref, ref1, ref2, ref3, template;
     boundMethodCheck(this, SyncedTree);
     template = this.body.querySelector('template.normalrow');
     item = this.instantiate_template(template);
@@ -73,16 +73,22 @@ export var SyncedTree = class SyncedTree extends SyncedContainer {
       btn = ref[i];
       btn.onstatechange = this.foldswitch_onstatechange;
     }
-    ref1 = item.querySelectorAll('stamp-button.newbutton');
-    // add new item action
+    ref1 = item.querySelectorAll('stamp-button.create');
+    // add create item action
     for (j = 0, len1 = ref1.length; j < len1; j++) {
       btn = ref1[j];
-      btn.action = this.newbutton_action;
+      btn.action = this.button_create_action;
+    }
+    ref2 = item.querySelectorAll('stamp-button.delete');
+    // add delete item action
+    for (k = 0, len2 = ref2.length; k < len2; k++) {
+      btn = ref2[k];
+      btn.action = this.button_delete_action;
     }
     extra = item.querySelector('*.children');
-    ref2 = this.sort_data(data.children);
-    for (k = 0, len2 = ref2.length; k < len2; k++) {
-      key = ref2[k];
+    ref3 = this.sort_data(data.children);
+    for (l = 0, len3 = ref3.length; l < len3; l++) {
+      key = ref3[l];
       extra.appendChild(this.create_item(data.children[key]));
     }
     if (!is_empty(data.children)) {
@@ -151,7 +157,7 @@ export var SyncedTree = class SyncedTree extends SyncedContainer {
     }
   }
 
-  newbutton_action() {
+  button_create_action() {
     var children, creationrow, input, row, template, tree;
     row = this.closest('.row');
     tree = row.closest('synced-tree');
@@ -179,7 +185,6 @@ export var SyncedTree = class SyncedTree extends SyncedContainer {
         }
         item_id = row.getAttribute('item_id');
         etcd_key = `${item_id}/${content}`;
-        console.log('--->', etcd_key);
         response = (await fetch('etcd' + etcd_key, {
           headers: {
             'Content-Type': 'application/json'
@@ -198,6 +203,20 @@ export var SyncedTree = class SyncedTree extends SyncedContainer {
       return tree.removeAttribute('paused');
     });
     return input.focus();
+  }
+
+  async button_delete_action(event) {
+    var etcd_key, item_id, response, row;
+    row = this.closest('.row');
+    item_id = row.getAttribute('item_id');
+    etcd_key = `${item_id}/**`;
+    response = (await fetch('etcd' + etcd_key, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      method: 'DELETE'
+    }));
+    return console.log('DELETE', response);
   }
 
 };

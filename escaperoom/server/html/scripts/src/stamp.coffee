@@ -72,6 +72,9 @@ class StampButtonElement extends StampElement
     else if type == 'check'
       @appendChild(stamp_svg[size].check.cloneNode(true))
 
+    else if type == 'x'
+      @appendChild(stamp_svg[size].x.cloneNode(true))
+
 
 
 customElements.define('stamp-button', StampButtonElement)
