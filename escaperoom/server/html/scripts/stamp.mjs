@@ -70,16 +70,29 @@ StampButtonElement = class StampButtonElement extends StampElement {
   constructor() {
     super(...arguments);
     this.connectedCallback = this.connectedCallback.bind(this);
+    this.set_stamp_type = this.set_stamp_type.bind(this);
   }
 
   connectedCallback() {
     boundMethodCheck(this, StampButtonElement);
     super.connectedCallback();
     return this.addEventListener('click', (event) => {
-      if (!this.hasAttribute('disabled')) {
+      if (!this.hasAttribute('disabled') && (this.onclick != null)) {
         return this.onclick(event);
       }
     });
+  }
+
+  set_stamp_type(type) {
+    var size;
+    boundMethodCheck(this, StampButtonElement);
+    this.innerHTML = '';
+    size = this.classList.contains('small') ? 'small' : 'big';
+    if (type === 'plus') {
+      return this.appendChild(stamp_svg[size].plus.cloneNode(true));
+    } else if (type === 'chevron') {
+      return this.appendChild(stamp_svg[size].chevron_up.cloneNode(true));
+    }
   }
 
 };

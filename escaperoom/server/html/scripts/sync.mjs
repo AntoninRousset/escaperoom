@@ -9,11 +9,13 @@ export var SyncedElement = (function() {
   var event_source, subscriptions;
 
   class SyncedElement extends FetchedElement {
-    constructor() {
-      super(...arguments);
+    constructor(data_type, emul_slow) {
+      super(data_type, emul_slow);
       this.disconnectedCallback = this.disconnectedCallback.bind(this);
+      this.onsyncevent = this.onsyncevent.bind(this);
       this.onnewdata = this.onnewdata.bind(this);
       this.attributeChangedCallback = this.attributeChangedCallback.bind(this);
+      this.postponed_syncevents = [];
     }
 
     disconnectedCallback() {
@@ -42,6 +44,20 @@ export var SyncedElement = (function() {
       });
     }
 
+    onsyncevent(event) {
+      boundMethodCheck(this, SyncedElement);
+      // if paused, add event to be retriggered once not paused anymore
+      if (this.hasAttribute('paused')) {
+        return this.postponed_syncevents.push(event);
+      }
+      // load new content
+      if (this.src != null) {
+        return this.load_from(this.src);
+      } else {
+        return this.set_screen('empty');
+      }
+    }
+
     onnewdata(data) {
       boundMethodCheck(this, SyncedElement);
       this.fill_slots(this, data);
@@ -49,13 +65,15 @@ export var SyncedElement = (function() {
     }
 
     attributeChangedCallback(name, old_value, new_value) {
+      var event, i, len, postponed_syncevents, results;
       boundMethodCheck(this, SyncedElement);
       super.attributeChangedCallback(name, old_value, new_value);
+      // change in the event subscription
       if (name === 'src' || name === 'eventsrc' || name === 'eventtype') {
         if (!this.hasAttribute('eventsrc') && !this.hasAttribute('eventtype')) {
-          return this.subscribe(this.src);
+          this.subscribe(this.src);
         } else {
-          return this.subscribe((event) => {
+          this.subscribe((event) => {
             if (this.hasAttribute('eventsrc') && event.src !== this.getAttribute('eventsrc')) {
               return false;
             }
@@ -64,6 +82,22 @@ export var SyncedElement = (function() {
             }
             return true;
           });
+        }
+      }
+      // paused
+      if (name === 'paused') {
+        // if not paused anymore, trigger buffered syncevent
+        if (new_value == null) {
+          // postponed_syncevents array is copied to allow @onsyncevent
+          // to modify it
+          postponed_syncevents = this.postponed_syncevents.slice();
+          this.postponed_syncevents = [];
+          results = [];
+          for (i = 0, len = postponed_syncevents.length; i < len; i++) {
+            event = postponed_syncevents[i];
+            results.push(this.onsyncevent(event));
+          }
+          return results;
         }
       }
     }
@@ -86,7 +120,7 @@ export var SyncedElement = (function() {
       subscriber = sub[0];
       filter = sub[1];
       if (filter(data)) {
-        results.push(subscriber.load_from(subscriber.src));
+        results.push(subscriber.onsyncevent(event));
       } else {
         results.push(void 0);
       }
@@ -96,7 +130,7 @@ export var SyncedElement = (function() {
 
   Object.defineProperty(SyncedElement, 'observedAttributes', {
     get: () => {
-      return FetchedElement.observedAttributes.concat(['eventsrc', 'eventtype']);
+      return FetchedElement.observedAttributes.concat(['eventsrc', 'eventtype', 'paused']);
     }
   });
 

@@ -15,12 +15,16 @@ export class SyncedElement extends FetchedElement
       subscriber = sub[0]
       filter = sub[1]
       if filter(data)
-        subscriber.load_from(subscriber.src)
+        subscriber.onsyncevent(event)
 
   Object.defineProperty(SyncedElement, 'observedAttributes', {
     get: () =>
-      return FetchedElement.observedAttributes.concat(['eventsrc', 'eventtype'])
+      return FetchedElement.observedAttributes.concat(['eventsrc', 'eventtype', 'paused'])
   })
+
+  constructor: (data_type, emul_slow) ->
+    super(data_type, emul_slow)
+    @postponed_syncevents = []
 
   disconnectedCallback: () =>
     @unsubscribe()
@@ -41,6 +45,18 @@ export class SyncedElement extends FetchedElement
   unsubscribe: () ->
     subscriptions = subscriptions.filter((x) => x[0] is not this)
 
+  onsyncevent: (event) =>
+
+    # if paused, add event to be retriggered once not paused anymore
+    if @hasAttribute('paused')
+      return @postponed_syncevents.push(event)
+
+    # load new content
+    if @src?
+      @load_from(@src)
+    else
+      @set_screen('empty')
+
   onnewdata: (data) =>
     @fill_slots(this, data)
     @set_screen('main')
@@ -49,6 +65,7 @@ export class SyncedElement extends FetchedElement
     
     super.attributeChangedCallback(name, old_value, new_value)
 
+    # change in the event subscription
     if name in ['src', 'eventsrc', 'eventtype']
 
       if not @hasAttribute('eventsrc') and not @hasAttribute('eventtype')
@@ -61,8 +78,22 @@ export class SyncedElement extends FetchedElement
 
           if @hasAttribute('eventtype') and not event.type.join('.').startsWith(@getAttribute('eventtype'))
             return false
-     
+
           return true
         )
+
+    # paused
+    if name == 'paused'
+
+      # if not paused anymore, trigger buffered syncevent
+      if not new_value?
+
+        # postponed_syncevents array is copied to allow @onsyncevent
+        # to modify it
+        postponed_syncevents = @postponed_syncevents.slice()
+        @postponed_syncevents = []
+        for event in postponed_syncevents
+          @onsyncevent(event)
+
 
 customElements.define('synced-element', SyncedElement)

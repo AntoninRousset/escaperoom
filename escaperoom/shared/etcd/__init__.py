@@ -1,4 +1,4 @@
-from .error import EtcdNotOpenedError
+from .error import EtcdNotOpenedError, EtcdUnavailableError, EtcdGRPCError
 from ...event import EventFunnel
 import logging
 
@@ -46,12 +46,24 @@ class Etcd(EventFunnel):
         from .accessor.selector import EtcdKey
         from aioetcd3 import range_prefix
         from json import loads
+        from grpc._channel import _MultiThreadedRendezvous
+        from grpc import StatusCode
 
         if not self.is_open():
             raise EtcdNotOpenedError()
 
-        res = await self.client.range(range_prefix(str(prefix)),
-                                      keys_only=keys_only)
+
+        try:
+            res = await self.client.range(range_prefix(str(prefix)),
+                                          keys_only=keys_only)
+
+        except _MultiThreadedRendezvous as e:
+
+            if e._state.code is StatusCode.UNAVAILABLE:
+                raise EtcdUnavailableError()
+            else:
+                raise EtcdGRPCError(e)
+
 
         if keys_only:
             return [EtcdKey(k.decode()) for k, _, _ in res]

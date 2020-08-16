@@ -52,9 +52,23 @@ class StampButtonElement extends StampElement
     super.connectedCallback()
 
     @addEventListener('click', (event) =>
-      if not @hasAttribute('disabled')
+      if not @hasAttribute('disabled') and @onclick?
         @onclick(event)
     )
+
+  set_stamp_type: (type) =>
+
+    @innerHTML = ''
+    
+    size = if @classList.contains('small') then 'small'  else 'big'
+
+    if type == 'plus'
+      @appendChild(stamp_svg[size].plus.cloneNode(true))
+
+    else if type == 'chevron'
+      @appendChild(stamp_svg[size].chevron_up.cloneNode(true))
+
+
 
 customElements.define('stamp-button', StampButtonElement)
 

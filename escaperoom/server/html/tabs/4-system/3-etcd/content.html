@@ -43,8 +43,25 @@
   display: block;
 }
 
-.stamp[type='ghost'] svg {
+.etcdtree .row .stamp[type='ghost'] svg {
   fill: var(--light-gray);
+}
+
+.etcdtree .row .stamp[type='plus'] {
+  visibility: hidden;
+    cursor: pointer;
+}
+
+.etcdtree .row .stamp[type='plus'] svg {
+  fill: var(--light-gray);
+}
+
+.etcdtree .row > div:not(.children):hover .stamp[type='plus'] svg {
+  visibility: visible;
+}
+
+.etcdtree .row .stamp[type='plus']:hover svg {
+  fill: var(--gray);
 }
 
 .etcdinspector {
@@ -119,6 +136,7 @@
                 <div class='rowcell'><stamp-switch class='foldswitch' type='triangle'></stamp-switch></div>
                 <div class='rowcell'><slot name='name'></slot></div>
                 <div class='rowcell'><stamp-icon class='small' type='ghost'></stamp-icon></div>
+                <div class='rowcell'><stamp-button class='small' type='plus'></stamp-icon></div>
               </div>
             </div>
 
