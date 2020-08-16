@@ -112,7 +112,5 @@ class TabContent extends FetchedElement
       m.onload(@get_screen('main').shadowRoot)
 
 
-
-
 customElements.define('tab-nav', TabNav)
 customElements.define('tab-content', TabContent)

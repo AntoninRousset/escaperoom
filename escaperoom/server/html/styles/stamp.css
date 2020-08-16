@@ -13,7 +13,14 @@ stamp-button {
   display: block;
 }
 
+stamp-button:not([disabled]) {
+  cursor: pointer;
+}
+
 stamp-switch {
+}
+
+stamp-switch:not([disabled]) {
   cursor: pointer;
 }
 

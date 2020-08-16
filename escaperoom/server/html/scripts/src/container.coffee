@@ -19,8 +19,18 @@ export class SyncedContainer extends SyncedElement
               return node.getAttribute('item_id')
 
           onBeforeElUpdated: (from_element, to_element) =>
-            if @onBeforeElementUpdated?
-              @onBeforeElementUpdated(from_element, to_element)
+            if @onbeforeelementupdated?
+              @onbeforeelementupdated(from_element, to_element)
+
+          onBeforeNodeDiscarded: (node) =>
+
+            # skip non-element nodes
+            if node not instanceof Element and node not instanceof HTMLDocument
+              return
+
+            # skip sync-persistent elements
+            if node.classList.contains('syncpersistent')
+              return false
 
           childrenOnly: true,
         )

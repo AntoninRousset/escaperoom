@@ -27,8 +27,18 @@ export var SyncedContainer = class SyncedContainer extends SyncedElement {
             } catch (error) {}
           },
           onBeforeElUpdated: (from_element, to_element) => {
-            if (this.onBeforeElementUpdated != null) {
-              return this.onBeforeElementUpdated(from_element, to_element);
+            if (this.onbeforeelementupdated != null) {
+              return this.onbeforeelementupdated(from_element, to_element);
+            }
+          },
+          onBeforeNodeDiscarded: (node) => {
+            // skip non-element nodes
+            if (!(node instanceof Element) && !(node instanceof HTMLDocument)) {
+              return;
+            }
+            // skip sync-persistent elements
+            if (node.classList.contains('syncpersistent')) {
+              return false;
             }
           },
           childrenOnly: true

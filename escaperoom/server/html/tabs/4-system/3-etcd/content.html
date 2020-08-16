@@ -49,7 +49,6 @@
 
 .etcdtree .row .stamp[type='plus'] {
   visibility: hidden;
-    cursor: pointer;
 }
 
 .etcdtree .row .stamp[type='plus'] svg {
@@ -101,6 +100,14 @@
   font-family: monospace;
 }
 
+.etcdtree stamp-button[type='check'] {
+  fill: var(--gray);
+}
+
+.etcdtree stamp-button[type='check']:hover {
+  fill: black;
+}
+
 @media only screen and (max-width: 700px) {
 
   .etcdnav {
@@ -128,25 +135,42 @@
 
     <div class='screen' name='main'>
         <div class='body'>
-        <template>
-          <div class='row'>
 
-            <div>
-              <div class='rowgroup'>
-                <div class='rowcell'><stamp-switch class='foldswitch' type='triangle'></stamp-switch></div>
-                <div class='rowcell'><slot name='name'></slot></div>
-                <div class='rowcell'><stamp-icon class='small' type='ghost'></stamp-icon></div>
-                <div class='rowcell'><stamp-button class='small' type='plus'></stamp-icon></div>
+          <template class='normalrow'>
+            <div class='row selectable'>
+
+              <div>
+                <div class='rowgroup'>
+                  <div class='rowcell'><stamp-switch class='foldswitch' type='triangle'></stamp-switch></div>
+                  <div class='rowcell'><slot name='name'></slot></div>
+                  <div class='rowcell'><stamp-icon class='small' type='ghost'></stamp-icon></div>
+                  <div class='rowcell'><stamp-button class='newbutton small' type='plus'></stamp-icon></div>
+                </div>
               </div>
+
+              <div class='children'>
+              </div>
+
+            </div>
+          </template>
+
+          <template class='creationrow'>
+
+            <div class='row'>
+
+              <div>
+                <div class='rowgroup'>
+                  <div class='rowcell'><stamp-switch class='foldswitch' type='triangle'></stamp-switch></div>
+                  <div class='rowcell' contenteditable></div>
+                </div>
+              </div>
+
             </div>
 
-            <div class='children'>
-            </div>
+          </template>
 
-          </div>
-        </template>
+        </div>
       </div>
-    </div>
 
   </synced-tree>
 

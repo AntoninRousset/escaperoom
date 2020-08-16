@@ -7,20 +7,15 @@ export onload = (root) ->
   tree = root.querySelector('*.etcdtree')
   tree.custom_item_modification = (item, data) =>
 
+    # if node doesn't exist in the etcd tree, mark it as ghost
     if not data.node?
       item.classList.add('ghost')
-      return item
-
-    item.classList.add('selectable')
-    item.addEventListener('click', (event) =>
-      for row in tree.querySelectorAll('.row')
-        row.removeAttribute('selected')
-      row = event.target.closest('.row')
-      row.setAttribute('selected', '')
-
-      # set etcd inspector
-      src = 'etcd' + row.getAttribute('item_id') + '?with_values'
-      tree.closest('.etcdnav').querySelector('.etcdinspector').src = src
-    )
+      item.classList.remove('selectable')
 
     return item
+
+  inspector = tree.closest('.etcdnav').querySelector('.etcdinspector')
+  tree.onrowselect = (row) =>
+    # set etcd inspector
+    src = 'etcd' + row.getAttribute('item_id') + '?with_values'
+    inspector.src = src

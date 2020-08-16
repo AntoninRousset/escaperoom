@@ -52,8 +52,9 @@ class StampButtonElement extends StampElement
     super.connectedCallback()
 
     @addEventListener('click', (event) =>
-      if not @hasAttribute('disabled') and @onclick?
-        @onclick(event)
+      if not @hasAttribute('disabled') and @action?
+        @action(event)
+        event.stopPropagation()
     )
 
   set_stamp_type: (type) =>
@@ -67,6 +68,9 @@ class StampButtonElement extends StampElement
 
     else if type == 'chevron'
       @appendChild(stamp_svg[size].chevron_up.cloneNode(true))
+
+    else if type == 'check'
+      @appendChild(stamp_svg[size].check.cloneNode(true))
 
 
 
@@ -87,12 +91,11 @@ class StampSwitchElement extends StampButtonElement
     if not @hasAttribute('state')
       @setAttribute('state', 'off')
 
-  onclick: (event) =>
+  action: (event) =>
     if not @hasAttribute('state') or @getAttribute('state') == 'off'
       @setAttribute('state', 'on')
     else
       @setAttribute('state', 'off')
-    event.stopPropagation()
 
   attributeChangedCallback: (name, old_value, new_value) =>
 
@@ -112,5 +115,6 @@ class StampSwitchElement extends StampButtonElement
 
     else if type == 'chevron'
       @appendChild(stamp_svg[size].chevron_up.cloneNode(true))
+
 
 customElements.define('stamp-switch', StampSwitchElement)

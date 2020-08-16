@@ -27,7 +27,8 @@ class EtcdWildcardSelector(EtcdRegexSelector, list):
 
         pattern = str(self)
         if pattern.endswith('/**'):
-            pattern = '^' + pattern[:-3].replace('*', '[^/]+') + '.*' + '$'
+            pat = pattern[:-3].replace('*', '[^/]+')
+            pattern = f'(^{pat}$)|(^{pat}/.*$)'
         else:
             pattern = '^' + pattern.replace('*', '[^/]+') + '$'
 

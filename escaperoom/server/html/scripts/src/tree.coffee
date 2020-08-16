@@ -20,9 +20,9 @@ export class SyncedTree extends SyncedContainer
     newbody = document.createElement('div')
     newbody.classList.add('body')
 
-    # copy template
-    template = @body.querySelector('template')
-    newbody.appendChild(template.cloneNode(true))
+    # copy templates
+    for template in @body.querySelectorAll('template')
+      newbody.appendChild(template.cloneNode(true))
 
     for key in @sort_data(data.children)
       item = @create_item(data.children[key])
@@ -35,25 +35,21 @@ export class SyncedTree extends SyncedContainer
 
   create_item: (data) =>
 
-    template = @body.querySelector('template')
+    template = @body.querySelector('template.normalrow')
 
     item = @instantiate_template(template)
     item.setAttribute('item_id', data.key)
 
+    @fill_slots(item, data)
+    @setup_row_selection(item)
+
     # add foldswitch action
     for btn in item.querySelectorAll('stamp-switch.foldswitch')
-      btn.onstatechange = () ->
-        row = this.closest('.row')
-        if this.getAttribute('state') == 'on'
-          row.setAttribute('open', '')
-        else
-          row.removeAttribute('open')
+      btn.onstatechange = @foldswitch_onstatechange
 
-    @fill_slots(item, data)
-
-    if not is_empty(data.children)
-      for expand in item.querySelectorAll('.expand')
-        expand.addEventListener('click', toggle_row_expand)
+    # add new item action
+    for btn in item.querySelectorAll('stamp-button.newbutton')
+      btn.action = @newbutton_action
 
     extra = item.querySelector('*.children')
     for key in @sort_data(data.children)
@@ -67,7 +63,7 @@ export class SyncedTree extends SyncedContainer
 
     return item
 
-  onBeforeElementUpdated: (from_element, to_element) =>
+  onbeforeelementupdated: (from_element, to_element) =>
 
     # skip if customElement
     if from_element.classList.contains('stamp')
@@ -83,6 +79,90 @@ export class SyncedTree extends SyncedContainer
       if from_element.hasAttribute('selected')
         to_element.setAttribute('selected', '')
 
-  
+  setup_row_selection: (row) =>
+
+    # add selection action (on the row itself not the children)
+    rowcontent = row.querySelector(':scope > div:not(.children)')
+    rowcontent.addEventListener('click', (event) =>
+
+      if 'selectable' not in row.classList
+        return
+
+      for r in @body.querySelectorAll('.row')
+
+        if r is row
+          if not r.hasAttribute('selected')
+            @onrowselect? and @onrowselect(r)
+            r.setAttribute('selected', '')
+
+        else
+          if r.hasAttribute('selected')
+            @onrowunselect? and @onrowunselect(r)
+            r.removeAttribute('selected')
+
+      event.stopPropagation()
+    )
+
+  foldswitch_onstatechange: () ->
+
+    row = @closest('.row')
+    if @getAttribute('state') == 'on'
+      row.setAttribute('open', '')
+    else
+      row.removeAttribute('open')
+
+  newbutton_action: () ->
+
+    row = this.closest('.row')
+    tree = row.closest('synced-tree')
+    children = row.querySelector('.children')
+    template = tree.body.querySelector('template.creationrow')
+
+    creationrow = tree.instantiate_template(template)
+    children.appendChild(creationrow)
+
+    row.classList.add('foldable')
+    row.querySelector('stamp-switch.foldswitch').setAttribute('state', 'on')
+
+    input = row.querySelector('*[contenteditable]')
+    input.addEventListener('keydown', (event) =>
+
+      # prevent illegal characters
+      if event.key in ['*', ',']
+        event.preventDefault()
+
+      if event.key == 'Escape'
+        input.blur()
+
+      if event.key == 'Enter'
+        event.preventDefault()
+
+        content = input.innerText.trim()
+        if not content
+          return
+        
+        item_id = row.getAttribute('item_id')
+        etcd_key = "#{item_id}/#{content}"
+
+        response = await fetch('etcd' + etcd_key, {
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(null)
+          method: 'PUT'
+        })
+
+      tree.removeAttribute('paused')
+    )
+
+    input.addEventListener('focus', (event) =>
+      tree.setAttribute('paused', '')
+    )
+
+    input.addEventListener('blur', (event) =>
+      tree.onnewdata(tree.data)
+      tree.removeAttribute('paused')
+    )
+    
+    input.focus()
+
 
 customElements.define('synced-tree', SyncedTree)

@@ -11,6 +11,7 @@ class EtcdHandler(WebHandler):
 
         super().__init__(context, rootdir)
         self.app.router.add_get('/{selector:.*}', self.get_selector)
+        self.app.router.add_put('/{selector:.*}', self.put_selector)
         self.add_event_source(self.context.etcd.root / '**')
 
     async def get_selector(self, request):
@@ -32,3 +33,20 @@ class EtcdHandler(WebHandler):
 
         return Response(content_type='application/json',
                         text=to_json(data))
+
+
+    async def put_selector(self, request):
+
+        from json import loads
+        from aiohttp.web import Response
+
+        accessor = self.context.etcd.root / request.match_info['selector']
+
+        from pprint import pprint
+        pprint(request.__dict__)
+
+        data = await accessor.set(loads(await request._payload.read()))
+
+        return Response(content_type='application/json', text='{}')
+
+

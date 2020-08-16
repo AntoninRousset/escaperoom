@@ -77,8 +77,9 @@ StampButtonElement = class StampButtonElement extends StampElement {
     boundMethodCheck(this, StampButtonElement);
     super.connectedCallback();
     return this.addEventListener('click', (event) => {
-      if (!this.hasAttribute('disabled') && (this.onclick != null)) {
-        return this.onclick(event);
+      if (!this.hasAttribute('disabled') && (this.action != null)) {
+        this.action(event);
+        return event.stopPropagation();
       }
     });
   }
@@ -92,6 +93,8 @@ StampButtonElement = class StampButtonElement extends StampElement {
       return this.appendChild(stamp_svg[size].plus.cloneNode(true));
     } else if (type === 'chevron') {
       return this.appendChild(stamp_svg[size].chevron_up.cloneNode(true));
+    } else if (type === 'check') {
+      return this.appendChild(stamp_svg[size].check.cloneNode(true));
     }
   }
 
@@ -104,7 +107,7 @@ StampSwitchElement = (function() {
     constructor() {
       super(...arguments);
       this.connectedCallback = this.connectedCallback.bind(this);
-      this.onclick = this.onclick.bind(this);
+      this.action = this.action.bind(this);
       this.attributeChangedCallback = this.attributeChangedCallback.bind(this);
       this.set_stamp_type = this.set_stamp_type.bind(this);
     }
@@ -117,14 +120,13 @@ StampSwitchElement = (function() {
       }
     }
 
-    onclick(event) {
+    action(event) {
       boundMethodCheck(this, StampSwitchElement);
       if (!this.hasAttribute('state') || this.getAttribute('state') === 'off') {
-        this.setAttribute('state', 'on');
+        return this.setAttribute('state', 'on');
       } else {
-        this.setAttribute('state', 'off');
+        return this.setAttribute('state', 'off');
       }
-      return event.stopPropagation();
     }
 
     attributeChangedCallback(name, old_value, new_value) {

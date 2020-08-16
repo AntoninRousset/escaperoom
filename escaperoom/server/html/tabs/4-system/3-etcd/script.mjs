@@ -4,27 +4,21 @@ import '/interface/scripts/tree.mjs';
 import '/interface/scripts/stamp.mjs';
 
 export var onload = function(root) {
-  var tree;
+  var inspector, tree;
   tree = root.querySelector('*.etcdtree');
-  return tree.custom_item_modification = (item, data) => {
+  tree.custom_item_modification = (item, data) => {
+    // if node doesn't exist in the etcd tree, mark it as ghost
     if (data.node == null) {
       item.classList.add('ghost');
-      return item;
+      item.classList.remove('selectable');
     }
-    item.classList.add('selectable');
-    item.addEventListener('click', (event) => {
-      var i, len, ref, row, src;
-      ref = tree.querySelectorAll('.row');
-      for (i = 0, len = ref.length; i < len; i++) {
-        row = ref[i];
-        row.removeAttribute('selected');
-      }
-      row = event.target.closest('.row');
-      row.setAttribute('selected', '');
-      // set etcd inspector
-      src = 'etcd' + row.getAttribute('item_id') + '?with_values';
-      return tree.closest('.etcdnav').querySelector('.etcdinspector').src = src;
-    });
     return item;
+  };
+  inspector = tree.closest('.etcdnav').querySelector('.etcdinspector');
+  return tree.onrowselect = (row) => {
+    var src;
+    // set etcd inspector
+    src = 'etcd' + row.getAttribute('item_id') + '?with_values';
+    return inspector.src = src;
   };
 };
