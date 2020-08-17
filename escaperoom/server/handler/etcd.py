@@ -44,6 +44,8 @@ class EtcdHandler(WebHandler):
         accessor = self.context.etcd.root / request.match_info['selector']
         await accessor.set(loads(await request._payload.read()))
 
+        print(f'PUT {accessor.selector}')
+
         return Response(content_type='application/json', text='{}')
 
 
@@ -54,6 +56,6 @@ class EtcdHandler(WebHandler):
         accessor = self.context.etcd.root / request.match_info['selector']
         await accessor.delete()
 
+        print(f'DELETE {accessor.selector}')
+
         return Response(content_type='application/json', text='{}')
-
-

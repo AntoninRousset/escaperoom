@@ -31,7 +31,7 @@ export var MultiScreenElement = (function() {
       var i, len, ref, results, screen;
       boundMethodCheck(this, MultiScreenElement);
       if (name === 'screen') {
-        ref = this.querySelectorAll('.screen');
+        ref = this.querySelectorAll(':scope > .screen');
         results = [];
         for (i = 0, len = ref.length; i < len; i++) {
           screen = ref[i];
@@ -69,3 +69,5 @@ export var MultiScreenElement = (function() {
   return MultiScreenElement;
 
 }).call(this);
+
+customElements.define('multi-screen', MultiScreenElement);

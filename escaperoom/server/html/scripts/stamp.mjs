@@ -91,6 +91,8 @@ StampButtonElement = class StampButtonElement extends StampElement {
     size = this.classList.contains('small') ? 'small' : 'big';
     if (type === 'plus') {
       return this.appendChild(stamp_svg[size].plus.cloneNode(true));
+    } else if (type === 'plus-circle') {
+      return this.appendChild(stamp_svg[size].plus_circle.cloneNode(true));
     } else if (type === 'chevron') {
       return this.appendChild(stamp_svg[size].chevron_up.cloneNode(true));
     } else if (type === 'check') {

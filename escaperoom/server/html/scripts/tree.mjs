@@ -29,9 +29,19 @@ export var SyncedTree = class SyncedTree extends SyncedContainer {
   }
 
   connectedCallback() {
+    var btn, i, len, ref, results;
     boundMethodCheck(this, SyncedTree);
     this.src = this.getAttribute('src');
-    return super.connectedCallback();
+    super.connectedCallback();
+    ref = this.querySelectorAll('.foot stamp-button.create');
+    // add create item action
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      btn = ref[i];
+      console.log('-->', btn);
+      results.push(btn.action = this.foot_button_create_action);
+    }
+    return results;
   }
 
   onnewdata(data) {
@@ -80,7 +90,7 @@ export var SyncedTree = class SyncedTree extends SyncedContainer {
       btn.action = this.button_create_action;
     }
     ref2 = item.querySelectorAll('stamp-button.delete');
-    // add delete item action
+    // add create item action
     for (k = 0, len2 = ref2.length; k < len2; k++) {
       btn = ref2[k];
       btn.action = this.button_delete_action;
@@ -205,8 +215,48 @@ export var SyncedTree = class SyncedTree extends SyncedContainer {
     return input.focus();
   }
 
+  foot_button_create_action() {
+    var input, row, tree;
+    row = this.closest('.row');
+    tree = row.closest('synced-tree');
+    input = row.querySelector('*[contenteditable]');
+    input.addEventListener('keydown', async(event) => {
+      var content, etcd_key, ref, response;
+      // prevent illegal characters
+      if ((ref = event.key) === '*' || ref === ',') {
+        event.preventDefault();
+      }
+      if (event.key === 'Escape') {
+        input.blur();
+      }
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        content = input.innerText.trim();
+        if (!content) {
+          return;
+        }
+        etcd_key = `/${content}`;
+        response = (await fetch('etcd' + etcd_key, {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(null),
+          method: 'PUT'
+        }));
+        return input.blur();
+      }
+    });
+    input.addEventListener('blur', (event) => {
+      return row.set_screen('button');
+    });
+    input.innerText = '';
+    row.set_screen('creation');
+    return input.focus();
+  }
+
   async button_delete_action(event) {
     var etcd_key, item_id, response, row;
+    console.log('DELETE');
     row = this.closest('.row');
     item_id = row.getAttribute('item_id');
     etcd_key = `${item_id}/**`;

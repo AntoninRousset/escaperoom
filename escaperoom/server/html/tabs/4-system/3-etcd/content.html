@@ -47,7 +47,7 @@
   fill: var(--light-gray);
 }
 
-.etcdtree .row stamp-button {
+.etcdtree .body .row stamp-button {
   visibility: hidden;
 }
 
@@ -112,6 +112,25 @@
   fill: var(--red);
 }
 
+.etcdtree .foot .row {
+  padding: 2px;
+
+}
+
+.etcdtree .foot .row .rowgroup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.etcdtree .foot .row stamp-button svg {
+  fill: var(--light-gray);
+}
+
+.etcdtree .foot .row stamp-button:hover svg {
+  fill: var(--gray);
+}
+
 @media only screen and (max-width: 700px) {
 
   .etcdnav {
@@ -131,7 +150,7 @@
 
 <div class='etcdnav'>
 
-  <synced-tree class='border etcdtree' src='etcd/**' eventtype='ETCD.NODE'>
+  <synced-tree class='border etcdtree' src='etcd/**' eventtype='ETCD.NODE' screen=''>
 
     <div class='screen' name='loading'>
       <stamp-icon type='loading'>
@@ -174,6 +193,22 @@
 
           </template>
 
+        </div>
+        <div class='foot'>
+          <multi-screen class='row' screen='button'>
+
+            <div class='screen' name='button'>
+              <div class='rowgroup'>
+                <div class='rowcell'><stamp-button type='plus-circle' class='create small'></stamp-button></div>
+              </div>
+            </div>
+
+            <div class='screen' name='creation'>
+              <div class='rowgroup'>
+                <div class='rowcell' contenteditable></div>
+              </div>
+            </div>
+          </multi-screen>
         </div>
       </div>
 

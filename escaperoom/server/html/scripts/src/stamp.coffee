@@ -61,10 +61,13 @@ class StampButtonElement extends StampElement
 
     @innerHTML = ''
     
-    size = if @classList.contains('small') then 'small'  else 'big'
+    size = if @classList.contains('small') then 'small' else 'big'
 
     if type == 'plus'
       @appendChild(stamp_svg[size].plus.cloneNode(true))
+
+    else if type == 'plus-circle'
+      @appendChild(stamp_svg[size].plus_circle.cloneNode(true))
 
     else if type == 'chevron'
       @appendChild(stamp_svg[size].chevron_up.cloneNode(true))

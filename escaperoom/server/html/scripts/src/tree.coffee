@@ -15,6 +15,11 @@ export class SyncedTree extends SyncedContainer
     @src = @getAttribute('src')
     super.connectedCallback()
 
+    # add create item action
+    for btn in @querySelectorAll('.foot stamp-button.create')
+      console.log('-->', btn)
+      btn.action = @foot_button_create_action
+
   onnewdata: (data) =>
 
     newbody = document.createElement('div')
@@ -51,10 +56,9 @@ export class SyncedTree extends SyncedContainer
     for btn in item.querySelectorAll('stamp-button.create')
       btn.action = @button_create_action
 
-    # add delete item action
+    # add create item action
     for btn in item.querySelectorAll('stamp-button.delete')
       btn.action = @button_delete_action
-
 
     extra = item.querySelector('*.children')
     for key in @sort_data(data.children)
@@ -169,7 +173,49 @@ export class SyncedTree extends SyncedContainer
     
     input.focus()
 
+  foot_button_create_action: () ->
+
+    row = @closest('.row')
+    tree = row.closest('synced-tree')
+    input = row.querySelector('*[contenteditable]')
+    input.addEventListener('keydown', (event) =>
+
+      # prevent illegal characters
+      if event.key in ['*', ',']
+        event.preventDefault()
+
+      if event.key == 'Escape'
+        input.blur()
+
+      if event.key == 'Enter'
+        event.preventDefault()
+
+        content = input.innerText.trim()
+        if not content
+          return
+        
+        etcd_key = "/#{content}"
+
+        response = await fetch('etcd' + etcd_key, {
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(null)
+          method: 'PUT'
+        })
+
+        input.blur()
+    )
+
+    input.addEventListener('blur', (event) =>
+      row.set_screen('button')
+    )
+
+    input.innerText = ''
+    row.set_screen('creation')
+    input.focus()
+
   button_delete_action: (event) ->
+
+    console.log('DELETE')
 
     row = @closest('.row')
     item_id = row.getAttribute('item_id')

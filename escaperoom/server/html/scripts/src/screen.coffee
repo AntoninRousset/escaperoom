@@ -15,14 +15,13 @@ export class MultiScreenElement extends TemplatedElement
     return ['screen']
 
   connectedCallback: () =>
-
     if not @hasAttribute('screen')
       @set_screen(@default_screen)
 
   attributeChangedCallback: (name, old_value, new_value) =>
 
     if name == 'screen'
-      for screen in @querySelectorAll('.screen')
+      for screen in @querySelectorAll(':scope > .screen')
 
         if screen.getAttribute('name') == new_value
           screen.removeAttribute('hidden')
@@ -36,3 +35,5 @@ export class MultiScreenElement extends TemplatedElement
 
   get_screen: (name) =>
     return @querySelector(".screen[name='#{name}']")
+
+customElements.define('multi-screen', MultiScreenElement)
