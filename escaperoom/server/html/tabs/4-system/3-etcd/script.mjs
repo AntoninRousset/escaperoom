@@ -15,10 +15,57 @@ export var onload = function(root) {
     return item;
   };
   inspector = tree.closest('.etcdnav').querySelector('.etcdinspector');
-  return tree.onrowselect = (row) => {
+  tree.onrowselect = (row) => {
     var src;
     // set etcd inspector
     src = 'etcd' + row.getAttribute('item_id') + '?with_values';
     return inspector.src = src;
   };
+  // double click on node value to modify it
+  return inspector.querySelector('.nodevalue').addEventListener('click', (event) => {
+    var input;
+    // accept double-click only
+    if (event.detail !== 2) {
+      return;
+    }
+    input = event.target.closest('.nodevalue').querySelector('td:last-child');
+    inspector = input.closest('.etcdinspector');
+    input.addEventListener('keydown', async(event) => {
+      var content, etcd_key, ref, response;
+      // prevent illegal characters
+      if ((ref = event.key) === '*' || ref === ',') {
+        event.preventDefault();
+      }
+      if (event.key === 'Escape') {
+        input.blur();
+      }
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        content = input.innerText.trim();
+        if (!content) {
+          return;
+        }
+        etcd_key = inspector.querySelector('.nodekey td:last-child').innerText;
+        response = (await fetch('etcd' + etcd_key, {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: input.innerText.trim(),
+          method: 'PUT'
+        }));
+        input.removeAttribute('contentEditable');
+      }
+      return tree.removeAttribute('paused');
+    });
+    input.addEventListener('focus', (event) => {
+      return inspector.setAttribute('paused', '');
+    });
+    input.addEventListener('blur', (event) => {
+      console.log('blur', inspector.data);
+      inspector.onnewdata(inspector.data);
+      return inspector.removeAttribute('paused');
+    });
+    input.setAttribute('contentEditable', '');
+    return input.focus();
+  });
 };
