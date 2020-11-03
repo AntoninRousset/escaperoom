@@ -1,7 +1,0 @@
-.darkbox {
-  background: linear-gradient(#1b262c, #29363D, #1b262c);
-}
-
-.darkbox:not(:last-child) {
-  border-bottom: 1px solid #bbb;
-}

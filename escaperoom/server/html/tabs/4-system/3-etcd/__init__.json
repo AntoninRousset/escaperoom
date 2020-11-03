@@ -1,6 +1,0 @@
-{
-  "name": "Etcd",
-  "icon": "icon.svg",
-  "content": "content.html",
-  "script": "script.mjs"
-}

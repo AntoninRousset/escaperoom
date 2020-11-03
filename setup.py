@@ -7,7 +7,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='escaperoom',
-    version='0.1a1',
+    version='0.2a1',
     license='GPL-3',
     author='Antonin Rousset',
     description='Run and monitor an escape room',
@@ -25,11 +25,9 @@ setuptools.setup(
         'Programming Language :: Python :: 3.7',
     ],
     python_requires='>=3.7, <3.8',
-    install_requires=[],
-    extras_require = {
-        'serial':  ['PJON-daemon-client>=1.0.0'],
-        'server': ['aiohttp>=3.6.1', 'aiortc>=0.9.22'],
-
+    install_requires=[
+    ],
+    extras_require={
     },
     entry_points={
         'console_scripts': [

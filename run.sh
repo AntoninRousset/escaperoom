@@ -1,3 +1,4 @@
 #!/bin/sh
 
-python3.7 -m escaperoom
+#python3 -m escaperoom ${@}
+python3 ./escaperoom/manage.py runserver
