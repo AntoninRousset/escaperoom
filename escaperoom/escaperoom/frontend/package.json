@@ -1,0 +1,31 @@
+{
+  "name": "frontend",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "vue": "^3.0.2"
+  },
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch"
+  },
+  "devDependencies": {
+    "@vue/compiler-sfc": "^3.0.2",
+    "@webpack-cli/serve": "^1.1.0",
+    "axios": "^0.21.0",
+    "css-loader": "^5.0.1",
+    "file-loader": "^6.2.0",
+    "sass": "^1.29.0",
+    "sass-loader": "^10.1.0",
+    "style-loader": "^2.0.0",
+    "ts-loader": "^8.0.11",
+    "typescript": "^4.0.5",
+    "vue-loader": "^16.0.0-rc.1",
+    "vuex": "^4.0.0-rc.1",
+    "webpack": "^5.4.0",
+    "webpack-bundle-tracker": "^0.4.3",
+    "webpack-cli": "^4.2.0",
+    "yarn": "^1.22.10"
+  }
+}

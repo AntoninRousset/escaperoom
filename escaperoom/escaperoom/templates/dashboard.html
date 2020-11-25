@@ -1,0 +1,15 @@
+{% extends './base.html' %}
+
+{% load compress static %}
+{% load render_bundle from webpack_loader %}
+
+{% block head %}
+{% compress css %}
+<link rel="stylesheet" type="text/x-scss" href="{% static 'dashboard.scss' %}">
+{% endcompress %}
+{% endblock %}
+
+{% block content %}
+<div id="dashboard"></div>
+{% render_bundle 'dashboard' %}
+{% endblock %}

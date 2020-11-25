@@ -1,1 +1,5 @@
+node_modules
+escaperoom/escaperoom/static/dist
+webpack-stats.json
+
 __pycache__/
