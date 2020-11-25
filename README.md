@@ -2,7 +2,7 @@
 
 ## To run
 0. `cd escaperoom`
-1. `pip install --user -r requirements.txt`
+1. `pip install --user -r requirements.txt && npm install --global yarn`
 2. `rc-service postgresql start`
 3. `./manage.py buildfrontend --log`
 4. `./manage.py runserver`
