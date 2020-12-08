@@ -78,9 +78,8 @@ WSGI_APPLICATION = 'escaperoom.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'escaperoom',
-        'USER': 'master',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'escaperoom.db',
     }
 }
 
