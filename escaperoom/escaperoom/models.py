@@ -1,16 +1,50 @@
 from django.db import models
 
 
-class Condition(models.Model):
-    type = models.ForeignKey('ConditionType', on_delete=models.CASCADE)
-    variable1 = models.ForeignKey('Variable', related_name='+',
-                                  on_delete=models.RESTRICT)  # TODO PROTECT?
-    variable2 = models.ForeignKey('Variable', related_name='+',
-                                  on_delete=models.RESTRICT)  # TODO PROTECT?
+class Operator(models.Model):
+    type = models.ForeignKey('OperatorType', on_delete=models.CASCADE)
+    variable_a = models.ForeignKey('Variable', related_name='+',
+                                   on_delete=models.RESTRICT)  # TODO PROTECT?
+    variable_b = models.ForeignKey('Variable', related_name='+',
+                                   on_delete=models.RESTRICT)  # TODO PROTECT?
+
+    def result(self, at=None):
+        return self.type.convert(
+            a=self.variable_a.value(at=at),
+            b=self.variable_b.value(at=at)
+        )
 
 
-class ConditionType(models.Model):
+class OperatorType(models.Model):
     name = models.CharField(max_length=64, unique=True)
+
+    def convert(self, a, b):
+        if a is None or b is None:
+            return None
+        if self.name == 'equal':
+            return a == b
+        if self.name == 'not equal':
+            return a != b
+        if self.name == 'greater or equal':
+            return a >= b
+        if self.name == 'lower or equal':
+            return a <= b
+        if self.name == 'greater':
+            return a > b
+        if self.name == 'lower':
+            return a < b
+        if self.name == 'add':
+            return a + b
+        if self.name == 'substract':
+            return a - b
+        if self.name == 'multiply':
+            return a * b
+        if self.name == 'divide':
+            return a / b
+
+
+class Machine(models.Model):
+    parent = models.ForeignKey('self', on_delete=models.CASCADE)
 
 
 class Measurement(models.Model):
@@ -25,18 +59,19 @@ class Measurement(models.Model):
         return f'{self.timestamp.isoformat()}: {self.variable} = {self.value}'
 
 
-class Machine(models.Model):
-    parent = models.ForeignKey('self', on_delete=models.CASCADE)
-
-
-class State(models.Model):
+class MachineState(models.Model):
     name = models.CharField(max_length=128)
-    conditions = models.ManyToManyField('Condition', related_name='+')
     machine = models.ForeignKey('Machine', on_delete=models.CASCADE)
     initial = models.BooleanField()
 
     class Meta:
         unique_together = ('machine', 'initial')
+
+
+class MachineStateTransition(models.Model):
+    pass
+    #from_state = models.ForeignKey('MachineState', on_delete=models.CASCADE)
+    #to_state = models.ForeignKey('MachineState', on_delete=models.CASCADE)
 
 
 class Variable(models.Model):
@@ -45,34 +80,24 @@ class Variable(models.Model):
                              on_delete=models.RESTRICT)
     default_value = models.TextField(null=True)
     locked_at = models.DateTimeField(null=True)
+    operator = models.ForeignKey('Operator', null=True,
+                                 on_delete=models.CASCADE)
 
     def __str__(self):
         return f'"{self.name}" ({self.type})'
 
-    def _convert_value(self, value):
-        if value is None:
-            return value
-        if self.type.name == 'str':
-            return str(value)
-        elif self.type.name == 'int':
-            return int(value)
-        elif self.type.name == 'float':
-            return float(value)
-        elif self.type.name == 'bool':
-            return bool(value)
-        elif self.type.name == 'toggle':
-            return bool(float(value) % 2)
-        raise RuntimeError('Unknown variable type')
-
     def value(self, at=None):
-        try:
-            measurements = Measurement.objects.filter(variable=self.id)
-            if at is not None:
-                measurements = measurements.filter(timestamp__lte=at)
-            value = measurements.latest('timestamp').value
-        except Measurement.DoesNotExist:
-            value = self.default_value
-        return self._convert_value(value)
+        if self.operator is not None:
+            value = self.operator.result(at=at)
+        else:
+            try:
+                measurements = Measurement.objects.filter(variable=self.id)
+                if at is not None:
+                    measurements = measurements.filter(timestamp__lte=at)
+                value = measurements.latest('timestamp').value
+            except Measurement.DoesNotExist:
+                value = self.default_value
+        return self.type.convert(value)
 
 
 class VariableType(models.Model):
@@ -80,3 +105,18 @@ class VariableType(models.Model):
 
     def __str__(self):
         return str(self.name)
+
+    def convert(self, value):
+        if value is None:
+            return value
+        if self.name == 'str':
+            return str(value)
+        if self.name == 'int':
+            return int(value)
+        if self.name == 'float':
+            return float(value)
+        if self.name == 'bool':
+            return bool(value)
+        if self.name == 'toggle':
+            return bool(float(value) % 2)
+        raise RuntimeError('Unknown variable type')
