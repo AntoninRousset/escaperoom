@@ -2,13 +2,88 @@ from datetime import datetime, timedelta, timezone
 from django.test import TestCase
 
 from escaperoom.models import (
+    State, StateChange,
     Measurement, Operator, OperatorType, Variable, VariableType
 )
 
 TIMEZONE = timezone.utc
 
 
-class ModelTest(TestCase):
+class StateTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.timestamp = datetime(2019, 11, 5, 12, 0, 0, tzinfo=TIMEZONE)
+
+        cls.states = {
+            'a': State.objects.create(is_entrypoint=True),
+            'b': State.objects.create()
+        }
+        substates = {
+            'a.a': State.objects.create(
+                parent=cls.states['a'], is_entrypoint=True
+            ),
+            'a.b': State.objects.create(parent=cls.states['a'])
+        }
+        cls.states.update(substates)
+
+        {
+            StateChange.objects.create(
+                timestamp=cls.timestamp + timedelta(seconds=1),
+                state=cls.states['a'], value=True
+            ),
+            StateChange.objects.create(
+                timestamp=cls.timestamp + timedelta(seconds=1),
+                state=cls.states['a.a'], value=True
+            ),
+            StateChange.objects.create(
+                timestamp=cls.timestamp + timedelta(seconds=2),
+                state=cls.states['a.a'], value=False
+            ),
+            StateChange.objects.create(
+                timestamp=cls.timestamp + timedelta(seconds=2),
+                state=cls.states['a.b'], value=True
+            ),
+            StateChange.objects.create(
+                timestamp=cls.timestamp + timedelta(seconds=3),
+                state=cls.states['a'], value=False
+            ),
+            StateChange.objects.create(
+                timestamp=cls.timestamp + timedelta(seconds=3),
+                state=cls.states['a.b'], value=False
+            ),
+            StateChange.objects.create(
+                timestamp=cls.timestamp + timedelta(seconds=3),
+                state=cls.states['b'], value=True
+            ),
+        }
+
+    def test_state(self):
+        at = self.timestamp + timedelta(seconds=0)
+        self.assertEqual(self.states['a'].is_active(at=at), False)
+        self.assertEqual(self.states['a.a'].is_active(at=at), False)
+        self.assertEqual(self.states['a.b'].is_active(at=at), False)
+        self.assertEqual(self.states['b'].is_active(at=at), False)
+
+        at = self.timestamp + timedelta(seconds=1)
+        self.assertEqual(self.states['a'].is_active(at=at), True)
+        self.assertEqual(self.states['a.a'].is_active(at=at), True)
+        self.assertEqual(self.states['a.b'].is_active(at=at), False)
+        self.assertEqual(self.states['b'].is_active(at=at), False)
+
+        at = self.timestamp + timedelta(seconds=2)
+        self.assertEqual(self.states['a'].is_active(at=at), True)
+        self.assertEqual(self.states['a.a'].is_active(at=at), False)
+        self.assertEqual(self.states['a.b'].is_active(at=at), True)
+        self.assertEqual(self.states['b'].is_active(at=at), False)
+
+        at = self.timestamp + timedelta(seconds=3)
+        self.assertEqual(self.states['a'].is_active(at=at), False)
+        self.assertEqual(self.states['a.a'].is_active(at=at), False)
+        self.assertEqual(self.states['a.b'].is_active(at=at), False)
+        self.assertEqual(self.states['b'].is_active(at=at), True)
+
+
+class VariableTest(TestCase):
     fixtures = ['operatorstypes', 'variablestypes']
 
     @classmethod
@@ -99,59 +174,48 @@ class ModelTest(TestCase):
 
         measurements = [
             Measurement(
-                timestamp=cls.timestamp + timedelta(seconds=0),
-                variable=Variable.objects.get(name='addition'),
-                value='404'
+                timestamp=cls.timestamp + timedelta(seconds=0), value='404',
+                variable=Variable.objects.get(name='addition')
             ),
             Measurement(
-                timestamp=cls.timestamp + timedelta(seconds=1),
-                variable=Variable.objects.get(name='str'),
-                value='hello'
+                timestamp=cls.timestamp + timedelta(seconds=1), value='hello',
+                variable=Variable.objects.get(name='str')
             ),
             Measurement(
-                timestamp=cls.timestamp + timedelta(seconds=2),
-                variable=Variable.objects.get(name='int'),
-                value='42'
+                timestamp=cls.timestamp + timedelta(seconds=2), value='42',
+                variable=Variable.objects.get(name='int')
             ),
             Measurement(
-                timestamp=cls.timestamp + timedelta(seconds=3),
-                variable=Variable.objects.get(name='float'),
-                value='2.7183'
+                timestamp=cls.timestamp + timedelta(seconds=3), value='2.7183',
+                variable=Variable.objects.get(name='float')
             ),
             Measurement(
-                timestamp=cls.timestamp + timedelta(seconds=4),
-                variable=Variable.objects.get(name='bool'),
-                value='2'
+                timestamp=cls.timestamp + timedelta(seconds=4), value='2',
+                variable=Variable.objects.get(name='bool')
             ),
             Measurement(
-                timestamp=cls.timestamp + timedelta(seconds=6),
-                variable=Variable.objects.get(name='toggle'),
-                value='3'
+                timestamp=cls.timestamp + timedelta(seconds=6), value='3',
+                variable=Variable.objects.get(name='toggle')
             ),
             Measurement(
-                timestamp=cls.timestamp + timedelta(seconds=7),
-                variable=Variable.objects.get(name='toggle'),
-                value='6'
+                timestamp=cls.timestamp + timedelta(seconds=7), value='6',
+                variable=Variable.objects.get(name='toggle')
             ),
             Measurement(
-                timestamp=cls.timestamp + timedelta(seconds=8),
-                variable=Variable.objects.get(name='bool'),
-                value='0'
+                timestamp=cls.timestamp + timedelta(seconds=8), value='0',
+                variable=Variable.objects.get(name='bool')
             ),
             Measurement(
-                timestamp=cls.timestamp + timedelta(seconds=9),
-                variable=Variable.objects.get(name='float'),
-                value='1.6180'
+                timestamp=cls.timestamp + timedelta(seconds=9), value='1.6180',
+                variable=Variable.objects.get(name='float')
             ),
             Measurement(
-                timestamp=cls.timestamp + timedelta(seconds=9),
-                variable=Variable.objects.get(name='int'),
-                value='23'
+                timestamp=cls.timestamp + timedelta(seconds=9), value='23',
+                variable=Variable.objects.get(name='int')
             ),
             Measurement(
-                timestamp=cls.timestamp + timedelta(seconds=10),
-                variable=Variable.objects.get(name='str'),
-                value='world'
+                timestamp=cls.timestamp + timedelta(seconds=10), value='world',
+                variable=Variable.objects.get(name='str')
             ),
         ]
         Measurement.objects.bulk_create(measurements)

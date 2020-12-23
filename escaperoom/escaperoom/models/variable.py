@@ -43,10 +43,6 @@ class OperatorType(models.Model):
             return a / b
 
 
-class Machine(models.Model):
-    parent = models.ForeignKey('self', on_delete=models.CASCADE)
-
-
 class Measurement(models.Model):
     timestamp = models.DateTimeField()
     variable = models.ForeignKey('Variable', on_delete=models.CASCADE)
@@ -57,21 +53,6 @@ class Measurement(models.Model):
 
     def __str__(self):
         return f'{self.timestamp.isoformat()}: {self.variable} = {self.value}'
-
-
-class MachineState(models.Model):
-    name = models.CharField(max_length=128)
-    machine = models.ForeignKey('Machine', on_delete=models.CASCADE)
-    initial = models.BooleanField()
-
-    class Meta:
-        unique_together = ('machine', 'initial')
-
-
-class MachineStateTransition(models.Model):
-    pass
-    #from_state = models.ForeignKey('MachineState', on_delete=models.CASCADE)
-    #to_state = models.ForeignKey('MachineState', on_delete=models.CASCADE)
 
 
 class Variable(models.Model):
