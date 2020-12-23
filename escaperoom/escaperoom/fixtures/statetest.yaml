@@ -1,0 +1,68 @@
+### STATES ###
+
+- model: escaperoom.state
+  pk: 1
+  fields:
+        name: 'a'
+        is_entrypoint: True
+- model: escaperoom.state
+  pk: 2
+  fields:
+        name: 'b'
+- model: escaperoom.state
+  pk: 3
+  fields:
+        name: 'a.a'
+        parent: 1
+        is_entrypoint: True
+- model: escaperoom.state
+  pk: 4
+  fields:
+        name: 'a.b'
+        parent: 1
+
+
+### STATE CHANGES ###
+
+- model: escaperoom.statechange
+  pk: 1
+  fields:
+        timestamp: '2019-11-05T12:00:01+00:00'
+        state: 1  # "a"
+        value: True
+- model: escaperoom.statechange
+  pk: 2
+  fields:
+        timestamp: '2019-11-05T12:00:01+00:00'
+        state: 3  # "a.a"
+        value: True
+- model: escaperoom.statechange
+  pk: 3
+  fields:
+        timestamp: '2019-11-05T12:00:02+00:00'
+        state: 3  # "a.a"
+        value: False
+- model: escaperoom.statechange
+  pk: 4
+  fields:
+        timestamp: '2019-11-05T12:00:02+00:00'
+        state: 4  # "a.b"
+        value: True
+- model: escaperoom.statechange
+  pk: 5
+  fields:
+        timestamp: '2019-11-05T12:00:03+00:00'
+        state: 1  # "a"
+        value: False
+- model: escaperoom.statechange
+  pk: 6
+  fields:
+        timestamp: '2019-11-05T12:00:03+00:00'
+        state: 4  # "a.b"
+        value: False
+- model: escaperoom.statechange
+  pk: 7
+  fields:
+        timestamp: '2019-11-05T12:00:03+00:00'
+        state: 2  # "b"
+        value: True

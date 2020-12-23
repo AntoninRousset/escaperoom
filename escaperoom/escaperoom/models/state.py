@@ -2,6 +2,7 @@ from django.db import models
 
 
 class State(models.Model):
+    name = models.CharField(max_length=64, null=True)
     parent = models.ForeignKey('State', null=True, on_delete=models.CASCADE)
     is_entrypoint = models.BooleanField(default=False)
 
