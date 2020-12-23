@@ -1,17 +1,16 @@
 <template>
-	<e-node :states="states">
-	</e-node>
+	<e-state :info="state" v-for="state in states" />
 </template>
 
 <script>
 import 'normalize.css'
 import {mapState} from 'vuex'
 
-import ENode from './components/node.vue'
+import EState from './components/state.vue'
 
 export default {
 	components: {
-		ENode
+		EState
 	},
 	data() {
 		return {
