@@ -1,6 +1,6 @@
 <template>
-	States:
 	<div v-for="state in states">
+		<e-node :states="state.children"></e-node>
 		{{state.name}}
 	</div>
 </template>
@@ -11,7 +11,7 @@ import {mapState} from 'vuex'
 
 export default {
 	name: 'ENode',
-	props: [],
+	props: ['states'],
 	data() {
 		return {
 		}
@@ -19,7 +19,7 @@ export default {
 	mounted() {
 	},
 	computed: mapState({
-		states: 'states'
+		darkMode: 'darkMode'
 	}),
 	watch: {
 		darkMode(darkMode, oldDarkMode) {
@@ -32,4 +32,9 @@ export default {
 <style lang="scss">
 	@import "../scss/colors.scss";
 
+	div {
+		border: solid;
+		padding: 4px;
+		margin: 2px;
+	}
 </style>
