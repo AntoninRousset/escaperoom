@@ -18,8 +18,14 @@ class DictSerializer(serializers.ListSerializer):
 
 
 class StateSerializer(serializers.ModelSerializer):
+    children = serializers.SerializerMethodField()
+
     class Meta:
         model = models.State
         list_serializer_class = DictSerializer
         fields = ('id', 'name', 'is_active', 'is_entrypoint', 'x', 'y',
                   'parent', 'children')
+
+    def get_children(self, state):
+        if state.children is not None:
+            return StateSerializer(state.children.all(), many=True).data

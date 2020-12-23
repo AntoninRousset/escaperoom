@@ -10,6 +10,6 @@ def index(request):
 
 
 def states(request):
-    objects = models.State.objects.all()
+    objects = models.State.objects.filter(parent=None).all()
     serializer = serializers.StateSerializer(objects, many=True)
     return JsonResponse(serializer.data)
