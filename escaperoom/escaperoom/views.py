@@ -1,9 +1,8 @@
-from django.core import serializers
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, reverse
 from django.template import loader
 
-from . import models
+from . import models, serializers
 
 
 def index(request):
@@ -16,5 +15,6 @@ def dashboard(request):
 
 
 def states(request):
-    states = serializers.serialize('json', models.State.objects.all())
-    return HttpResponse(states, content_type='application/json')
+    objects = models.State.objects.all()
+    serializer = serializers.StateSerializer(objects, many=True)
+    return JsonResponse(serializer.data)

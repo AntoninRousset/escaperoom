@@ -1,5 +1,6 @@
 node_modules
 escaperoom/escaperoom/static/dist
 webpack-stats.json
+*.db
 
 __pycache__/
