@@ -1,16 +1,11 @@
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, reverse
 from django.template import loader
 
 from . import models, serializers
 
 
 def index(request):
-    return redirect(reverse('dashboard'))
-
-
-def dashboard(request):
-    template = loader.get_template('dashboard.html')
+    template = loader.get_template('app.html')
     return HttpResponse(template.render({}, request))
 
 

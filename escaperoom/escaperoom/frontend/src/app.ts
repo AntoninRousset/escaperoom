@@ -1,26 +1,26 @@
 import {createApp} from 'vue';
 import {createStore} from 'vuex';
-import Dashboard from './Dashboard.vue';
+import App from './app.vue';
 
 const axios = require('axios').default;
 
 interface State {
+	states: object | null;
 	darkMode: Boolean;
-	shitGiven: number;
 }
 
 const store = createStore({
 	state() : State {
 		return {
+			states: null,
 			darkMode: false,
-			shitGiven: 0,
 		}
 	},
 	mutations: {
-		fetch(state : State) {
-			axios.get('/data?format=json')
+		fetch_states(state : State) {
+			axios.get('/states')
 				.then(function (response) {
-					state.shitGiven = response.data['number'];
+					state.states = response.data;
 				})
 				.catch(function (error) {
 					console.log(error);
@@ -29,6 +29,6 @@ const store = createStore({
 	},
 })
 
-const app = createApp(Dashboard);
+const app = createApp(App);
 app.use(store);
-app.mount('#dashboard');
+app.mount('#app');

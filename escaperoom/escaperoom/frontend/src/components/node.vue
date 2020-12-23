@@ -1,12 +1,16 @@
 <template>
-	world!
+	States:
+	<div v-for="state in states">
+		{{state.name}}
+	</div>
 </template>
 
 <script>
 import {mapState} from 'vuex'
 
+
 export default {
-	name: 'MyComponent',
+	name: 'ENode',
 	props: [],
 	data() {
 		return {
@@ -15,12 +19,17 @@ export default {
 	mounted() {
 	},
 	computed: mapState({
+		states: 'states'
 	}),
 	watch: {
-		darkMode(newDarkMode, oldDarkMode) {
+		darkMode(darkMode, oldDarkMode) {
 		},
 	},
 	methods: {
 	}
 }
 </script>
+<style lang="scss">
+	@import "../scss/colors.scss";
+
+</style>

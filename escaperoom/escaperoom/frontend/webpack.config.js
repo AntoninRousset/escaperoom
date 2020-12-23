@@ -9,11 +9,11 @@ module.exports = (env = {}) => {
 		devtool: env.prod ? 'source-map' : 'cheap-module-source-map',
 		context: __dirname,
 		entry: {
-			dashboard: './src/dashboard.ts',
+			app: './src/app.ts',
 		},
 		output: {
-			path: path.resolve('../static/dist'),
-      publicPath: "",
+			path: path.resolve('../static/escaperoom/dist'),
+			publicPath: "/static/escaperoom/dist/",
       filename: "[name]-[fullhash].js"
     },
 		module: {
@@ -26,7 +26,10 @@ module.exports = (env = {}) => {
 						'sass-loader',
 					]
 				}, {
-					test: /\.(png|jpe?g|gid)$/i,
+					test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
+					use: 'file-loader'
+				}, {
+					test: /\.(png|jpe?g|gid|svg)$/i,
 					use: 'file-loader'
 				}, {
 					test: /\.css$/,

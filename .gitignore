@@ -1,5 +1,5 @@
 node_modules
-escaperoom/escaperoom/static/dist
+escaperoom/escaperoom/static/escaperoom/dist/
 webpack-stats.json
 *.db
 
