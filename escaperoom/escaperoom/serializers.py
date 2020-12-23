@@ -21,5 +21,5 @@ class StateSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.State
         list_serializer_class = DictSerializer
-        fields = ('id', 'name', 'is_active', 'is_entrypoint', 'parent',
-                  'children')
+        fields = ('id', 'name', 'is_active', 'is_entrypoint', 'x', 'y',
+                  'parent', 'children')

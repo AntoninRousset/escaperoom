@@ -6,6 +6,8 @@ class State(models.Model):
     parent = models.ForeignKey('State', null=True, related_name='children',
                                on_delete=models.CASCADE)
     is_entrypoint = models.BooleanField(default=False)
+    x = models.IntegerField()
+    y = models.IntegerField()
 
     def is_active(self, at=None):
         try:

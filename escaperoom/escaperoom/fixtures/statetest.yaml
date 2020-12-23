@@ -5,21 +5,29 @@
   fields:
         name: 'a'
         is_entrypoint: True
+        x: 1
+        y: 1
 - model: escaperoom.state
   pk: 2
   fields:
         name: 'b'
+        x: 2
+        y: 1
 - model: escaperoom.state
   pk: 3
   fields:
         name: 'a.a'
         parent: 1
         is_entrypoint: True
+        x: 1
+        y: 1
 - model: escaperoom.state
   pk: 4
   fields:
         name: 'a.b'
         parent: 1
+        x: 2
+        y: 1
 
 
 ### STATE CHANGES ###
