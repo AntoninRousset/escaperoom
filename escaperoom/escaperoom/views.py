@@ -1,7 +1,8 @@
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
 
-from . import models, serializers
+from . import models
+from .serializers import StateSerializer, StateTransitionSerializer
 
 
 def index(request):
@@ -9,7 +10,11 @@ def index(request):
     return HttpResponse(template.render({}, request))
 
 
-def states(request):
-    objects = models.State.objects.filter(parent=None).all()
-    serializer = serializers.StateSerializer(objects, many=True)
-    return JsonResponse(serializer.data)
+def fsm(request):
+    states = models.State.objects.filter(parent=None).all()
+    transitions = models.StateTransition.objects.all()
+
+    return JsonResponse({
+        'states': StateSerializer(states, many=True).data,
+        'transitions': StateTransitionSerializer(transitions, many=True).data,
+    })

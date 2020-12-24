@@ -5,22 +5,22 @@ import App from './app.vue';
 const axios = require('axios').default;
 
 interface State {
-	states: object | null;
+	fsm: object | null;
 	darkMode: Boolean;
 }
 
 const store = createStore({
 	state() : State {
 		return {
-			states: null,
+			fsm: null,
 			darkMode: false,
 		}
 	},
 	mutations: {
-		fetch_states(state : State) {
-			axios.get('/states')
+		fetch_fsm(state : State) {
+			axios.get('/fsm')
 				.then(function (response) {
-					state.states = response.data;
+					state.fsm = response.data;
 				})
 				.catch(function (error) {
 					console.log(error);

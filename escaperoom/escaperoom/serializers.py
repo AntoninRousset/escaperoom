@@ -27,5 +27,12 @@ class StateSerializer(serializers.ModelSerializer):
                   'parent', 'children')
 
     def get_children(self, state):
-        if state.children is not None:
-            return StateSerializer(state.children.all(), many=True).data
+        return StateSerializer(state.children.all(), many=True).data
+
+
+class StateTransitionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.State
+        list_serializer_class = DictSerializer
+        fields = ('id', 'from_state', 'to_state')

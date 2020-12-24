@@ -1,6 +1,6 @@
 <template>
 	<div
-		:class="{state: true, hasChildren: hasChildren}"
+		:class="{state: true, single: ! hasChildren}"
 		ref="root"
 		:style="{
 			left: position.x + 'px',
@@ -9,16 +9,20 @@
 			width: size.width + 'px'
 		}">
 		{{info.name}}
-		<e-state
-			v-for="state in info.children"
-			:info="state" 
-			/>
+		<div
+			class="fsm"
+			v-if="fsm"
+			:style="{
+				height: size.height + 'px',
+				width: size.width + 'px'
+			}">
+			<e-state v-for="state in info.children" :info="state" />
+		</div>
 	</div>
 </template>
 
 <script>
 import {mapState} from 'vuex'
-
 
 export default {
 	name: 'EState',
@@ -33,7 +37,7 @@ export default {
 		this.root = this.$refs['root'];
 	},
 	computed: {
-		...mapState(['darkMode']),
+		...mapState(['fsm', 'darkMode']),
 		hasChildren() {
 			return Object.keys(this.info.children).length > 0;
 		},
@@ -64,12 +68,24 @@ export default {
 <style lang="scss">
 	@import "../scss/colors.scss";
 
-	div.state {
-		border: solid;
-		padding: 4px;
-		margin: 2px;
-
+	div {
 		position: absolute;
-		overflow: hidden;
+
+		&.fsm {
+			left: 0;
+			top: 0;
+		}
+
+		&.state {
+			border: solid;
+
+			position: absolute;
+			overflow: hidden;
+
+		}
+
+		&.single {
+			border-radius: 15px;
+		}
 	}
 </style>

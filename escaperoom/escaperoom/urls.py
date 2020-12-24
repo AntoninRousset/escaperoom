@@ -5,6 +5,6 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('states', views.states, name='states'),
+    path('fsm', views.fsm, name='fsm'),
     path('admin/', admin.site.urls),
 ]

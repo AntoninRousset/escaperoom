@@ -1,11 +1,12 @@
 <template>
-	<e-state :info="state" v-for="state in states" />
+	<div class="fsm" v-if="fsm">
+		<e-state :info="state" v-for="state in fsm.states" />
+	</div>
 </template>
 
 <script>
 import 'normalize.css'
 import {mapState} from 'vuex'
-
 import EState from './components/state.vue'
 
 export default {
@@ -17,12 +18,9 @@ export default {
 		}
 	},
 	created() {
-		this.$store.commit('fetch_states');
+		this.$store.commit('fetch_fsm');
 	},
-	computed: mapState({
-		states: 'states',
-		darkMode: 'darkMode'
-	}),
+	computed: mapState(['fsm']),
 }
 </script>
 
