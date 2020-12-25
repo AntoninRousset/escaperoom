@@ -25,14 +25,13 @@ SECRET_KEY = '0=dsz4w65nj69*j#+-uo-sc@@qy3r4_-oa7-9@&1+b5r(51+$$'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1']
 
 
 # Application definition
 
 INSTALLED_APPS = [
     'escaperoom.apps.EscaperoomConfig',
-    'compressor',
     'webpack_loader',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -121,24 +120,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = '/tmp/static'  # TODO
+STATICFILES_DIRS = [BASE_DIR / 'static']
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'compressor.finders.CompressorFinder',
-)
-
-
-# Compressor settings
-
-COMPRESS_ROOT = '/tmp/compress/' if DEBUG else STATIC_ROOT
-COMPRESS_PRECOMPILERS = (
-    ('text/x-scss', 'django_libsass.SassCompiler'),
 )
 
 
 # Webpack-loader
-
 
 FRONTEND_DIR = BASE_DIR / 'escaperoom' / 'frontend'
 WEBPACK_LOADER = {

@@ -12,7 +12,7 @@ module.exports = (env = {}) => {
 			app: './src/app.ts',
 		},
 		output: {
-			path: path.resolve('../static/escaperoom/dist'),
+			path: path.resolve('../../static/escaperoom/dist'),
 			publicPath: "/static/escaperoom/dist/",
       filename: "[name]-[fullhash].js"
     },
