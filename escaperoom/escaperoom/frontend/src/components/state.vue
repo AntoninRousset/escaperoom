@@ -8,7 +8,7 @@
 			height: height + 'px',
 			width: width + 'px'
 		}">
-		{{info.name}}
+    <h1>{{info.name}}</h1>
 		<div
 			class="fsm"
 			v-if="fsm"
@@ -59,7 +59,7 @@ export default {
 		position() {
 			return {
 				x: (this.info.x + 1) * this.gridStep - 2,
-				y: (this.info.y + 1) * this.gridStep - 2,
+				y: (this.info.y + 2) * this.gridStep - 2,
 			};
 		},
 
@@ -103,11 +103,19 @@ export default {
 	methods: {
 
     computeWidth(info) {
+
+      if (info.children.length === 0)
+        return 2;
+
       return Math.max(0, ...info.children.map((e) => e.x + this.computeWidth(e))) + 2;
     },
 
     computeHeight(info) {
-      return Math.max(0, ...info.children.map((e) => e.y + this.computeHeight(e))) + 2;
+
+      if (info.children.length === 0)
+        return 2;
+
+      return Math.max(0, ...info.children.map((e) => e.y + this.computeHeight(e))) + 3;
     },
 
 	},
@@ -131,7 +139,20 @@ export default {
 			position: absolute;
 			overflow: hidden;
 
+      -webkit-user-select: none; /* Safari */        
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+/Edge */
+      user-select: none; /* Standard */
 		}
+
+		&.state h1 {
+      background: darkblue;
+      font-size: 16px;
+      font-weight: normal;
+      margin: 0px;
+      padding: 10px;
+      color: white;
+    }
 
 		&.single {
 			border-radius: 15px;

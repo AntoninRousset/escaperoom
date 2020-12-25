@@ -28,6 +28,15 @@
         parent: 1
         x: 2
         y: 2
+- model: escaperoom.state
+  pk: 5
+  fields:
+        name: 'a.b.a'
+        parent: 4
+        x: 0
+        y: 1
+
+
 
 
 ### STATE CHANGES ###

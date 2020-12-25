@@ -27,4 +27,9 @@ export default {
 <style lang="scss">
 	@import "@icon/themify-icons/themify-icons.css";
 	@import "./scss/colors.scss";
+
+  body {
+    background: url("resources/grid32.png");
+  }
+
 </style>
