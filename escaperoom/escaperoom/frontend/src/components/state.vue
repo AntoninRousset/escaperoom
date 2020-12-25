@@ -53,7 +53,7 @@ export default {
 		...mapState(['fsm', 'darkMode']),
 
 		hasChildren() {
-			return Object.keys(this.info.children).length > 0;
+			return this.info.children.length > 0;
 		},
 
 		position() {

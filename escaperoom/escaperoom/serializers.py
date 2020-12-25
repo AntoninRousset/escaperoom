@@ -22,7 +22,6 @@ class StateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.State
-        list_serializer_class = DictSerializer
         fields = ('id', 'name', 'is_active', 'is_entrypoint', 'x', 'y',
                   'parent', 'children')
 
@@ -34,5 +33,4 @@ class StateTransitionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.State
-        list_serializer_class = DictSerializer
         fields = ('id', 'from_state', 'to_state')
