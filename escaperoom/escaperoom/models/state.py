@@ -30,3 +30,5 @@ class StateTransition(models.Model):
                                    on_delete=models.CASCADE)
     to_state = models.ForeignKey('State', related_name='+',
                                  on_delete=models.CASCADE)
+    condition = models.ForeignKey('Variable', related_name='+',
+                                  on_delete=models.RESTRICT)

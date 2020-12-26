@@ -4,9 +4,8 @@ BASEDIR=$(dirname $(readlink -f "${0}"))
 echo $BASEDIR
 
 uwsgi \
-	--http 127.0.0.1:8000 \
-	--plugins python37 \
+	--http 0.0.0.0:8000 \
+	--plugins python37,gevent37 \
+	--gevent 2 \
 	--module "escaperoom.wsgi" \
-	--process 1 \
-	--threads 1 \
 	--static-map /static="${BASEDIR}/static"

@@ -18,3 +18,7 @@ def fsm(request):
         'states': StateSerializer(states, many=True).data,
         'transitions': StateTransitionSerializer(transitions, many=True).data,
     })
+
+
+def measurement(request):
+    return HttpResponse('')
