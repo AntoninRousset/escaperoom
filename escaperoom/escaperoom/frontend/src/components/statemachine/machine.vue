@@ -5,7 +5,11 @@
       height: height + 'px',
       width: width + 'px',
 		}">
-    <e-state v-for="state in states" :info="state"/>
+    <e-state
+      v-for="state in states"
+      :info="state"
+      @unselect-all="$emit('unselectAll')"
+    />
   </div>
 </template>
 
@@ -25,17 +29,13 @@ export default {
 
 	name: 'EMachine',
 	props: ['states'],
+  emits: ['unselectAll'],
 
 	data() {
 		return {
-			root: null,
 			gridStep: 20,
       selected: false,
 		}
-	},
-
-	mounted() {
-		this.root = this.$refs['root'];
 	},
 
 	computed: {
@@ -56,28 +56,7 @@ export default {
 
 	},
 
-	watch: {
-
-		darkMode(newValue, oldValue) {
-		},
-
-    "states": {
-      handler: function(newValue) {
-      },
-      deep: true,
-    },
-
-	},
-
 	methods: {
-
-    dragStart(e) {
-      this.$store.commit('dragStart', {x: e.clientX, y: e.clientY});
-    },
-
-    select(e) {
-      this.selected = true;
-    },
 
     computeWidth(states) {
 

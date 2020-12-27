@@ -1,13 +1,15 @@
 <template>
 	<div
-		:class="{state: true, single: ! hasChildren, selected: selected}"
-		ref="root"
+		:class="{state: true, single: ! hasChildren, selected: info.selected}"
 		:style="{
 			left: position.x + 'px',
 			top: position.y + 'px',
 		}">
     <h1 @mousedown.stop="dragStart" @click.stop="select">{{info.name}}</h1>
-    <e-machine :states="info.children" />
+    <e-machine
+      :states="info.children"
+      @unselect-all="$emit('unselectAll')"
+    />
 	</div>
 </template>
 
@@ -23,18 +25,17 @@ export default {
 
 	name: 'EState',
 	props: ['info'],
+  emits: ['unselectAll'],
 
 	data() {
 		return {
-			root: null,
 			gridStep: 20,
-      selected: false,
 		}
 	},
 
-	mounted() {
-		this.root = this.$refs['root'];
-	},
+  created() {
+    this.info.selected = false;
+  },
 
 	computed: {
 
@@ -52,21 +53,11 @@ export default {
 		},
 
     width() {
-
-			if (this.root === null)
-				return '';
-
       return this.computeWidth(this.info) * this.gridStep - 4;
-
     },
 
     height() {
-
-			if (this.root === null)
-				return '';
-
       return this.computeHeight(this.info) * this.gridStep - 4;
-
     }
 
 	},
@@ -94,7 +85,7 @@ export default {
       if (dx === null)
         return;
 
-      if (!this.$store.state.drag.active || !this.selected)
+      if (!this.$store.state.drag.active || !this.info.selected)
         return;
 
       this.info.x = this.x0 + Math.round(dx / this.gridStep);
@@ -105,7 +96,7 @@ export default {
       if (dy === null)
         return;
 
-      if (!this.$store.state.drag.active || !this.selected)
+      if (!this.$store.state.drag.active || !this.info.selected)
         return;
 
       this.info.y = this.y0 + Math.round(dy / this.gridStep);
@@ -120,7 +111,8 @@ export default {
     },
 
     select(e) {
-      this.selected = true;
+      this.$emit('unselectAll');
+      this.info.selected = true;
     },
 
     computeWidth(info) {

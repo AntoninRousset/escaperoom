@@ -1,6 +1,9 @@
 <template>
-	<div class="editor">
-    <e-machine :states="states" />
+	<div class="editor" @click.stop="unselectAll(states)">
+    <e-machine
+      :states="states"
+      @unselect-all="unselectAll(states)"
+      />
 	</div>
 </template>
 
@@ -36,8 +39,14 @@ export default {
 	},
 
 	methods: {
-    unselectAll(e) {
-    }
+
+    unselectAll(states) {
+      states.forEach((state) => {
+        state.selected = false;
+        this.unselectAll(state.children);
+      });
+    },
+
 	},
 }
 </script>
