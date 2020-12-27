@@ -89,7 +89,7 @@ export default {
       if (!this.$store.state.drag.active || !this.info.selected)
         return;
 
-      this.info.x = this.x0 + Math.round(dx / this.gridStep);
+      this.info.x = Math.max(0, this.x0 + Math.round(dx / this.gridStep));
     },
 
     "drag.dy": function(dy) {
@@ -100,7 +100,7 @@ export default {
       if (!this.$store.state.drag.active || !this.info.selected)
         return;
 
-      this.info.y = this.y0 + Math.round(dy / this.gridStep);
+      this.info.y = Math.max(0, this.y0 + Math.round(dy / this.gridStep));
     },
 
 	},
@@ -121,7 +121,7 @@ export default {
       if (info.children.length === 0)
         return 2;
 
-      return Math.max(0, ...info.children.map((e) => e.x + this.computeWidth(e))) + 2;
+      return Math.max(0, ...info.children.map((e) => e.x + this.computeWidth(e)) + 2);
     },
 
     computeHeight(info) {
@@ -129,7 +129,7 @@ export default {
       if (info.children.length === 0)
         return 2;
 
-      return Math.max(0, ...info.children.map((e) => e.y + this.computeHeight(e))) + 3;
+      return Math.max(0, ...info.children.map((e) => e.y + this.computeHeight(e)) + 3);
     },
 
 	},
