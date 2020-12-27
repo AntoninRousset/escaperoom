@@ -7,6 +7,7 @@
 		}">
     <h1 @mousedown.stop="dragStart" @click.stop="select">{{info.name}}</h1>
     <e-machine
+      v-if="hasChildren"
       :states="info.children"
       @unselect-all="$emit('unselectAll')"
     />
@@ -146,24 +147,33 @@ export default {
 		&.state {
       position: absolute;
       box-sizing: border-box;
-			border: 2px solid black;
+			border: 1px solid gray;
 
 			position: absolute;
 			overflow: hidden;
 
       user-select: none;
 
+      border-radius: 6px;
+
+      &.single {
+        width: 40px;
+        height: 40px;
+        overflow: hidden;
+        border-radius: 50%;
+      }
+
       &.selected {
-        border: 2px solid darkred;
+        border: 1px solid darkred;
       }
 		}
 
 		&.state h1 {
-      background: darkblue;
+      padding: 0px;
+      background: #19456b;
       font-size: 16px;
       font-weight: normal;
       margin: 0px;
-      padding: 0px;
       height: 38px;
       color: white;
 
@@ -171,9 +181,5 @@ export default {
         background: darkred;
       }
     }
-
-		&.single {
-			border-radius: 15px;
-		}
 	}
 </style>
