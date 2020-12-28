@@ -33,8 +33,7 @@ export default {
     });
 
     window.addEventListener('mousemove', (e) => {
-      if (this.$store.state.drag.active)
-        this.$store.commit('dragMove', {x: e.clientX, y: e.clientY});
+      this.$store.commit('mouseMove', {x: e.clientX, y: e.clientY});
     });
 
   },

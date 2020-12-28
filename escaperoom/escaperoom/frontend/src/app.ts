@@ -11,11 +11,13 @@ interface State {
     active: boolean,
     x0: number | null,
     y0: number | null,
-    x: number | null,
-    y: number | null,
     dx: number | null,
     dy: number | null,
   };
+  mouse: {
+    x: number | null,
+    y: number | null,
+  }
 }
 
 const store = createStore({
@@ -28,11 +30,13 @@ const store = createStore({
         active: false,
         x0: null,
         y0: null,
-        x: null,
-        y: null,
         dx: null,
         dy: null,
       },
+      mouse: {
+        x: null,
+        y: null,
+      }
 		}
 	},
 
@@ -52,25 +56,24 @@ const store = createStore({
       state.drag.active = true;
       state.drag.x0 = position.x;
       state.drag.y0 = position.y;
-      state.drag.x = position.x;
-      state.drag.y = position.y;
       state.drag.dx = 0;
       state.drag.dy = 0;
     },
 
     dragEnd(state : State, position: {x: number, y: number}) {
       state.drag.active = false;
-      state.drag.x = null;
-      state.drag.y = null;
       state.drag.dx = null;
       state.drag.dy = null;
     },
 
-    dragMove(state : State, position: {x: number, y: number}) {
-      state.drag.x = position.x;
-      state.drag.y = position.y;
-      state.drag.dx = (state.drag.x0 === null) ? null : position.x - state.drag.x0;
-      state.drag.dy = (state.drag.y0 === null) ? null : position.y - state.drag.y0;
+    mouseMove(state : State, position: {x: number, y: number}) {
+      state.mouse.x = position.x;
+      state.mouse.y = position.y;
+
+      if (state.drag.active) {
+        state.drag.dx = (state.drag.x0 === null) ? null : position.x - state.drag.x0;
+        state.drag.dy = (state.drag.y0 === null) ? null : position.y - state.drag.y0;
+      }
     },
 	},
 })

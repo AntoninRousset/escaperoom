@@ -5,6 +5,13 @@
       height: height + 'px',
       width: width + 'px',
 		}">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 100 100"
+      width="100"
+      height="100"
+    >
+    </svg>
     <e-state
       v-for="state in states"
       :info="state"
@@ -15,16 +22,19 @@
 
 <script>
 import {mapState} from 'vuex'
-import {defineAsyncComponent,defineComponent} from "vue";
+import {defineAsyncComponent,defineComponent} from 'vue';
+import ETransition from './transition'
 
 export default {
 
   components: {
 
     // dynamic import of EState to avoid circular dependencies
-    EState: defineAsyncComponent(() =>
+    'e-state': defineAsyncComponent(() =>
       import('./state.vue')
-    )
+    ),
+    'e-transition': ETransition,
+
   },
 
 	name: 'EMachine',
@@ -82,6 +92,7 @@ export default {
 	@import "../../scss/colors.scss";
 
 	div.machine {
+    z-index: 60;
     position: relative;
 	}
 

@@ -5,18 +5,27 @@
 			left: position.x + 'px',
 			top: position.y + 'px',
 		}">
-    <h1 @mousedown.stop="dragStart" @click.stop="select">{{info.name}}</h1>
-    <e-machine
-      v-if="hasChildren"
-      :states="info.children"
-      @unselect-all="$emit('unselectAll')"
-    />
+
+    <div class="create-transition">
+      <i class="ti ti-link" />
+    </div>
+
+    <div class="frame">
+      <h1 @mousedown.stop="dragStart" @click.stop="select">{{info.name}}</h1>
+      <e-machine
+        v-if="hasChildren"
+        :states="info.children"
+        @unselect-all="$emit('unselectAll')"
+      />
+    </div>
+
 	</div>
 </template>
 
 <script>
 import {mapState} from 'vuex'
 import EMachine from './machine.vue'
+import Mouse from '../utils/mouse.vue'
 
 export default {
 
@@ -25,6 +34,7 @@ export default {
   },
 
 	name: 'EState',
+  mixins: [Mouse],
 	props: ['info'],
   emits: ['unselectAll'],
 
@@ -40,7 +50,7 @@ export default {
 
 	computed: {
 
-		...mapState(['fsm', 'darkMode', 'drag']),
+		...mapState(['fsm', 'darkMode']),
 
 		hasChildren() {
 			return this.info.children.length > 0;
@@ -107,10 +117,6 @@ export default {
 
 	methods: {
 
-    dragStart(e) {
-      this.$store.commit('dragStart', {x: e.clientX, y: e.clientY});
-    },
-
     select(e) {
       this.$emit('unselectAll');
       this.info.selected = true;
@@ -132,6 +138,10 @@ export default {
       return Math.max(0, ...info.children.map((e) => e.y + this.computeHeight(e)) + 3);
     },
 
+    test() {
+      console.log('over');
+    },
+
 	},
 }
 </script>
@@ -139,47 +149,75 @@ export default {
 <style lang="scss">
 	@import "../../scss/colors.scss";
 
-	div {
+  .state {
+    position: absolute;
+    box-sizing: border-box;
+    user-select: none;
 
-		&.fsm {
-		}
-
-		&.state {
-      position: absolute;
-      box-sizing: border-box;
-			border: 1px solid gray;
-
-			position: absolute;
-			overflow: hidden;
-
-      user-select: none;
-
+    .frame {
+      border: 1px solid gray;
       border-radius: 6px;
+      overflow: hidden;
 
-      &.single {
-        width: 40px;
-        height: 40px;
-        overflow: hidden;
-        border-radius: 50%;
-      }
+      h1 {
+        padding: 0px;
+        background: #19456b;
+        font-size: 16px;
+        font-weight: normal;
+        margin: 0px;
+        height: 38px;
+        color: white;
 
-      &.selected {
-        border: 1px solid darkred;
-      }
-		}
-
-		&.state h1 {
-      padding: 0px;
-      background: #19456b;
-      font-size: 16px;
-      font-weight: normal;
-      margin: 0px;
-      height: 38px;
-      color: white;
-
-      &:hover {
-        background: darkred;
+        &:hover {
+          background: darkred;
+        }
       }
     }
-	}
+
+    .create-transition {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #cc7351;
+      border-radius: 50%;
+      right: 8px;
+      top: 8px;
+      width: 24px;
+      height: 24px;
+      border: 0px;
+      box-sizing: border-box;
+      transition: top 0.3s, right 0.3s;
+      z-index: -1;
+
+      &:hover {
+        background: #df7861;
+      }
+
+      .ti {
+        color: white;
+      }
+    }
+
+    &:hover > .create-transition {
+      right: -16px;
+      top: -16px;
+    }
+
+
+    &.single {
+      width: 40px;
+      height: 40px;
+
+      .frame {
+        border-radius: 50%;
+      }
+    }
+
+    &.selected {
+      .frame{
+        border: 1px solid darkred;
+      }
+    }
+  }
 </style>
