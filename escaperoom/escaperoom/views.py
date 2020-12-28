@@ -1,7 +1,7 @@
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
 
-from . import models
+from . import brain, models
 from .serializers import StateSerializer, StateTransitionSerializer
 
 
@@ -21,4 +21,5 @@ def fsm(request):
 
 
 def measurement(request):
+    brain.request_states_check()
     return HttpResponse('')
