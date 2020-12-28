@@ -1,9 +1,26 @@
+### MACHINES ###
+
+- model: escaperoom.machine
+  pk: 1
+  fields:
+        parent_state: null  # root machine
+- model: escaperoom.machine
+  pk: 2
+  fields:
+        parent_state: 1  # "a" state
+- model: escaperoom.machine
+  pk: 3
+  fields:
+        parent_state: 6  # "a.d" state
+
+
 ### STATES ###
 
 - model: escaperoom.state
   pk: 1
   fields:
         name: 'a'
+        machine: 1  # "root" machine
         is_entrypoint: True
         x: 0
         y: 0
@@ -11,13 +28,14 @@
   pk: 2
   fields:
         name: 'b'
+        machine: 1
         x: 16
         y: 5
 - model: escaperoom.state
   pk: 3
   fields:
         name: 'a.a'
-        parent: 1
+        machine: 2
         is_entrypoint: True
         x: 0
         y: 0
@@ -25,21 +43,21 @@
   pk: 4
   fields:
         name: 'a.b'
-        parent: 1
+        machine: 2
         x: 4
         y: 0
 - model: escaperoom.state
   pk: 5
   fields:
         name: 'a.c'
-        parent: 1
+        machine: 2
         x: 8
         y: 0
 - model: escaperoom.state
   pk: 6
   fields:
         name: 'a.d'
-        parent: 1
+        machine: 2
         x: 3
         y: 4
 
@@ -47,7 +65,7 @@
   pk: 7
   fields:
         name: 'a.d.a'
-        parent: 6
+        machine: 3
         x: 0
         y: 0
 

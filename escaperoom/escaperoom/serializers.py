@@ -17,16 +17,36 @@ class DictSerializer(serializers.ListSerializer):
         return serializers.ReturnDict(ret, serializer=self)
 
 
+class MachineSerializer(serializers.ModelSerializer):
+    states = serializers.SerializerMethodField()
+    transitions = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Machine
+        fields = ('id', 'parent_state', 'states', 'transitions')
+
+    def get_states(self, machine):
+        return StateSerializer(machine.states.all(), many=True).data
+
+    def get_transitions(self, machine):
+        return StateTransitionSerializer(
+            machine.transitions.all(), many=True
+        ).data
+
+
 class StateSerializer(serializers.ModelSerializer):
-    children = serializers.SerializerMethodField()
+    submachine = serializers.SerializerMethodField()
 
     class Meta:
         model = models.State
-        fields = ('id', 'name', 'is_active', 'is_entrypoint', 'x', 'y',
-                  'parent', 'children')
+        fields = ('id', 'name', 'machine', 'submachine', 'is_entrypoint',
+                  'is_active', 'x', 'y')
 
-    def get_children(self, state):
-        return StateSerializer(state.children.all(), many=True).data
+    def get_submachine(self, state):
+        try:
+            return MachineSerializer(state.submachine).data
+        except models.Machine.DoesNotExist:
+            return None
 
 
 class StateTransitionSerializer(serializers.ModelSerializer):

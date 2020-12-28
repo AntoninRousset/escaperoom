@@ -2,7 +2,7 @@ from django.http import HttpResponse, JsonResponse
 from django.template import loader
 
 from . import brain, models
-from .serializers import StateSerializer, StateTransitionSerializer
+from .serializers import MachineSerializer
 
 
 def index(request):
@@ -11,13 +11,10 @@ def index(request):
 
 
 def fsm(request):
-    states = models.State.objects.filter(parent=None).all()
-    transitions = models.StateTransition.objects.all()
-
-    return JsonResponse({
-        'states': StateSerializer(states, many=True).data,
-        'transitions': StateTransitionSerializer(transitions, many=True).data,
-    })
+    root_machines = models.Machine.objects.filter(parent_state=None).all()
+    return JsonResponse(
+        MachineSerializer(root_machines, many=True).data, safe=False
+    )
 
 
 def measurement(request):
