@@ -1,6 +1,7 @@
 node_modules
-/escaperoom/static/escaperoom/dist/
+/escaperoom/static/escaperoom/dist/*
 webpack-stats.json
 *.db
+/escaperoom/tasks/*
 
 __pycache__/

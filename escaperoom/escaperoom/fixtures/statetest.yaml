@@ -52,6 +52,28 @@
         y: 0
 
 
+### STATE TRANSITIONS ###
+
+- model: escaperoom.statetransition
+  pk: 1
+  fields:
+        from_state: 1
+        to_state: 2
+- model: escaperoom.statetransition
+  pk: 2
+  fields:
+        from_state: 3
+        to_state: 4
+- model: escaperoom.statetransition
+  pk: 3
+  fields:
+        from_state: 4
+        to_state: 5
+- model: escaperoom.statetransition
+  pk: 4
+  fields:
+        from_state: 4
+        to_state: 6
 
 
 ### STATE CHANGES ###

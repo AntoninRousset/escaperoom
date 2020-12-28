@@ -32,5 +32,5 @@ class StateSerializer(serializers.ModelSerializer):
 class StateTransitionSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = models.State
+        model = models.StateTransition
         fields = ('id', 'from_state', 'to_state')
