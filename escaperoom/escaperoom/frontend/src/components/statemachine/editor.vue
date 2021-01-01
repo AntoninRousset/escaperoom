@@ -2,6 +2,7 @@
 	<div class="editor" @click.stop="unselectAll(states)">
     <e-machine
       :states="states"
+      :transitions="transitions"
       @unselect-all="unselectAll(states)"
       />
 	</div>
@@ -30,7 +31,7 @@ export default {
 	},
 
 	computed: {
-		...mapState(['fsm', 'darkMode', 'drag']),
+		...mapState(['fsm', 'darkMode']),
 	},
 
 	watch: {
@@ -60,13 +61,6 @@ export default {
     margin: 64px;
     border: 1px solid gray;
     overflow: scroll;
-
-    & > .machine {
-      min-width: 100%;
-      min-height: 100%;
-      position: relative;
-      background: url("../../resources/grid32.png");
-    }
 	}
 
 </style>

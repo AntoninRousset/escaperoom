@@ -1,5 +1,5 @@
 <template>
-  <path :d="'M ' + x0 + ' ' + y0 + ' L ' + x1 + ' ' + y1" />
+  <path :d="path"/>
 </template>
 
 <script>
@@ -7,48 +7,30 @@ import {mapState} from 'vuex'
 
 export default {
 
-  components: {
-  },
-
 	name: 'ETransition',
   mixins: [],
-	props: ['src', 'dest'],
-  emits: ['unselectAll'],
-
-	data() {
-		return {
-      gridStep: 20,
-		}
-	},
+  props: {
+    'i': {
+      type: Number,
+    },
+    'points': {
+      type: Array,
+      default: [],
+    },
+  },
+  emits: [],
 
   created() {
+    console.log(this.points);
   },
 
-	computed: {
-
-    x0() {
-      return (src.x + 1) * this.gridStep;
+  computed: {
+    path() {
+      let points = this.points.map(p => `${p.x} ${p.y}`)
+      return 'M ' + points.join(' L ')
     },
-    
-    y0() {
-      return (src.y + 1) * this.gridStep;
-    },
+  }
 
-    x1() {
-      return (dest.x + 1) * this.gridStep;
-    },
-
-    y1() {
-      return (dest.x + 1) * this.gridStep;
-    },
-
-  },
-
-	watch: {
-	},
-
-	methods: {
-	},
 }
 </script>
 
@@ -56,7 +38,8 @@ export default {
 	@import "../../scss/colors.scss";
 
   path {
+    fill: none;
     stroke: #000000;
-    stroke-width: 3px;
+    stroke-width: 3;
  }
 </style>

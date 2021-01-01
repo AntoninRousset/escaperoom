@@ -1,6 +1,9 @@
 <template>
 	<div class="fsm" v-if="fsm">
-    <e-statemachine-editor :states="fsm.states" />
+    <e-statemachine-editor
+      :states="fsm.states"
+      :transitions="fsm.transitions"
+      />
 	</div>
 </template>
 
