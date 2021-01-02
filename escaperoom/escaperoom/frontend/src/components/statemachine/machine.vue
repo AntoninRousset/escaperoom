@@ -2,14 +2,17 @@
   <div
     class="machine"
     :style="{
-      width: w * this.gridStep + 'px',
-      height: h * this.gridStep + 'px',
-		}">
+      width: w * gridStep + 'px',
+      height: h * gridStep + 'px',
+		}"
+    @click.self="deselectState('all')"
+    >
     <svg
       xmlns="http://www.w3.org/2000/svg"
       :viewBox="`0 0 ${w * this.gridStep} ${h * this.gridStep}`"
       :width="w * this.gridStep + 'px'"
       :height="h * this.gridStep + 'px'"
+      @click.self="deselectState('all')"
     >
       <e-transition
         v-for="(trans, i) in transitions"
@@ -26,7 +29,10 @@
       :w="stateGeom[i].w * gridStep"
       :h="stateGeom[i].h * gridStep"
       :selected="selectedStates.includes(i)"
-      @select="selectState"
+      :dragged="typeof draggedStates[i] !== 'undefined'"
+      @click="deselectState('all'); selectState(i)"
+      @shiftclick="selectState(i)"
+      @drag="(dx, dy) => dragState(i, dx, dy)"
     />
   </div>
 </template>
@@ -78,6 +84,7 @@ export default {
 	data() {
 		return {
       selectedStates: [],
+      draggedStates: {},
 		}
 	},
 
@@ -203,11 +210,57 @@ export default {
       })) + 2 * this.padding + this.headerHeight;
     },
 
-    getStateChildren(i) {
-      return Array(...this.states.keys()).filter((j) => {
+    getStateChildren(i, depth=1) {
+
+      if (depth === 'inf')
+        depth = -1;
+
+      let children = Array();
+
+      children = children.concat(Array(...this.states.keys()).filter((j) => {
         return this.states[j].parent === i;
-      });
+      }));
+
+      if (depth != 1) {
+
+        let grandchildren = Array();
+
+        for (let j of children)
+          grandchildren = grandchildren.concat(this.getStateChildren(j, depth - 1));
+
+        children = children.concat(grandchildren);
+      }
+
+      return children;
     },
+
+    getStateParents(i, depth=1) {
+
+      if (depth === 'inf')
+        depth = -1;
+
+      if (typeof this.states[i] === 'undefined')
+        return [];
+
+      if (this.states[i].parent === null)
+        return [];
+
+      let parents = [this.states[i].parent];
+
+      if (depth != 1) {
+
+        let grandparents = Array();
+
+        for (let j of parents)
+          grandparents = grandparents.concat(this.getStateParents(j, depth - 1));
+
+        parents = parents.concat(grandparents);
+      }
+
+      return parents;
+    },
+
+
 
     selectState(i) {
 
@@ -341,17 +394,6 @@ export default {
           {x: dest.x,  y: dest.y},
         ];
       }
-
-      //    NW     |       N       |    NE
-      //           |               |
-      //  ---------+---------------+---------
-      //           |               |
-      //    W      |       O       |     E
-      //           |               |
-      //  ---------+---------------+---------
-      //           |               |
-      //    SW     |       S       |    SE
-
     },
 
     getTransitionsPoints(i) {
@@ -359,7 +401,58 @@ export default {
         return {x: p.x * this.gridStep, y: p.y * this.gridStep,};
       });
     },
+
+    stateMousedown(e, i) {
+      console.log('down', i);
+    },
+
+    stateMouseup(e, i) {
+      console.log('up', i);
+    },
+
+    dragState(i, dx, dy) {
+
+      let draggedStates = [i];
+
+      // add selected states if multiple
+      if (this.selectedStates.length > 1)
+        draggedStates = draggedStates.concat(this.selectedStates);
+
+      // remove states that already have a dragged parent
+      let invalidStates = Array();
+      for (let j of draggedStates) {
+        for (let k of this.getStateParents(j)) {
+          if (draggedStates.includes(k) && ! invalidStates.includes(j))
+            invalidStates.push(j);
+        }
+      }
+
+      draggedStates = draggedStates.filter(j => !invalidStates.includes(j));
+
+      // save dragged states
+      for (let j of draggedStates) {
+        if (typeof this.draggedStates[j] === 'undefined') {
+          this.draggedStates[j] = {
+            x0: this.states[j].x,
+            y0: this.states[j].y,
+          }
+        }
+      }
+
+      for (let j in this.draggedStates) {
+        this.states[j].x = Math.max(0, this.draggedStates[j].x0 + Math.round(dx / this.gridStep));
+        this.states[j].y = Math.max(0, this.draggedStates[j].y0 + Math.round(dy / this.gridStep));
+      }
+    },
+
 	},
+
+  watch: {
+    'mouse.down'(newv, oldv) {
+      if (!newv)
+        this.draggedStates = {};
+    }, 
+  }
 }
 </script>
 

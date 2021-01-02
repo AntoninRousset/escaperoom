@@ -2,7 +2,9 @@
 	<div
 		:class="{
       state: true,
-      selected: selected}"
+      selected: selected,
+      dragged: dragged,
+    }"
 		:style="{
 			left: x + 'px',
 			top: y + 'px',
@@ -19,9 +21,9 @@
         height: h + 'px',
       }">
       <h1
-        @mousedown="mousedown"
-        @mouseup="mouseup"
-        @click.stop="$emit('select', i)"
+        @mousedown.left.exact="mousedown"
+        @mouseup.left.exact="mouseup"
+        @click.shift.left.exact="$emit('shiftclick')"
         >
         {{name}}
       </h1>
@@ -43,31 +45,42 @@ export default {
 
 	name: 'EState',
   mixins: [Mouse],
-	props: ['i', 'name', 'x', 'y', 'w', 'h', 'selected'],
-  emits: ['select', 'deselect'],
+	props: ['i', 'name', 'x', 'y', 'w', 'h', 'selected', 'dragged'],
+  emits: ['click', 'drag', 'shiftclick'],
+
+  data() {
+    return {
+      pressTimer: null,
+    };
+  },
 
 	computed: {
 		...mapState(['fsm', 'darkMode']),
 	},
 
-  created() {
-  },
-
 	watch: {
 
     "drag.dx": function(dx) {
+      if (this.drag.ref === this)
+        this.$emit('drag', this.drag.dx, this.drag.dy);
     },
 
     "drag.dy": function(dy) {
+      if (this.drag.ref === this)
+        this.$emit('drag', this.drag.dx, this.drag.dy);
     },
 
 	},
 
 	methods: {
 
-    select(e) {
-      this.$emit('deselect', 'all');
-      this.$emit('select', 'all');
+    mousedown(e) {
+      this.dragStart(e);
+    },
+
+    mouseup(e) {
+      if (this === this.drag.ref)
+        this.$emit('click');
     },
 
 	},
@@ -81,6 +94,8 @@ export default {
     position: absolute;
     box-sizing: border-box;
     user-select: none;
+    transition: box-shadow 0.3s;
+    border-radius: 6px;
 
     .frame {
       border: 1px solid gray;
@@ -94,7 +109,8 @@ export default {
         font-size: 16px;
         font-weight: normal;
         margin: 0px;
-        height: 38px;
+        height: 40px;
+        box-sizing: border-box;
         color: white;
 
         &:hover {
@@ -144,9 +160,13 @@ export default {
     }
 
     &.selected {
-      .frame{
-        border: 1px solid darkred;
+      .frame h1 {
+          background: darkred;
       }
+    }
+
+    &.dragged {
+      box-shadow: 0px 0px 14px rgba(0, 0, 0, 0.4);
     }
   }
 </style>

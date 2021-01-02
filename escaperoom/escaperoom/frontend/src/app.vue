@@ -31,12 +31,17 @@ export default {
 
   mounted() {
 
+    window.addEventListener('mousedown', (e) => {
+      this.$store.commit('mousedown');
+    });
+
     window.addEventListener('mouseup', (e) => {
-      this.$store.commit('dragEnd', {x: e.clientX, y: e.clientY});
+      this.$store.commit('mouseup');
+      this.$store.commit('dragend', {x: e.clientX, y: e.clientY});
     });
 
     window.addEventListener('mousemove', (e) => {
-      this.$store.commit('mouseMove', {x: e.clientX, y: e.clientY});
+      this.$store.commit('mousemove', {x: e.clientX, y: e.clientY});
     });
 
   },

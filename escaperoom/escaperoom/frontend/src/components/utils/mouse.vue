@@ -12,7 +12,7 @@ export default {
 	},
 
 	computed: {
-		...mapState(['drag']),
+		...mapState(['drag', 'mouse']),
 	},
 
 	watch: {
@@ -21,7 +21,7 @@ export default {
 	methods: {
 
     dragStart(e) {
-      this.$store.commit('dragStart', {x: e.clientX, y: e.clientY});
+      this.$store.commit('dragstart', {ref: this, x: e.clientX, y: e.clientY});
     },
 
 	},

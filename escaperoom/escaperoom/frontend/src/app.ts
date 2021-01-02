@@ -8,6 +8,7 @@ interface State {
 	fsm: object | null;
 	darkMode: boolean;
   drag: {
+    ref: object | null,
     active: boolean,
     x0: number | null,
     y0: number | null,
@@ -15,6 +16,8 @@ interface State {
     dy: number | null,
   };
   mouse: {
+    down: boolean,
+    up: boolean,
     x: number | null,
     y: number | null,
   }
@@ -27,6 +30,7 @@ const store = createStore({
 			fsm: null,
 			darkMode: false,
       drag: {
+        ref: null,
         active: false,
         x0: null,
         y0: null,
@@ -34,6 +38,8 @@ const store = createStore({
         dy: null,
       },
       mouse: {
+        down: false,
+        up: true,
         x: null,
         y: null,
       }
@@ -183,21 +189,33 @@ const store = createStore({
       */
 		},
 
-    dragStart(state : State, position: {x: number, y: number}) {
+    mouseup(state : State) {
+      state.mouse.up = true;
+      state.mouse.down = false;
+    },
+
+    mousedown(state : State) {
+      state.mouse.up = false;
+      state.mouse.down = true;
+    },
+
+    dragstart(state : State, args: {ref: object, x: number, y: number}) {
+      state.drag.ref = args.ref;
       state.drag.active = true;
-      state.drag.x0 = position.x;
-      state.drag.y0 = position.y;
+      state.drag.x0 = args.x;
+      state.drag.y0 = args.y;
       state.drag.dx = 0;
       state.drag.dy = 0;
     },
 
-    dragEnd(state : State, position: {x: number, y: number}) {
+    dragend(state : State, position: {x: number, y: number}) {
+      state.drag.ref = null;
       state.drag.active = false;
       state.drag.dx = null;
       state.drag.dy = null;
     },
 
-    mouseMove(state : State, position: {x: number, y: number}) {
+    mousemove(state : State, position: {x: number, y: number}) {
       state.mouse.x = position.x;
       state.mouse.y = position.y;
 

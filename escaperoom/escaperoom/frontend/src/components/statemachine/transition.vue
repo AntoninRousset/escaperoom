@@ -20,10 +20,6 @@ export default {
   },
   emits: [],
 
-  created() {
-    console.log(this.points);
-  },
-
   computed: {
     path() {
       let points = this.points.map(p => `${p.x} ${p.y}`)
@@ -39,7 +35,7 @@ export default {
 
   path {
     fill: none;
-    stroke: #000000;
+    stroke: #aaa;
     stroke-width: 3;
  }
 </style>
