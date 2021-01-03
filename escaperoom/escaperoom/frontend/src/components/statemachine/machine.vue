@@ -93,19 +93,19 @@ export default {
 		...mapState(['fsm', 'darkMode']),
 
     w() {
-      return Math.max(0, ...Array(...this.states.keys()).map((j) => {
+      return Math.max(0, ...[...this.states.keys()].map((j) => {
         return this.states[j].x + this.computeStateW(j);
       })) + 2 * this.padding;
     },
 
     h() {
-      return Math.max(0, ...Array(...this.states.keys()).map((j) => {
+      return Math.max(0, ...[...this.states.keys()].map((j) => {
         return this.states[j].y + this.computeStateH(j);
       })) + 2 * this.padding;
     },
 
     stateGeom() {
-      return Array(...this.states.keys()).map((i) => {
+      return [...this.states.keys()].map((i) => {
         return {
           i: i,
           x: this.computeStateX(i),
@@ -217,7 +217,7 @@ export default {
 
       let children = Array();
 
-      children = children.concat(Array(...this.states.keys()).filter((j) => {
+      children = children.concat([...this.states.keys()].filter((j) => {
         return this.states[j].parent === i;
       }));
 
@@ -265,7 +265,7 @@ export default {
     selectState(i) {
 
       if (i === 'all')
-        i = Array(...this.states.keys());
+        i = [...this.states.keys()];
 
       this.selectedStates = this.selectedStates.concat(i);
     },
@@ -324,7 +324,7 @@ export default {
 
       let src = null;
       let dest = null;
-      let maxd = null;
+      let dmax = null;
 
       for (let a1 of anchors1) {
         for (let a2 of anchors2) {
@@ -334,12 +334,22 @@ export default {
             distanceFromAnchor(a2, a1.x, a1.y), 
           ]);
 
-          if (maxd === null || d > maxd) {
-            maxd = d;
+          if (dmax === null || d > dmax) {
+            dmax = d;
             src = a1;
             dest = a2;
           }
         }
+      }
+
+      // if dest state pointing back to src state
+      let cabs = 0;
+      let c = 0;
+      let cd = 0;
+      if (this.getStateOutgoingTransitions(j).map((k) => {
+        return this.transitions[k].dest;
+      }).includes(i)) {
+        cabs = 0.25
       }
 
       let d = distanceFromAnchor(src, dest.x, dest.y);
@@ -347,51 +357,57 @@ export default {
 
         if (dest.orient == 'S' || dest.orient == 'N') {
 
+          c = (dest.y > src.y) ? -cabs : cabs;
+          cd = (dest.x > src.x) ? cabs : -cabs;
+
           if (src.x === dest.x) {
             return [
-              {x: src.x,  y: src.y},
-              {x: dest.x, y: dest.y},
+              {x: src.x + c,  y: src.y},
+              {x: dest.x + c, y: dest.y},
             ];
           }
 
           return [
-            {x: src.x,  y: src.y},
-            {x: src.x,  y: (src.y + dest.y) / 2},
-            {x: dest.x, y: (src.y + dest.y) / 2},
-            {x: dest.x, y: dest.y},
+            {x: src.x + c,  y: src.y},
+            {x: src.x + c,  y: (src.y + dest.y) / 2 + cd},
+            {x: dest.x + c, y: (src.y + dest.y) / 2 + cd},
+            {x: dest.x + c, y: dest.y},
           ];
 
         }
 
         return [
-          {x: src.x,  y: src.y},
-          {x: src.x,  y: dest.y},
-          {x: dest.x, y: dest.y},
+          {x: src.x + c,  y: src.y},
+          {x: src.x + c,  y: dest.y + c},
+          {x: dest.x,     y: dest.y + c},
         ];
 
       } else {
 
         if (dest.orient == 'W' || dest.orient == 'E') {
 
+          c = (dest.x > src.x) ? -cabs : cabs;
+          cd = (dest.y > src.y) ? cabs : -cabs;
+
           if (src.y === dest.y) {
             return [
-              {x: src.x,  y: src.y},
-              {x: dest.x, y: dest.y},
+              {x: src.x,  y: src.y + c},
+              {x: dest.x, y: dest.y + c},
             ];
           }
 
           return [
-            {x: src.x,                y: src.y},
-            {x: (src.x + dest.x) / 2, y: src.y},
-            {x: (src.x + dest.x) / 2, y: dest.y},
-            {x: dest.x,               y: dest.y},
+            {x: src.x,                     y: src.y + c},
+            {x: (src.x + dest.x) / 2 + cd, y: src.y + c},
+            {x: (src.x + dest.x) / 2 + cd, y: dest.y + c},
+            {x: dest.x,                    y: dest.y + c},
           ];
         }
 
         return [
-          {x: src.x,   y: src.y},
-          {x: dest.x,  y: src.y},
-          {x: dest.x,  y: dest.y},
+          {x: src.x,      y: src.y + c},
+          {x: dest.x + c, y: src.y + c},
+          {x: dest.x + c, y: dest.y},
         ];
       }
     },
@@ -400,6 +416,23 @@ export default {
       return this.transitionGeom[i].map(p => {
         return {x: p.x * this.gridStep, y: p.y * this.gridStep,};
       });
+    },
+
+    getStateIngoingTransitions(i) {
+      return [...this.transitions.keys()].filter((j) => {
+        return this.transitions[j].dest === i;
+      })
+    },
+
+    getStateOutgoingTransitions(i) {
+      return [...this.transitions.keys()].filter((j) => {
+        return this.transitions[j].src === i;
+      });
+    },
+
+    getStateTransitions(i) {
+      return [...this.getStateIngoingTransitions(i),
+              ...this.getStateOutgoingTransitions(i)];
     },
 
     stateMousedown(e, i) {

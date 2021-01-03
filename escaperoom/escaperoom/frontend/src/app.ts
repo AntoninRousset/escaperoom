@@ -158,19 +158,25 @@ const store = createStore({
 
           {
             id: 4,
+            src: 4,
+            dest: 3,
+          },
+
+          {
+            id: 5,
             src: 3,
             dest: 5,
           },
 
           {
-            id: 5,
+            id: 6,
             src: 6,
             dest: 7,
           },
 
 
           {
-            id: 6,
+            id: 7,
             src: 8,
             dest: 9,
           },

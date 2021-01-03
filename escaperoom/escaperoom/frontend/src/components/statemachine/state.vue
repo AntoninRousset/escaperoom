@@ -102,6 +102,7 @@ export default {
       border-radius: 6px;
       box-sizing: border-box;
       overflow: hidden;
+      pointer-events: none;
 
       h1 {
         padding: 0px;
@@ -112,6 +113,7 @@ export default {
         height: 40px;
         box-sizing: border-box;
         color: white;
+        pointer-events: auto;
 
         &:hover {
           background: darkred;
