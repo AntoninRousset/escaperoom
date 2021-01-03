@@ -1,5 +1,10 @@
 <template>
-  <path :d="path"/>
+  <path
+  :d="path"
+  fill="none"
+  stroke="#aaa"
+  stroke-width="2px"
+  marker-end="url(#triangle)"/>
 </template>
 
 <script>
@@ -34,8 +39,5 @@ export default {
 	@import "../../scss/colors.scss";
 
   path {
-    fill: none;
-    stroke: #aaa;
-    stroke-width: 3;
  }
 </style>

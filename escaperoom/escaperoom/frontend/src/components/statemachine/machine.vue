@@ -12,8 +12,19 @@
       :viewBox="`0 0 ${w * this.gridStep} ${h * this.gridStep}`"
       :width="w * this.gridStep + 'px'"
       :height="h * this.gridStep + 'px'"
-      @click.self="deselectState('all')"
-    >
+      @click.self="deselectState('all')">
+      <defs>
+        <marker id="triangle" viewBox="0 0 10 10"
+          refX="8" refY="4"
+          markerUnits="userSpaceOnUse"
+          markerWidth="10" markerHeight="10"
+          orient="auto">
+          <path
+            d="M 10 4 L 0 0 L 0 8 z"
+            stroke-width="0"
+            fill="#aaa"/>
+        </marker>
+      </defs>
       <e-transition
         v-for="(trans, i) in transitions"
         :i="i"
