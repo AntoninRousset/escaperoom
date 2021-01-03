@@ -13,12 +13,16 @@ class Machine(models.Model):
 
 
 class State(models.Model):
-    name = models.CharField(max_length=64, null=True)
-    machine = models.ForeignKey('Machine', related_name='states',
-                                on_delete=models.CASCADE)
+    name = models.CharField(max_length=64)
+    parent = models.ForeignKey('State', related_name='children', null=True,
+                               on_delete=models.CASCADE)
     is_entrypoint = models.BooleanField(default=False)
     x = models.IntegerField()
     y = models.IntegerField()
+
+    @classmethod
+    def active_states(self, at=None):
+        return {state for state in State.objects.all() if state.is_active(at)}
 
     def is_active(self, at=None):
         try:

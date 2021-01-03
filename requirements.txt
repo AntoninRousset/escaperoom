@@ -1,4 +1,5 @@
 django
 djangorestframework >= 3.11.1
 django-webpack-loader >= 0.7.0
-uwsgi  # with python and python-gevent modules
+uwsgi >= 2.0.19.1 # with python and python-gevent modules
+pyyaml >= 5.3.1
