@@ -1,21 +1,16 @@
 from django.db import models
 
 
-class Machine(models.Model):
-    parent_state = models.OneToOneField('State', related_name='submachine',
-                                        null=True, on_delete=models.CASCADE)
-
-    @property
-    def transitions(self):
-        return StateTransition.objects.filter(
-            from_state__in=self.states.all()
-        )
+class Fsm(models.Model):
+    pass
 
 
 class State(models.Model):
     name = models.CharField(max_length=64)
     parent = models.ForeignKey('State', related_name='children', null=True,
                                on_delete=models.CASCADE)
+    machine = models.ForeignKey('Fsm', related_name='states',
+                                on_delete=models.CASCADE)
     is_entrypoint = models.BooleanField(default=False)
     x = models.IntegerField()
     y = models.IntegerField()
@@ -41,6 +36,8 @@ class StateChange(models.Model):
 
 
 class StateTransition(models.Model):
+    machine = models.ForeignKey('Fsm', related_name='transitions',
+                                on_delete=models.CASCADE)
     from_state = models.ForeignKey('State', related_name='transitions_from',
                                    on_delete=models.CASCADE)
     to_state = models.ForeignKey('State', related_name='transitions_to',

@@ -1,15 +1,15 @@
 from datetime import datetime, timedelta, timezone
 from django.test import TestCase
 
-from escaperoom.models import State, StateChange, Variable
+from ..models import State, Variable
 
 TIMEZONE = timezone.utc
 
 
-class StateTest(TestCase):
+class FsmTest(TestCase):
     fixtures = ['statetest']
 
-    def test_state(self):
+    def test_states(self):
         states = {
             'a': State.objects.get(name='a'),
             'b': State.objects.get(name='b'),

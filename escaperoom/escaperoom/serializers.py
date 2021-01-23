@@ -1,39 +1,34 @@
-from rest_framework import serializers
+from rest_framework.serializers import (
+    ModelSerializer, PrimaryKeyRelatedField
+)
+from rest_framework_bulk import BulkListSerializer, BulkSerializerMixin
 
 from . import models
 
 
-class DictSerializer(serializers.ListSerializer):
-    def to_representation(self, data):
-        result = list()
-        for item in data:
-            representation = self.child.to_representation(item)
-            result.append((item.id, representation))
-        return result
-
-    @property
-    def data(self):
-        ret = super(DictSerializer, self).data
-        return serializers.ReturnDict(ret, serializer=self)
+class FsmSerializer(ModelSerializer):
+    class Meta:
+        model = models.Fsm
+        fields = ('states', 'transitions')
 
 
-class StateSerializer(serializers.ModelSerializer):
+class StateSerializer(BulkSerializerMixin, ModelSerializer):
     class Meta:
         model = models.State
+        list_serializer_class = BulkListSerializer
         fields = ('id', 'name', 'parent', 'children', 'is_entrypoint',
                   'is_active', 'x', 'y')
 
 
-class StateTransitionSerializer(serializers.ModelSerializer):
-    src = serializers.SerializerMethodField()
-    dest = serializers.SerializerMethodField()
+class StateTransitionSerializer(BulkSerializerMixin, ModelSerializer):
+    src = PrimaryKeyRelatedField(
+        source='from_state', queryset=models.State.objects.all()
+    )
+    dest = PrimaryKeyRelatedField(
+        source='to_state', queryset=models.State.objects.all()
+    )
 
     class Meta:
         model = models.StateTransition
+        list_serializer_class = BulkListSerializer
         fields = ('id', 'src', 'dest')
-
-    def get_src(self, state):
-        return state.from_state.id
-
-    def get_dest(self, state):
-        return state.to_state.id

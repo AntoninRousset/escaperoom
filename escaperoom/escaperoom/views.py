@@ -1,4 +1,4 @@
-from asgiref.sync import sync_to_async
+import json
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
 
@@ -11,10 +11,17 @@ def index(request):
     return HttpResponse(template.render({}, request))
 
 
-async def fsm(request):
-    states = await sync_to_async(models.State.objects.all)()
-    transitions = await sync_to_async(models.StateTransition.objects.all)()
-    return JsonResponse({
-        'states': StateSerializer(states, many=True).data,
-        'transitions': StateTransitionSerializer(transitions, many=True).data
-    })
+def fsm(request):
+    if request.method == 'GET':
+        states = models.State.objects.all()
+        transitions = models.StateTransition.objects.all()
+        return JsonResponse({
+            'states': StateSerializer(states, many=True).data,
+            'transitions': StateTransitionSerializer(
+                transitions, many=True
+            ).data
+        })
+    elif request.method == 'POST':
+        data = json.loads(request.data)
+        states = StateSerializer(data['states'])
+        print(states)
