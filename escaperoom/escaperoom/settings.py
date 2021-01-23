@@ -32,6 +32,7 @@ ALLOWED_HOSTS = '*'
 
 INSTALLED_APPS = [
     'escaperoom.apps.EscaperoomConfig',
+    'channels',
     'webpack_loader',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -69,7 +70,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'escaperoom.wsgi.application'
+ASGI_APPLICATION = 'escaperoom.asgi.application'
 
 
 # Database

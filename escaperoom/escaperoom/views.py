@@ -1,7 +1,8 @@
+from asgiref.sync import sync_to_async
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
 
-from . import brain, models
+from . import models
 from .serializers import StateSerializer, StateTransitionSerializer
 
 
@@ -10,15 +11,10 @@ def index(request):
     return HttpResponse(template.render({}, request))
 
 
-def fsm(request):
-    states = models.State.objects.all()
-    transitions = models.StateTransition.objects.all()
+async def fsm(request):
+    states = await sync_to_async(models.State.objects.all)()
+    transitions = await sync_to_async(models.StateTransition.objects.all)()
     return JsonResponse({
         'states': StateSerializer(states, many=True).data,
         'transitions': StateTransitionSerializer(transitions, many=True).data
     })
-
-
-def measurement(request):
-    brain.request_states_check()
-    return HttpResponse('')
