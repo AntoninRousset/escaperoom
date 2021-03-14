@@ -2,10 +2,10 @@
 
 ## To run
 0. `cd escaperoom`
-1. `pip install --user -r requirements.txt && npm install --global yarn`
-2. `rc-service postgresql start`
-3. `./manage.py buildfrontend --log`
-4. `./manage.py runserver`
+1. `pip install --user -r requirements.txt -c constraints.txt`
+3. `./manage.py buildfrontend`
+4. `./manage.py collectstatic`
+5. `./manage.py runserver`
 
-For developpement you can use `./manage.py watchfrontend --log escaperoom` to
-continuously build the frontend for the `escaperoom` app.
+For developpement, set `DEBUG=on` in the `escaperoom/.env` file. You can run
+`./manage.py buildfrontend --watch` to continuously build the frontend.

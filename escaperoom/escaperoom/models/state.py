@@ -23,12 +23,6 @@ class State(models.Model):
             ),
         ]
 
-    def __init__(self, *args, local_id=None, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if local_id is not None:
-            self.local_id = local_id
-
     @classmethod
     def active_states(self, at=None):
         return {state for state in State.objects.all() if state.is_active(at)}
@@ -58,12 +52,6 @@ class StateTransition(models.Model):
                                    on_delete=models.CASCADE)
     to_state = models.ForeignKey('State', related_name='transitions_to',
                                  on_delete=models.CASCADE)
-
-    def __init__(self, *args, local_id=None, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if local_id is not None:
-            self.local_id = local_id
 
     class Meta:
         constraints = [

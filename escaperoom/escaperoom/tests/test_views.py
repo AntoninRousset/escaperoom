@@ -76,12 +76,7 @@ class StateTest(TestCase):
             )
 
     def test_post_new_state_and_new_statetransition(self):
-        from random import randrange
-
-        STATE_LOCAL_ID = randrange(*ID_RANGE)
-        STATETRANSITION_LOCAL_ID = randrange(*ID_RANGE)
         NEW_STATE = dict(
-            local_id=STATE_LOCAL_ID,
             name='c',
             room=1,
             is_entrypoint=False,
@@ -95,11 +90,9 @@ class StateTest(TestCase):
         states_serializer = StateSerializer(data=data, many=False)
         self.assertTrue(states_serializer.is_valid())
         state = State(**states_serializer.validated_data)
-        self.assertEqual(state.local_id, STATE_LOCAL_ID)
         self.assertIsNotNone(state.id)
 
         NEW_STATETRANSITION = dict(
-            local_id=STATETRANSITION_LOCAL_ID,
             src=2,
             dest=state.id,
         )
@@ -116,5 +109,4 @@ class StateTest(TestCase):
         statetransition = StateTransition(
             **statetransitions_serializer.validated_data
         )
-        self.assertEqual(statetransition.local_id, STATETRANSITION_LOCAL_ID)
         self.assertIsNotNone(statetransition.id)
