@@ -4,29 +4,29 @@
   pk: 1
   fields:
         name: 'str'
-        type: 1  # str
+        type: 'STR'
 - model: escaperoom.variable
   pk: 2
   fields:
         name: 'int'
-        type: 2  # int
+        type: 'INT'
 - model: escaperoom.variable
   pk: 3
   fields:
         name: 'float'
-        type: 3  # float
+        type: 'FLO'
         default_value: '3.1415'
 - model: escaperoom.variable
   pk: 4
   fields:
         name: 'bool'
-        type: 4  # bool
+        type: 'BOO'
         locked_at: '2019-11-05T12:00:07+00:00'
 - model: escaperoom.variable
   pk: 5
   fields:
         name: 'toggle'
-        type: 5  # toggle
+        type: 'TOG'
 
 
 ### OPERATORS ###
@@ -34,53 +34,53 @@
 - model: escaperoom.operator
   pk: 7
   fields:
-        type: 7  # add
+        type: 'ADD'
         variable_a: 2  # "int"
         variable_b: 3  # "float"
 - model: escaperoom.variable
   pk: 6
   fields:
         name: 'addition'
-        type: 3  # float
+        type: 'FLO'
         operator: 7  # "add"
 
 - model: escaperoom.operator
   pk: 8
   fields:
-        type: 8  # substract
+        type: 'SUB'
         variable_a: 2  # "int"
         variable_b: 3  # "float"
 - model: escaperoom.variable
   pk: 7
   fields:
         name: 'substraction'
-        type: 3  # float
+        type: 'FLO'
         operator: 8  # "substract"
 
 - model: escaperoom.operator
   pk: 9
   fields:
-        type: 9  # multiply
+        type: 'MUL'
         variable_a: 2  # "int"
         variable_b: 3  # "float"
 - model: escaperoom.variable
   pk: 8
   fields:
         name: 'multiplication'
-        type: 3  # float
+        type: 'FLO'
         operator: 9  # "multiply"
 
 - model: escaperoom.operator
   pk: 10
   fields:
-        type: 10  # divide
+        type: 'DIV'
         variable_a: 2  # "int"
         variable_b: 3  # "float"
 - model: escaperoom.variable
   pk: 9
   fields:
         name: 'division'
-        type: 2  # int
+        type: 'INT'
         operator: 10  # "divide"
 
 
@@ -89,14 +89,14 @@
 - model: escaperoom.operator
   pk: 11
   fields:
-        type: 7  # add
+        type: 'ADD'
         variable_a: 7  # "substraction"
         variable_b: 9  # "division"
 - model: escaperoom.variable
-  pk: 11
+  pk: 10
   fields:
         name: 'pipeline'
-        type: 3  # float
+        type: 'FLO'
         operator: 11  # "pipeline"
 
 

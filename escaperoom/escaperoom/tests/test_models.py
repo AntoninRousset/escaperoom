@@ -1,20 +1,32 @@
 from datetime import datetime, timedelta, timezone
 from django.test import TestCase
 
-from ..models import State, Variable
+from escaperoom.models import Room, State, Variable
 
 TIMEZONE = timezone.utc
 
 
-class FsmTest(TestCase):
-    fixtures = ['statetest']
+class StateTest(TestCase):
+    fixtures = ('test_state',)
+
+    def test_state_constraint_not_own_parent(self):
+        State(
+            id=42,
+            name='test',
+            room=Room.objects.get(pk=1),
+            x=0,
+            y=0
+        )
+
+    def test_statetransition_constraint_different_states(self):
+        pass
 
     def test_states(self):
         states = {
-            'a': State.objects.get(name='a'),
-            'b': State.objects.get(name='b'),
-            'a.a': State.objects.get(name='a.a'),
-            'a.b': State.objects.get(name='a.b'),
+            'a': State.objects.get(pk=1),
+            'b': State.objects.get(pk=2),
+            'a.a': State.objects.get(pk=3),
+            'a.b': State.objects.get(pk=4),
         }
 
         timestamp = datetime(2019, 11, 5, 12, 0, 0, tzinfo=TIMEZONE)
@@ -44,20 +56,20 @@ class FsmTest(TestCase):
 
 
 class VariableTest(TestCase):
-    fixtures = ['variabletest']
+    fixtures = ('test_variable',)
 
     def test_variable(self):
         variables = {
-            'str': Variable.objects.get(name='str'),
-            'int': Variable.objects.get(name='int'),
-            'float': Variable.objects.get(name='float'),
-            'bool': Variable.objects.get(name='bool'),
-            'toggle': Variable.objects.get(name='toggle'),
-            'addition': Variable.objects.get(name='addition'),
-            'substraction': Variable.objects.get(name='substraction'),
-            'multiplication': Variable.objects.get(name='multiplication'),
-            'division': Variable.objects.get(name='division'),
-            'pipeline': Variable.objects.get(name='pipeline'),
+            'str': Variable.objects.get(pk=1),
+            'int': Variable.objects.get(pk=2),
+            'float': Variable.objects.get(pk=3),
+            'bool': Variable.objects.get(pk=4),
+            'toggle': Variable.objects.get(pk=5),
+            'addition': Variable.objects.get(pk=6),
+            'substraction': Variable.objects.get(pk=7),
+            'multiplication': Variable.objects.get(pk=8),
+            'division': Variable.objects.get(pk=9),
+            'pipeline': Variable.objects.get(pk=10),
         }
         timestamp = datetime(2019, 11, 5, 12, 0, 0, tzinfo=TIMEZONE)
 

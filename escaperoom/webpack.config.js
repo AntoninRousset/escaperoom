@@ -1,6 +1,9 @@
 const path = require('path')
 const { VueLoaderPlugin } = require('vue-loader')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const BundleTracker = require('webpack-bundle-tracker');
+const webpack = require('webpack');
+
 
 module.exports = (env = {}) => {
 	return {
@@ -9,13 +12,13 @@ module.exports = (env = {}) => {
 		devtool: env.prod ? 'source-map' : 'cheap-module-source-map',
 		context: __dirname,
 		entry: {
-			app: './src/app.ts',
+			app: './escaperoom/frontend/app.ts',
 		},
 		output: {
-			path: path.resolve('../../static/escaperoom/dist'),
-			publicPath: "/static/escaperoom/dist/",
-      filename: "[name]-[fullhash].js"
-    },
+			path: path.resolve(__dirname, 'dist'),
+			publicPath: '/static/',
+			filename: '[name]-[fullhash].js'
+		},
 		module: {
 			rules: [
 				{
@@ -42,22 +45,26 @@ module.exports = (env = {}) => {
 					use: 'vue-loader'
 				}, {
 					test: /\.ts$/,
-          loader: 'ts-loader',
-          options: {
-            appendTsSuffixTo: [/\.vue$/],
-          }
-        },
-      ]
-    },
-    resolve: {
-      extensions: ['.ts', '.js', '.vue', '.json'],
-      alias: {
-        'vue': '@vue/runtime-dom'
-      }
-    },
-    plugins: [
-      new VueLoaderPlugin(),
-      new BundleTracker({filename: './webpack-stats.json'})
-    ],
-  };
+					loader: 'ts-loader',
+					options: {
+						appendTsSuffixTo: [/\.vue$/],
+					}
+				},
+			]
+		},
+		resolve: {
+			extensions: ['.ts', '.js', '.vue', '.json'],
+			alias: {
+				'vue': '@vue/runtime-dom'
+			}
+		},
+		plugins: [
+			new webpack.DefinePlugin({
+					"__VUE_OPTIONS_API__": true,
+					"__VUE_PROD_DEVTOOLS__": false,
+			}),
+			new VueLoaderPlugin(),
+			new BundleTracker({filename: './webpack-stats.json'})
+		],
+	};
 }

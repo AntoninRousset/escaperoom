@@ -1,7 +1,11 @@
-### FSM ###
+### ROOMS ###
 
-- model: escaperoom.fsm
+- model: escaperoom.room
   pk: 1
+  fields: {}
+
+- model: escaperoom.room
+  pk: 2
   fields: {}
 
 
@@ -12,7 +16,7 @@
   fields:
         name: 'a'
         parent: null
-        machine: 1
+        room: 1
         is_entrypoint: True
         x: 0
         y: 0
@@ -21,7 +25,7 @@
   fields:
         name: 'b'
         parent: null
-        machine: 1
+        room: 1
         x: 18
         y: 2
 - model: escaperoom.state
@@ -29,7 +33,7 @@
   fields:
         name: 'a.a'
         parent: 1
-        machine: 1
+        room: 1
         is_entrypoint: True
         x: 0
         y: 0
@@ -38,7 +42,7 @@
   fields:
         name: 'a.b'
         parent: 1
-        machine: 1
+        room: 1
         x: 4
         y: 0
 - model: escaperoom.state
@@ -46,15 +50,15 @@
   fields:
         name: 'a.c'
         parent: 1
-        machine: 1
+        room: 1
         x: 9
         y: 1
 - model: escaperoom.state
   pk: 6
   fields:
         name: 'a.d'
-        parent: 6
-        machine: 1
+        parent: 1
+        room: 1
         x: 1
         y: 6
 - model: escaperoom.state
@@ -62,7 +66,7 @@
   fields:
         name: 'a.d.a'
         parent: 6
-        machine: 1
+        room: 1
         x: 0
         y: 0
 - model: escaperoom.state
@@ -70,7 +74,7 @@
   fields:
         name: 'a.d.b'
         parent: 6
-        machine: 1
+        room: 1
         x: 4
         y: 4
 - model: escaperoom.state
@@ -78,7 +82,7 @@
   fields:
         name: 'a.d.b.a'
         parent: 8
-        machine: 1
+        room: 1
         x: 0
         y: 0
 - model: escaperoom.state
@@ -86,9 +90,28 @@
   fields:
         name: 'a.d.b.b'
         parent: 8
-        machine: 1
+        room: 1
         x: 0
         y: 4
+- model: escaperoom.state
+  pk: 11
+  fields:
+        name: 'a'
+        parent: null
+        room: 2
+        x: 0
+        y: 4
+        is_entrypoint: True
+        x: 0
+        y: 0
+- model: escaperoom.state
+  pk: 12
+  fields:
+        name: 'b'
+        parent: null
+        room: 2
+        x: 4
+        y: 0
 
 
 ### STATE TRANSITIONS ###
@@ -96,45 +119,43 @@
 - model: escaperoom.statetransition
   pk: 1
   fields:
-        machine: 1
         from_state: 1
         to_state: 2
 - model: escaperoom.statetransition
   pk: 2
   fields:
-        machine: 1
         from_state: 3
         to_state: 4
 - model: escaperoom.statetransition
   pk: 3
   fields:
-        machine: 1
         from_state: 4
         to_state: 5
 - model: escaperoom.statetransition
   pk: 4
   fields:
-        machine: 1
         from_state: 5
         to_state: 4
 - model: escaperoom.statetransition
   pk: 5
   fields:
-        machine: 1
         from_state: 4
         to_state: 6
 - model: escaperoom.statetransition
   pk: 6
   fields:
-        machine: 1
         from_state: 7
         to_state: 8
 - model: escaperoom.statetransition
   pk: 7
   fields:
-        machine: 1
         from_state: 9
         to_state: 10
+- model: escaperoom.statetransition
+  pk: 8
+  fields:
+        from_state: 11
+        to_state: 12
 
 
 ### STATE CHANGES ###
@@ -180,4 +201,10 @@
   fields:
         timestamp: '2019-11-05T12:00:03+00:00'
         state: 2  # "b"
+        value: True
+- model: escaperoom.statechange
+  pk: 8
+  fields:
+        timestamp: '2019-11-05T12:00:01+00:00'
+        state: 11  # "a"
         value: True

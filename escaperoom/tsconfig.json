@@ -20,7 +20,7 @@
     "./node_modules"
   ],
   "include": [
-    "./src/**/*.ts",
-    "./src/**/*.vue"
+    "./*/frontend/**/*.ts",
+    "./*/frontend/**/*.vue"
   ]
 }

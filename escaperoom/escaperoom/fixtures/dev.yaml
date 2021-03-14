@@ -1,0 +1,53 @@
+### FSM ###
+
+- model: escaperoom.room
+  pk: 1
+  fields: {}
+
+- model: escaperoom.room
+  pk: 2
+  fields: {}
+
+
+### STATES OF ROOM 1 ###
+
+- model: escaperoom.state
+  pk: 1
+  fields:
+        name: '1.a'
+        parent: null
+        room: 1
+        is_entrypoint: True
+        x: 0
+        y: 0
+- model: escaperoom.state
+  pk: 2
+  fields:
+        name: '1.b'
+        parent: null
+        room: 1
+        is_entrypoint: False
+        x: 4
+        y: 0
+
+
+### STATES OF ROOM 2 ###
+
+- model: escaperoom.state
+  pk: 3
+  fields:
+        name: '1.a'
+        parent: null
+        room: 2
+        x: 0
+        y: 0
+
+
+### STATE TRANSITIONS ###
+
+- model: escaperoom.statetransition
+  pk: 1
+  fields:
+        room: 1
+        from_state: 1
+        to_state: 2
