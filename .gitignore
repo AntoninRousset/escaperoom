@@ -1,8 +1,10 @@
-node_modules
-dist
-manifest.json
 *.db
 .env
-package-lock.json
+
+dist/
+node_modules/
+openapitools.json
+client/
+!client/.openapi-generator-ignore
 
 __pycache__/

@@ -27,7 +27,7 @@ class State(models.Model):
     def active_states(self, at=None):
         return {state for state in State.objects.all() if state.is_active(at)}
 
-    def is_active(self, at=None):
+    def is_active(self, at=None) -> bool:
         try:
             changes = StateChange.objects.filter(state=self.id)
             if at is not None:

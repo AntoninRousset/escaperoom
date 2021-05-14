@@ -1,19 +1,19 @@
 import django_filters
 from django.db.models import Q
-from django.views.generic import TemplateView
-from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView
+from drf_spectacular.utils import extend_schema
+from drf_spectacular.views import (
+    SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+)
 from escaperoom import models, serializers
 from rest_framework.viewsets import ModelViewSet
 
 
 schema = SpectacularAPIView.as_view()
+swagger = SpectacularSwaggerView.as_view(url_name='schema')
 redoc = SpectacularRedocView.as_view(url_name='schema')
 
 
-class AppView(TemplateView):
-    template_name = 'app.html'
-
-
+@extend_schema(tags=['engine'])
 class StateViewSet(ModelViewSet):
     queryset = models.State.objects.all()
     serializer_class = serializers.StateSerializer
@@ -35,6 +35,7 @@ class StateTransitionFilter(django_filters.FilterSet):
         )
 
 
+@extend_schema(tags=['engine'])
 class StateTransitionViewSet(ModelViewSet):
     queryset = models.StateTransition.objects.all()
     serializer_class = serializers.StateTransitionSerializer

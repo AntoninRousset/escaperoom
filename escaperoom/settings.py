@@ -32,7 +32,6 @@ ALLOWED_HOSTS = '*'
 # Application definition
 
 INSTALLED_APPS = [
-    'channels',
     'django_filters',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -40,10 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'drf_spectacular',
     'escaperoom.apps.EscaperoomConfig',
     'rest_framework',
-    'webpack_loader',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -74,7 +72,7 @@ TEMPLATES = [
     },
 ]
 
-ASGI_APPLICATION = 'escaperoom.asgi.application'
+WSGI_APPLICATION = 'escaperoom.wsgi.application'
 
 
 # Database
@@ -101,6 +99,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
@@ -119,26 +119,25 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static', BASE_DIR / 'dist']
+STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
 REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
-        #'rest_framework.filters.OrderingFilter',
-        #'rest_framework.filters.SearchFilter',
-    ]
+        # 'rest_framework.filters.OrderingFilter',
+        # 'rest_framework.filters.SearchFilter',
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
-# Webpack-loader
+# Spectacular
 
-WEBPACK_LOADER = {
-    'DEFAULT': {
-        'BUNDLE_DIR_NAME': '',
-        'STATS_FILE': BASE_DIR / 'webpack-stats.json',
-    }
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Escaperoom API',
+    'DESCRIPTION': 'Take control of your escaperooms',
+    'VERSION': '0.0.0',
 }

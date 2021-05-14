@@ -112,6 +112,14 @@
         room: 2
         x: 4
         y: 0
+- model: escaperoom.state
+  pk: 42
+  fields:
+        name: 'temp'
+        parent: null
+        room: 1
+        x: 4
+        y: 0
 
 
 ### STATE TRANSITIONS ###
