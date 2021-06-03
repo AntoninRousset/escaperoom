@@ -32,7 +32,6 @@ ALLOWED_HOSTS = '*'
 # Application definition
 
 INSTALLED_APPS = [
-    'django_filters',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -126,11 +125,6 @@ STATICFILES_FINDERS = (
 )
 
 REST_FRAMEWORK = {
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        # 'rest_framework.filters.OrderingFilter',
-        # 'rest_framework.filters.SearchFilter',
-    ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 

@@ -12,7 +12,7 @@ router.register(r'statetransitions', views.StateTransitionViewSet,
                 basename='statetransition')
 
 api_urlpatterns = [
-    # path('schema/', views.schema, name='schema'),  # breaks OAG
+    path('schema/', views.schema, name='schema'),
     path('schema/swagger-ui/', views.swagger, name='swagger-ui'),
     path('schema/redoc/', views.redoc, name='redoc'),
 ] + router.urls

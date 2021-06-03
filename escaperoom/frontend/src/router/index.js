@@ -20,7 +20,7 @@ let routes = [
   },
 ];
 
-if (process.env.NODE_ENV == 'development') {
+if (import.meta.env.DEV) {
   Array.prototype.push.apply(routes, [
     {
       path: '/test',
@@ -37,17 +37,4 @@ if (process.env.NODE_ENV == 'development') {
   ]);
 }
 
-const router = createRouter({
-  history: createWebHistory(),
-  routes
-});
-
-/*
-router.afterEach((to, from) => {
-  const toDepth = to.path.split('/').length
-  const fromDepth = from.path.split('/').length
-  to.meta.transitionName = toDepth < fromDepth ? 'slide-right' : 'slide-left'
-})
-*/
-
-export default router;
+export default createRouter({ history: createWebHistory('/'), routes });

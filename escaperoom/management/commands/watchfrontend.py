@@ -9,17 +9,16 @@ from tempfile import NamedTemporaryFile
 DEFAULT_FRONTEND_FOLDER = 'frontend'
 DEFAULT_CLIENT_COMMAND = 'generate-client'
 DEFAULT_CLIENT_NAME = 'client'
-BASE_PATH = '/static/dist/'
 
 
 class Command(BaseCommand):
 
-    help = 'Build frontends'
+    help = 'Watch frontend'
 
     def add_arguments(self, parser):
         parser.add_argument(
-            'app_label', nargs='?',
-            help='App label of an application to build frontend for.',
+            'app_label',
+            help='App label of an application to watch frontend for.',
         )
         parser.add_argument(
             '--no-install', dest='install', action='store_false',
@@ -30,8 +29,8 @@ class Command(BaseCommand):
             help='Generate API client.',
         )
         parser.add_argument(
-            '--mode', default='production',
-            help='Building mode (default: production).',
+            '--mode', default='development',
+            help='Building mode (default: development).',
         )
         parser.add_argument(
             '--frontend-folder', default=DEFAULT_FRONTEND_FOLDER,
@@ -94,44 +93,33 @@ class Command(BaseCommand):
                     f'Could not install generated client for {app_name}'
                 )
 
-    def _build_frontend(self, app_config, frontend_path, **options):
+    def _watch_frontend(self, app_config, frontend_path, **options):
         app_name = app_config.name
-        dist_path = Path(app_config.path) / 'static' / 'dist'
         self.stdout.write(f'Packing frontend for {app_name}')
         try:
             subprocess.run(
-                ['npm', 'run', '--prefix', str(frontend_path), 'build', '--',
-                 '--mode', options['mode'], '--outDir', dist_path, '--base',
-                 BASE_PATH, '--emptyOutDir'], check=True, capture_output=False
+                ['npm', 'run', '--prefix', str(frontend_path), 'dev', '--',
+                 '--mode', options['mode']], check=True, capture_output=False
             )
         except subprocess.CalledProcessError:
             raise CommandError(f'Could not pack frontend for {app_name}')
 
     def handle(self, *args, **options):
-        apps_configs = set()
-        if options['app_label']:
-            try:
-                apps_configs.add(apps.get_app_config(options['app_label']))
-            except LookupError as err:
-                raise CommandError(str(err))
-        else:
-            apps_configs.update(apps.get_app_configs())
+        try:
+            app_config = apps.get_app_config(options['app_label'])
+        except LookupError as err:
+            raise CommandError(str(err))
 
-        frontends_paths = dict()
-        for app_config in apps_configs:
-            frontend_path = Path(app_config.path) / options['frontend_folder']
-            if frontend_path.exists():
-                frontends_paths[app_config] = frontend_path
-            elif options['app_label']:
-                raise CommandError(
-                    f'Application {app_config.name} has no frontend'
-                )
+        frontend_path = Path(app_config.path) / options['frontend_folder']
+        if not frontend_path.exists():
+            raise CommandError(
+                f'Application {app_config.name} has no frontend'
+            )
 
-        for app_config, frontend_path in frontends_paths.items():
-            if options['install']:
-                self._install_requirements(
-                    app_config, frontend_path, **options
-                )
-            if options['client']:
-                self._generate_client(app_config, frontend_path, **options)
-            self._build_frontend(app_config, frontend_path, **options)
+        if options['install']:
+            self._install_requirements(
+                app_config, frontend_path, **options
+            )
+        if options['client']:
+            self._generate_client(app_config, frontend_path, **options)
+        self._watch_frontend(app_config, frontend_path, **options)

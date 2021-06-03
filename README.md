@@ -11,12 +11,12 @@
 * `pip install --user -r requirements.txt -c constraints.txt`
 
 
-## Frontend development
+## Development
 Set `DEBUG=on` in the dotenv.
 1. `pip install --user -r requirements.txt -c constraints.txt`
-2. `./manage.py buildfrontends`
-3 `./manage.py runserver &`
-4 `npm run --prefix=./escaperoom/frontend dev`
+2. `./manage.py runserver`
+
+For frontend development, you may want to run concurrently the vite development server with `./manage.py watchfrontend --mode development`, running on port 3000.
 
 
 ## Production

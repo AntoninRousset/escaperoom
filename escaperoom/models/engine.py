@@ -6,11 +6,13 @@ class Room(models.Model):
 
 
 class State(models.Model):
-    name = models.CharField(max_length=64)
-    parent = models.ForeignKey('self', related_name='children', null=True,
-                               on_delete=models.CASCADE)
-    room = models.ForeignKey('Room', related_name='states',
-                             on_delete=models.CASCADE)
+    name = models.CharField(max_length=64, blank=True)
+    parent = models.ForeignKey(
+        'self', related_name='children', null=True, on_delete=models.CASCADE
+    )
+    room = models.ForeignKey(
+        'Room', related_name='states', on_delete=models.CASCADE
+    )
     is_entrypoint = models.BooleanField(default=False)
     x = models.IntegerField()
     y = models.IntegerField()

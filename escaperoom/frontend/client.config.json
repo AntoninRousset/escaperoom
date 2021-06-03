@@ -1,6 +1,6 @@
 {
-  "generatorName": "typescript",
+  "generatorName": "typescript-fetch",
   "npmName": "escaperoom-client",
-  "supportsES6": true
+  "supportsES6": true,
+  "typescriptThreePlus": true
 }
-

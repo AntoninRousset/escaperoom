@@ -12,8 +12,10 @@ class StateSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.State
         list_serializer_class = StateListSerializer
-        fields = ('id', 'room', 'name', 'parent', 'children', 'is_entrypoint',
-                  'is_active', 'x', 'y')
+        fields = (
+            'id', 'room', 'name', 'parent', 'is_entrypoint', 'is_active', 'x',
+            'y'
+        )
 
 
 class StateTransitionListSerializer(serializers.ListSerializer):

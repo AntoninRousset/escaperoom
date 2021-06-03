@@ -1,9 +1,9 @@
 <template>
   <v-app>
     <v-navigation-drawer
-      width="60"
-      expand-on-hover
+      :model-value="true"
       permanent
+      width="60"
     >
       <router-link
         v-for="tab in tabs"
@@ -16,7 +16,7 @@
       </router-link>
     </v-navigation-drawer>
     <v-main>
-      <v-container>
+      <v-container fluid>
         <router-view />
       </v-container>
     </v-main>
@@ -51,6 +51,9 @@ export default {
       ]);
     }
     return { tabs };
+  },
+  created() {
+    window.document.title = import.meta.env.VITE_APP_TITLE;
   },
 }
 </script>

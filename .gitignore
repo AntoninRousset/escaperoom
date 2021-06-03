@@ -4,7 +4,8 @@
 dist/
 node_modules/
 openapitools.json
-client/
-!client/.openapi-generator-ignore
-
+/escaperoom/frontend/client/*
+!/escaperoom/frontend/client/.openapi-generator-ignore
+!/escaperoom/frontend/client/tsconfig.json
 __pycache__/
+.openapi-generator
