@@ -1,9 +1,10 @@
 <template>
   <div>
-    <h1>{{ title }}
+    <h1>
+      {{ title }}
       <router-link
         v-if="selected"
-        :to="{name: 'Test'}"
+        :to="{name: 'Dev'}"
       >
         <v-icon size="x-large">
           mdi-format-list-bulleted
@@ -12,24 +13,24 @@
     </h1>
     <router-view v-if="selected" />
     <router-link
+      v-for="dev in devs"
       v-else
-      v-for="test in tests"
-      :key="test.title"
-      :to="test.to"
+      :key="dev.title"
+      :to="dev.to"
     >
-     Test engine
+      {{ dev.title }}
     </router-link>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'Test',
+  name: 'Dev',
   data: () => ({
-    tests: [
+    devs: [
       {
         title: 'Engine',
-        to: { 'name': 'Test - engine' },
+        to: { 'name': 'Dev - engine' },
       },
     ],
   }),
@@ -38,7 +39,7 @@ export default {
       return this.$route.name;
     },
     selected() {
-      return this.$route.name != 'Test';
+      return this.$route.name != 'Dev';
     }
   },
 }

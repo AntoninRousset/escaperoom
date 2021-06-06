@@ -1,6 +1,6 @@
 import { _getRemoteStates, _setRemoteStates } from 'escaperoom-client'
 import engine from './engine.js'
-import { MissingIdError } from './exceptions.js'
+import { MissingPropertyError } from './exceptions.js'
 
 const store = {
   state: engine.state,
@@ -14,6 +14,8 @@ const store = {
     get(target, name) { return target[name](store.state); }
   }),
 };
+
+const stateDefaults = { room: 1, x: 1, y: 1 };
 
 function getLocalStates() {
   return Object.fromEntries(
@@ -35,7 +37,7 @@ beforeEach(() => {
 describe('States basics', () => {
 
   test('Create state', async () => {
-    const id = store.dispatch('addState', { name: 'a' });
+    const id = store.dispatch('addState', { ...stateDefaults, name: 'a' });
     expect(store.getters.states).toEqual(expect.arrayContaining([
       expect.objectContaining({ id, name: 'a' }),
     ]));
@@ -77,7 +79,7 @@ describe('States basics', () => {
   });
 
   test('Destroy added state', async () => {
-    const id = store.dispatch('addState', { name: 'a' });
+    const id = store.dispatch('addState', { ...stateDefaults, name: 'a' });
     store.dispatch('removeState', { id });
 
     expect(store.getters.states).toEqual([]);
@@ -86,7 +88,7 @@ describe('States basics', () => {
   });
 
   test('Destroy created state', async () => {
-    const id = store.dispatch('addState', { name: 'a' });
+    const id = store.dispatch('addState', { ...stateDefaults, name: 'a' });
     await store.dispatch('push');
 
     store.dispatch('removeState', { id });
@@ -102,7 +104,19 @@ describe('States exceptions', () => {
   test('Removing a state needs it to have an id', async () => {
     expect(() => {
       store.dispatch('removeState', { name: '1' });
-    }).toThrowError(MissingIdError)
+    }).toThrowError(MissingPropertyError)
+  });
+
+  test('New state needs x, y and room properties', async () => {
+    expect(() => {
+      store.dispatch('addState', { y: 0, room: 1 });
+    }).toThrowError(MissingPropertyError)
+    expect(() => {
+      store.dispatch('addState', { x: 0, room: 1 });
+    }).toThrowError(MissingPropertyError)
+    expect(() => {
+      store.dispatch('addState', { x: 0, y: 0 });
+    }).toThrowError(MissingPropertyError)
   });
 
 });
@@ -143,7 +157,7 @@ describe('States ids', () => {
   });
 
   test('State creation does not change ids', async () => {
-    const id = store.dispatch('addState', { name: 'a' });
+    const id = store.dispatch('addState', { ...stateDefaults, name: 'a' });
     expect(store.getters.states).toEqual(expect.arrayContaining([
       expect.objectContaining({ id, name: 'a' }),
     ]));
@@ -160,7 +174,7 @@ describe('States ids', () => {
   });
 
    test('Update a created state does not change ids', async () => {
-    const id = store.dispatch('addState', { name: 'a' });
+    const id = store.dispatch('addState', { ...stateDefaults, name: 'a' });
     await store.dispatch('push');
     store.dispatch('changeState', { id, name: 'b' });
 
@@ -210,10 +224,12 @@ describe('States relationship', () => {
 
   test('Many generations of states can be created (top-down)', async () => {
     const ids = {};
-    ids['a'] = store.dispatch('addState', { name: 'a' });
-    ids['a.a'] = store.dispatch('addState', { name: 'a.a', parent: ids['a'] });
+    ids['a'] = store.dispatch('addState', { ...stateDefaults, name: 'a' });
+    ids['a.a'] = store.dispatch(
+      'addState', { ...stateDefaults, name: 'a.a', parent: ids['a'] }
+    );
     ids['a.a.a'] = store.dispatch(
-      'addState', { name: 'a.a.a', parent: ids['a.a'] }
+      'addState', { ...stateDefaults, name: 'a.a.a', parent: ids['a.a'] }
     );
 
     const expectedLocalStates = expect.arrayContaining([
@@ -247,9 +263,11 @@ describe('States relationship', () => {
 
   test('Many generations of states can be created (down-top)', async () => {
     const ids = {};
-    ids['a.a.a'] = store.dispatch('addState', { name: 'a.a.a' });
-    ids['a.a'] = store.dispatch('addState', { name: 'a.a' });
-    ids['a'] = store.dispatch('addState', { name: 'a' });
+    ids['a.a.a'] = store.dispatch(
+      'addState', { ...stateDefaults, name: 'a.a.a' }
+    );
+    ids['a.a'] = store.dispatch('addState', { ...stateDefaults, name: 'a.a' });
+    ids['a'] = store.dispatch('addState', { ...stateDefaults, name: 'a' });
 
     store.dispatch('changeState', {
       id: ids['a.a.a'], parent: { id: ids['a.a'] }

@@ -44,9 +44,9 @@ export default {
     if (process.env.NODE_ENV == 'development') {
       Array.prototype.push.apply(tabs, [
         {
-          title: 'Test',
+          title: 'Dev',
           icon: 'mdi-test-tube',
-          to: { 'name': 'Test' },
+          to: { 'name': 'Dev' },
         },
       ]);
     }
@@ -54,6 +54,7 @@ export default {
   },
   created() {
     window.document.title = import.meta.env.VITE_APP_TITLE;
+    this.$store.dispatch('engine/pull')
   },
 }
 </script>

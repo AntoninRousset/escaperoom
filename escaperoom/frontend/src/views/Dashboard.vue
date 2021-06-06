@@ -6,7 +6,7 @@
 
 <script>
 export default {
-  name: 'Test',
+  name: 'Dashboard',
   computed: {
     title() {
       return this.$route.name;

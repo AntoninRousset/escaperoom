@@ -1,5 +1,5 @@
 import { EngineApi, Configuration } from 'escaperoom-client'
-import { MissingIdError } from './exceptions.js'
+import { MissingPropertyError } from './exceptions.js'
 
 const engineApi = new EngineApi(new Configuration({ basePath: '' }));
 let _negativeCounter = 0;
@@ -21,7 +21,7 @@ export default {
       for (const [id, mask] of Object.entries(masks)) {
         if (mask && (mask.id <= 0 || mask.id in storeState._states)) {
           if (id <= 0 || ! (mask.id in states)) {
-            const state = storeState._states[mask.id] || {};
+            let state = storeState._states[mask.id] || {};
             states[mask.id] = { ...state, ...mask, id };
           }
         }
@@ -51,7 +51,7 @@ export default {
       storeState._masks = {};
       _negativeCounter = 0;
     },
-    setMask(storeState, { id, mask }) {
+    setMask(storeState, { id, mask }) {
       storeState._masks[id] = mask;
     },
     setStates(storeState, states) {
@@ -89,33 +89,47 @@ export default {
   actions: {
     addState({ commit }, state) {
       const id = (_negativeCounter--).toString();
-      commit('setMask', { id, mask: { ...state, id, room: 1, x: 0, y: 0 } });
+      const parent = state.parent || null;
+      if (state.x === null || state.x === undefined) {
+        throw new MissingPropertyError('New state does not have x position');
+      } else if (state.y === null || state.y === undefined) {
+        throw new MissingPropertyError('New state does not have y position');
+      } else if (state.room === null || state.room === undefined) {
+        throw new MissingPropertyError('New state does not have room');
+      }
+      commit('setMask', { id, mask: { ...state, id, parent } });
       console.debug('state added');
       return id;
     },
     removeState({ commit }, state) {
       if (! state.id) {
-        throw new MissingIdError('State to remove does not have an id.')
+        throw new MissingPropertyError('State to remove does not have an id.')
       }
       commit('setMask', { id: state.id, mask: null });
       console.debug('state', state.id, 'removed');
     },
-    changeState({ commit, state }, mask) {
-      if (! mask.id) {
-        throw new MissingIdError('State to change does not have an id.')
+    changeState({ commit, state }, changes) {
+      if (! changes.id) {
+        throw new MissingPropertyError('State to change does not have an id.')
       }
-      const oldMask = state._masks[mask.id] || {};
-      const id = oldMask.id || mask.id;
-      let parent = null;
-      if (mask.parent) {
-        if ('id' in mask.parent) {
-          parent = mask.parent.id;
+      const mask = state._masks[changes.id] || {};
+      Object.assign(mask, changes);
+      if ('parent' in changes) {
+        if (typeof changes.parent === 'object') {
+          if ('id' in changes.parent) {
+            mask.parent = changes.parent.id;
+          } else {
+            throw new MissingPropertyError('Given parent does not have an id');
+          }
         } else {
-          throw new Error('Parent has no id');
+          mask.parent = changes.parent;
         }
       }
-      commit('setMask', { id, mask: { ...oldMask, ...mask, parent, id } });
-      console.debug('state', id, 'changed');
+      if (parent == changes.id) {
+        throw new Error('Circular reference')
+      }
+      commit('setMask', { id: mask.id, mask });
+      console.debug('state', mask.id, 'changed');
     },
     pull({ commit }) {
       return engineApi.statesList().then((states) => {
@@ -132,14 +146,17 @@ export default {
       let operations = {};
       Object.values(state._masks).forEach(function createOrUpdate(mask) {
         if (! mask) {  // will be destroyed later
-          return new Promise((resolve) => { resolve({ id: null }); });
+          return new Promise((resolve) => { resolve(null); });
         }
         if (mask.id in operations) {
           return operations[mask.id];
         } else if (mask.id <= 0) {  // create
           operations[mask.id] = createOrUpdate(state._masks[mask.parent])
           .then((parent) => {
-            const state = { ...mask, id: undefined, parent: parent.id };
+            const state = { ...mask, id: undefined };
+            if (parent) {
+              state.parent = Number(parent.id);
+            }
             return engineApi.statesCreate({ state }).catch((error) => {
               throw new Error('Could not create state:', error.code);
             }).then((state) => {
@@ -151,7 +168,10 @@ export default {
         } else if (Object.keys(mask).length > 1) {  // update
           operations[mask.id] = createOrUpdate(state._masks[mask.parent])
           .then((parent) => {
-            const patchedState = { ...mask, id: undefined, parent: parent.id };
+            const patchedState = { ...mask, id: undefined };
+            if (parent) {
+              patchedState.parent = Number(parent.id);
+            }
             return engineApi.statesPartialUpdate({ id: mask.id, patchedState })
             .catch((error) => {
               if (error.code == 404) {
