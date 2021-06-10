@@ -1,5 +1,6 @@
 import { EngineApi, Configuration } from 'escaperoom-client'
-import { MissingPropertyError } from './exceptions.js'
+import { MissingPropertyError } from '@/store/exceptions.js'
+import editor from './editor.js'
 
 const engineApi = new EngineApi(new Configuration({ basePath: '' }));
 let _negativeCounter = 0;
@@ -137,7 +138,7 @@ export default {
           states.map(state => [state.id, state])
         );
         commit('setStates', states);
-        console.log('Engine pulled')
+        console.debug('Engine pulled')
       }).catch((error) => {
         console.error('Could not download states', error);
       });
@@ -214,8 +215,9 @@ export default {
       });
 
       return Promise.all(Object.values(operations)).then(() => {
-        console.log('Engine pushed')
+        console.debug('Engine pushed')
       });
     }
-  }
+  },
+  modules: { editor },
 };

@@ -1,5 +1,15 @@
 <template>
   <div>
+    <v-btn
+      @click="pull"
+    >
+      pull
+    </v-btn>
+    <v-btn
+      @click="push"
+    >
+      push
+    </v-btn>
     <div>
       <div
         v-for="state in states"
@@ -76,16 +86,6 @@
         </v-icon>
       </v-btn>
     </div>
-    <v-btn
-      @click="pull()"
-    >
-      Pull
-    </v-btn>
-    <v-btn
-      @click="push()"
-    >
-      Push
-    </v-btn>
   </div>
 </template>
 
@@ -100,9 +100,7 @@ export default {
     ...mapGetters(MODULE, ['states']),
   },
   methods: {
-    ...mapActions('engine', [
-      'removeState', 'changeState', 'pull', 'push'
-    ]),
+    ...mapActions('engine', ['removeState', 'changeState', 'pull', 'push']),
     addState() {
       this.$store.dispatch('engine/addState', { x: 0, y: 0, room: 1 });
     }

@@ -1,22 +1,33 @@
 <template>
   <div
-    :style="{ 'min-width': width + 'px', 'min-height': height + 'px' }"
+    :style="{ 'width': width + 'px', 'height': height + 'px' }"
     class="engine-editor-grid"
   >
-    <engine-editor-state
+    <div
       v-for="state in states"
       :key="state.id"
-      :state="state"
-    />
+      :ref="(el) => statesRefs.push(el)"
+      class="engine-editor-state"
+      :style="{ left: state.x*step + 'px', top: state.y*step + 'px', }"
+      draggable="true"
+      @dragstart="dragStart($event, state)"
+    >
+      <div class="engine-editor-state-header">
+        {{ state.name }}
+      </div>
+      <engine-editor-grid
+        v-if="Object.keys(state.children).length > 0"
+        :states="state.children"
+      />
+    </div>
   </div>
 </template>
 
 <script>
-import EngineEditorState from '@/components/EngineEditorState.vue'
+import { mapActions, mapMutations, mapState } from 'vuex';
 
 export default {
   name: 'EngineEditorGrid',
-  components: { EngineEditorState },
   props: {
     states: {
       required: true,
@@ -24,13 +35,17 @@ export default {
     },
   },
   data: () => ({
-    width: null,
-    height: null,
+    statesRefs: [],
+    width: undefined,
+    height: undefined,
   }),
+  computed: {
+    ...mapState('engine/editor', ['step']),
+  },
   mounted() {
     this.observer = new MutationObserver(this.resizeToContent);
     this.observer.observe(this.$el, {
-      attributes: true, childList: false, subtree: false
+      attributes: true, childList: true, subtree: true,
     });
     this.resizeToContent();
   },
@@ -38,9 +53,27 @@ export default {
     this.observer.disconnect();
   },
   methods: {
+    ...mapActions('engine', ['removeState', 'changeState', 'pull', 'push']),
+    ...mapMutations('engine/editor', ['setDrag']),
     resizeToContent() {
-      this.width = this.$el.scrollWidth;
-      this.height = this.$el.scrollHeight;
+      let width = 0;
+      let height = 0;
+      const gridRect = this.$el.getBoundingClientRect()
+      for (const stateRef of this.statesRefs) {
+        const stateRect = stateRef.getBoundingClientRect();
+        width = Math.max(stateRect.right - gridRect.left, width);
+        height = Math.max(stateRect.bottom - gridRect.top, height);
+      }
+        this.width = width;
+        this.height = height;
+    },
+    dragStart(event, state) {
+      this.setDrag({
+        state: state,
+        start: { x: event.clientX, y: event.clientY },
+        delta: { x: 0, y: 0 },
+      });
+      event.stopPropagation();
     },
   },
 }
@@ -49,5 +82,15 @@ export default {
 <style lang="scss" scoped>
 .engine-editor-grid {
   position: relative;
+}
+.engine-editor-state {
+  position: absolute;
+  border: solid black 1px;
+  .engine-editor-grid {
+    margin: 10px;
+  }
+}
+.engine-editor-state-header {
+  background: red;
 }
 </style>
