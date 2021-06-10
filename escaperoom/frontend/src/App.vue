@@ -24,10 +24,10 @@
 </template>
 
 <script>
+import { mapActions, mapState } from 'vuex'
 
 export default {
   name: 'App',
-
   data: () => {
     let tabs = [
       {
@@ -37,8 +37,13 @@ export default {
       },
       {
         title: 'Engine',
-        icon: 'mdi-cog-outline',
+        icon: 'mdi-abacus',
         to: { 'name': 'Engine' },
+      },
+      {
+        title: 'Settings',
+        icon: 'mdi-cog-outline',
+        to: { 'name': 'Settings' },
       },
     ];
     if (process.env.NODE_ENV == 'development') {
@@ -50,11 +55,46 @@ export default {
         },
       ]);
     }
-    return { tabs };
+    return {
+      tabs,
+    };
+  },
+  computed: {
+      ...mapState('settings', ['autoPull', 'autoPush']),
+  },
+  watch: {
+    autoPull: {
+      immediate: true,
+      handler(autoPull, oldAutoPull) {
+        if (autoPull && ! oldAutoPull) {
+          this.startAutoPull();
+        }
+      }
+    },
+    autoPush: {
+      immediate: true,
+      handler(autoPush, oldAutoPush) {
+        if (autoPush && ! oldAutoPush) {
+          this.startAutoPush();
+        }
+      }
+    },
   },
   created() {
     window.document.title = import.meta.env.VITE_APP_TITLE;
-    this.$store.dispatch('engine/pull')
+  },
+  methods: {
+    ...mapActions('engine', ['pull', 'push']),
+    startAutoPull() {
+      if (this.autoPull) {
+        this.pull().finally(() => { setTimeout(this.startAutoPull, 1000); });
+      }
+    },
+    startAutoPush() {
+      if (this.autoPush) {
+        this.push().finally(() => { setTimeout(this.startAutoPush, 1000); });
+      }
+    },
   },
 }
 </script>

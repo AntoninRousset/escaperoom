@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Dashboard from '../views/Dashboard.vue'
 import Engine from '../views/Engine.vue'
+import Settings from '../views/Settings.vue'
 
 
 let routes = [
@@ -18,6 +19,11 @@ let routes = [
     path: '/engine',
     name: 'Engine',
     component: Engine,
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: Settings,
   },
 ];
 

@@ -4,16 +4,6 @@
     @dragover="dragOver"
     @dragend="dragEnd"
   >
-    <v-btn
-      @click="pull"
-    >
-      pull
-    </v-btn>
-    <v-btn
-      @click="push"
-    >
-      push
-    </v-btn>
     <engine-editor-grid
       :states="rootStates"
     />
