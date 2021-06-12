@@ -1,7 +1,7 @@
 export default {
   namespaced: true,
   state: {
-    drag: {},
+    drag: null,
     step: 25,
   },
   mutations: {

@@ -9,8 +9,7 @@
       :ref="(el) => statesRefs.push(el)"
       class="engine-editor-state"
       :style="{ left: state.x*step + 'px', top: state.y*step + 'px', }"
-      draggable="true"
-      @dragstart="dragStart($event, state)"
+      @mousedown="mouseDown($event, state)"
     >
       <div class="engine-editor-state-header">
         {{ state.name }}
@@ -67,13 +66,14 @@ export default {
         this.width = width;
         this.height = height;
     },
-    dragStart(event, state) {
+    mouseDown(event, state) {
       this.setDrag({
         state: state,
         start: { x: event.clientX, y: event.clientY },
         delta: { x: 0, y: 0 },
       });
       event.stopPropagation();
+      event.preventDefault();
     },
   },
 }

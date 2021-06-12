@@ -87,12 +87,12 @@ export default {
     ...mapActions('engine', ['pull', 'push']),
     startAutoPull() {
       if (this.autoPull) {
-        this.pull().finally(() => { setTimeout(this.startAutoPull, 1000); });
+        this.pull().finally(() => { setTimeout(this.startAutoPull, 200); });
       }
     },
     startAutoPush() {
       if (this.autoPush) {
-        this.push().finally(() => { setTimeout(this.startAutoPush, 1000); });
+        this.push().finally(() => { setTimeout(this.startAutoPush, 200); });
       }
     },
   },

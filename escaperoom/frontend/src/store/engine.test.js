@@ -1,5 +1,5 @@
 import { _getRemoteStates, _setRemoteStates } from 'escaperoom-client'
-import engine from './engine.js'
+import engine from './engine'
 import { MissingPropertyError } from './exceptions.js'
 
 const store = {

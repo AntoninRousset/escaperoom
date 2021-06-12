@@ -1,5 +1,5 @@
 import { EngineApi, Configuration } from 'escaperoom-client'
-import { MissingPropertyError } from '@/store/exceptions.js'
+import { MissingPropertyError } from '../exceptions.js'
 import editor from './editor.js'
 
 const engineApi = new EngineApi(new Configuration({ basePath: '' }));

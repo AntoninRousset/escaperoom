@@ -1,8 +1,7 @@
 <template>
   <div
     class="engine-editor"
-    @dragover="dragOver"
-    @dragend="dragEnd"
+    @mousemove="mouseMove"
   >
     <engine-editor-grid
       :states="rootStates"
@@ -12,7 +11,7 @@
 
 <script>
 import { mapActions, mapMutations, mapState } from 'vuex';
-import EngineEditorGrid from '@/components/EngineEditorGrid.vue'
+import EngineEditorGrid from './EngineEditorGrid.vue'
 
 // TODO repair leak: after lot of drag, the responsiveness decreases
 
@@ -37,13 +36,21 @@ export default {
       return rootStates;
     },
   },
+  created() {
+    window.addEventListener('mouseup', this.mouseUp);
+  },
+  unmounted() {
+    window.removeEventListener('mouseup', this.mouseUp);
+  },
   methods: {
     ...mapActions('engine', ['removeState', 'changeState', 'pull', 'push']),
     ...mapMutations('engine/editor', ['setDrag']),
-    dragOver(event) {
+    mouseMove(event) {
+      event.stopPropagation();
+      event.preventDefault();
+
       if (performance.now() - event.timeStamp > 200) {
-        // catch up by dropping events
-        return
+        return  // catch up by dropping events
       }
 
       if (this.drag) {
@@ -67,7 +74,7 @@ export default {
         }
       }
     },
-    dragEnd() {
+    mouseUp() {
       this.setDrag(null);
     },
   },
