@@ -5,7 +5,7 @@ import { MissingPropertyError } from './exceptions.js'
 const store = {
   state: engine.state,
   commit: (type, payload = undefined) => {
-    engine.mutations[type](store.state, payload);
+    return engine.mutations[type](store.state, payload);
   },
   dispatch: (type, payload = undefined) => {
     return engine.actions[type](store, payload);
@@ -37,7 +37,7 @@ beforeEach(() => {
 describe('States basics', () => {
 
   test('Create state', async () => {
-    const id = store.dispatch('addState', { ...stateDefaults, name: 'a' });
+    const id = store.commit('addState', { ...stateDefaults, name: 'a' });
     expect(store.getters.states).toEqual(expect.arrayContaining([
       expect.objectContaining({ id, name: 'a' }),
     ]));
@@ -53,7 +53,7 @@ describe('States basics', () => {
     store.commit('setStates', { '1': { id: '1', name: 'a' } });
     _setRemoteStates([{ id: '1', name: 'a' }]);
 
-    store.dispatch('changeState', { id: '1', name: 'b' });
+    store.commit('changeState', { id: '1', name: 'b' });
     expect(store.getters.states).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: '1', name: 'b' }),
     ]));
@@ -70,7 +70,7 @@ describe('States basics', () => {
     store.commit('setStates', { '1': { id: '1', name: 'a' } });
     _setRemoteStates([{ id: '1', name: 'a' }]);
 
-    store.dispatch('removeState', { id: '1' });
+    store.commit('removeState', { id: '1' });
     expect(store.getters.states).toEqual([]);
 
     await store.dispatch('push');
@@ -79,8 +79,8 @@ describe('States basics', () => {
   });
 
   test('Destroy added state', async () => {
-    const id = store.dispatch('addState', { ...stateDefaults, name: 'a' });
-    store.dispatch('removeState', { id });
+    const id = store.commit('addState', { ...stateDefaults, name: 'a' });
+    store.commit('removeState', { id });
 
     expect(store.getters.states).toEqual([]);
     await store.dispatch('push');
@@ -88,10 +88,10 @@ describe('States basics', () => {
   });
 
   test('Destroy created state', async () => {
-    const id = store.dispatch('addState', { ...stateDefaults, name: 'a' });
+    const id = store.commit('addState', { ...stateDefaults, name: 'a' });
     await store.dispatch('push');
 
-    store.dispatch('removeState', { id });
+    store.commit('removeState', { id });
 
     expect(store.getters.states).toEqual([]);
     await store.dispatch('push');
@@ -103,19 +103,19 @@ describe('States exceptions', () => {
 
   test('Removing a state needs it to have an id', async () => {
     expect(() => {
-      store.dispatch('removeState', { name: '1' });
+      store.commit('removeState', { name: '1' });
     }).toThrowError(MissingPropertyError)
   });
 
   test('New state needs x, y and room properties', async () => {
     expect(() => {
-      store.dispatch('addState', { y: 0, room: 1 });
+      store.commit('addState', { y: 0, room: 1 });
     }).toThrowError(MissingPropertyError)
     expect(() => {
-      store.dispatch('addState', { x: 0, room: 1 });
+      store.commit('addState', { x: 0, room: 1 });
     }).toThrowError(MissingPropertyError)
     expect(() => {
-      store.dispatch('addState', { x: 0, y: 0 });
+      store.commit('addState', { x: 0, y: 0 });
     }).toThrowError(MissingPropertyError)
   });
 
@@ -157,7 +157,7 @@ describe('States ids', () => {
   });
 
   test('State creation does not change ids', async () => {
-    const id = store.dispatch('addState', { ...stateDefaults, name: 'a' });
+    const id = store.commit('addState', { ...stateDefaults, name: 'a' });
     expect(store.getters.states).toEqual(expect.arrayContaining([
       expect.objectContaining({ id, name: 'a' }),
     ]));
@@ -174,9 +174,9 @@ describe('States ids', () => {
   });
 
    test('Update a created state does not change ids', async () => {
-    const id = store.dispatch('addState', { ...stateDefaults, name: 'a' });
+    const id = store.commit('addState', { ...stateDefaults, name: 'a' });
     await store.dispatch('push');
-    store.dispatch('changeState', { id, name: 'b' });
+    store.commit('changeState', { id, name: 'b' });
 
     expect(store.getters.states).toEqual(expect.arrayContaining([
       expect.objectContaining({ id, name: 'b' }),
@@ -215,7 +215,7 @@ describe('States relationship', () => {
       '5': { id: '5', name: 'a.a.b', parent: '2' },
       '6': { id: '6', name: 'a.a.b.a', parent: '5' },
     });
-    store.dispatch('removeState', { id: '2' });
+    store.commit('removeState', { id: '2' });
     expect(store.getters.states).toEqual(expect.arrayContaining([
       expect.objectContaining({ name: 'a' }),
       expect.objectContaining({ name: 'a.b' }),
@@ -224,11 +224,11 @@ describe('States relationship', () => {
 
   test('Many generations of states can be created (top-down)', async () => {
     const ids = {};
-    ids['a'] = store.dispatch('addState', { ...stateDefaults, name: 'a' });
-    ids['a.a'] = store.dispatch(
+    ids['a'] = store.commit('addState', { ...stateDefaults, name: 'a' });
+    ids['a.a'] = store.commit(
       'addState', { ...stateDefaults, name: 'a.a', parent: ids['a'] }
     );
-    ids['a.a.a'] = store.dispatch(
+    ids['a.a.a'] = store.commit(
       'addState', { ...stateDefaults, name: 'a.a.a', parent: ids['a.a'] }
     );
 
@@ -263,16 +263,16 @@ describe('States relationship', () => {
 
   test('Many generations of states can be created (down-top)', async () => {
     const ids = {};
-    ids['a.a.a'] = store.dispatch(
+    ids['a.a.a'] = store.commit(
       'addState', { ...stateDefaults, name: 'a.a.a' }
     );
-    ids['a.a'] = store.dispatch('addState', { ...stateDefaults, name: 'a.a' });
-    ids['a'] = store.dispatch('addState', { ...stateDefaults, name: 'a' });
+    ids['a.a'] = store.commit('addState', { ...stateDefaults, name: 'a.a' });
+    ids['a'] = store.commit('addState', { ...stateDefaults, name: 'a' });
 
-    store.dispatch('changeState', {
+    store.commit('changeState', {
       id: ids['a.a.a'], parent: { id: ids['a.a'] }
     });
-    store.dispatch('changeState', {
+    store.commit('changeState', {
       id: ids['a.a'], parent: { id: ids['a'] }
     });
 

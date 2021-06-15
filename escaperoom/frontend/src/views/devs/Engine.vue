@@ -90,7 +90,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex';
+import { mapActions, mapMutations, mapGetters } from 'vuex';
 
 const MODULE = 'engine'
 
@@ -100,9 +100,10 @@ export default {
     ...mapGetters(MODULE, ['states']),
   },
   methods: {
-    ...mapActions('engine', ['removeState', 'changeState', 'pull', 'push']),
+    ...mapActions('engine', ['pull', 'push']),
+    ...mapMutations('engine', ['changeState', 'removeState']),
     addState() {
-      this.$store.dispatch('engine/addState', { x: 0, y: 0, room: 1 });
+      this.$store.commit('engine/addState', { x: 0, y: 0, room: 1 });
     }
   },
 };

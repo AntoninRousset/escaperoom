@@ -6,7 +6,7 @@
     <div
       v-for="state in states"
       :key="state.id"
-      :ref="(el) => statesRefs.push(el)"
+      :ref="(element) => statesRefs.push(element)"
       class="engine-editor-state"
       :style="{ left: state.x*step + 'px', top: state.y*step + 'px', }"
       @mousedown="mouseDown($event, state)"
@@ -52,7 +52,7 @@ export default {
     this.observer.disconnect();
   },
   methods: {
-    ...mapActions('engine', ['removeState', 'changeState', 'pull', 'push']),
+    ...mapActions('engine', ['pull', 'push']),
     ...mapMutations('engine/editor', ['setDrag']),
     resizeToContent() {
       let width = 0;
@@ -63,8 +63,8 @@ export default {
         width = Math.max(stateRect.right - gridRect.left, width);
         height = Math.max(stateRect.bottom - gridRect.top, height);
       }
-        this.width = width;
-        this.height = height;
+      this.width = width;
+      this.height = height;
     },
     mouseDown(event, state) {
       this.setDrag({
