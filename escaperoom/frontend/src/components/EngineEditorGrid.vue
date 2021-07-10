@@ -11,8 +11,14 @@
       :style="{ left: state.x*step + 'px', top: state.y*step + 'px', }"
       @mousedown="mouseDown($event, state)"
     >
-      <div class="engine-editor-state-header">
+      <div class="bg-red d-flex justify-space-between">
         {{ state.name }}
+        <div
+          class="mx-1"
+          @click="removeState({ id: state.id })"
+        >
+          X
+        </div>
       </div>
       <engine-editor-grid
         v-if="Object.keys(state.children).length > 0"
@@ -53,15 +59,18 @@ export default {
   },
   methods: {
     ...mapActions('engine', ['pull', 'push']),
+    ...mapMutations('engine', ['removeState']),
     ...mapMutations('engine/editor', ['setDrag']),
     resizeToContent() {
       let width = 0;
       let height = 0;
       const gridRect = this.$el.getBoundingClientRect()
       for (const stateRef of this.statesRefs) {
-        const stateRect = stateRef.getBoundingClientRect();
-        width = Math.max(stateRect.right - gridRect.left, width);
-        height = Math.max(stateRect.bottom - gridRect.top, height);
+        if (stateRef) {
+          const stateRect = stateRef.getBoundingClientRect();
+          width = Math.max(stateRect.right - gridRect.left, width);
+          height = Math.max(stateRect.bottom - gridRect.top, height);
+        }
       }
       this.width = width;
       this.height = height;
@@ -89,8 +98,5 @@ export default {
   .engine-editor-grid {
     margin: 10px;
   }
-}
-.engine-editor-state-header {
-  background: red;
 }
 </style>
