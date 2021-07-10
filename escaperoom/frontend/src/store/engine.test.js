@@ -1,4 +1,5 @@
-import { _getRemoteStates, _setRemoteStates } from 'escaperoom-client'
+import { _getRemoteStates, _getRemoteTransitions,
+	 _setRemoteStates, _setRemoteTransitions } from 'escaperoom-client'
 import engine from './engine'
 import { MissingPropertyError } from './exceptions.js'
 
@@ -11,7 +12,7 @@ const store = {
     return engine.actions[type](store, payload);
   },
   getters: new Proxy(engine.getters, {
-    get(target, name) { return target[name](store.state); }
+    get(target, name) { return target[name](store.state, store.getters); }
   }),
 };
 
@@ -19,19 +20,34 @@ const stateDefaults = { room: 1, x: 1, y: 1 };
 
 function getLocalStates() {
   return Object.fromEntries(
-    store.getters.states.map(state => [state.name, state])
+    store.getters.states.map((state) => [state.name, state])
   );
+}
+
+function getLocalTransitions() {
+  return Object.fromEntries(store.getters.transitions.map(
+    (transition) => [transition.name, transition]
+  ));
 }
 
 function getRemoteStates() {
   return Object.fromEntries(
-    _getRemoteStates().map(state => [state.name, state])
+    _getRemoteStates().map((state) => [state.name, state])
+  );
+}
+
+function getRemoteTransitions() {
+  return Object.fromEntries(
+    _getRemoteTransitions().map((transition) => [transition.name, transition])
   );
 }
 
 beforeEach(() => {
   _setRemoteStates([]);
+  _setRemoteTransitions([]);
   store.commit('_clean');
+    _setRemoteStates([{ id: '1', name: 'a' }, { id: '2', name: 'b' }]);
+    _setRemoteTransitions([]);
 });
 
 describe('States basics', () => {
@@ -59,7 +75,6 @@ describe('States basics', () => {
     ]));
 
     await store.dispatch('push');
-    console.log(getRemoteStates())
     expect(getRemoteStates()['b']).toMatchObject({ name: 'b' });
     expect(store.getters.states).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: '1', name: 'b' }),
@@ -80,9 +95,10 @@ describe('States basics', () => {
 
   test('Destroy added state', async () => {
     const id = store.commit('addState', { ...stateDefaults, name: 'a' });
-    store.commit('removeState', { id });
 
+    store.commit('removeState', { id });
     expect(store.getters.states).toEqual([]);
+
     await store.dispatch('push');
     expect(store.getters.states).toEqual([]);
   });
@@ -92,11 +108,115 @@ describe('States basics', () => {
     await store.dispatch('push');
 
     store.commit('removeState', { id });
-
     expect(store.getters.states).toEqual([]);
+
     await store.dispatch('push');
     expect(store.getters.states).toEqual([]);
   });
+});
+
+describe('Transitions basics', () => {
+
+  beforeEach(() => {
+    store.commit('_clean');
+    _setRemoteStates([{ id: '1', name: 'a' }, { id: '2', name: 'b' }]);
+    _setRemoteTransitions([]);
+    store.commit('setStates', {
+      '1': { id: '1', name: 'a' }, '2': { id: '2', name: 'b' },
+    });
+  });
+
+  test('Create transition', async () => {
+    const id = store.commit(
+      'addTransition', { name: 'a->b', src: { id: '1' }, dest: { id: '2' }}
+    );
+    expect(store.getters.transitions).toEqual(expect.arrayContaining([
+      expect.objectContaining(
+        { id, name: 'a->b',
+          src: expect.objectContaining({ id: '1' }),
+          dest: expect.objectContaining({ id: '2' }),
+        }
+      )
+    ]));
+
+    await store.dispatch('push');
+    expect(getRemoteTransitions()['a->b']).toMatchObject({ name: 'a->b' });
+    expect(store.getters.transitions).toEqual(expect.arrayContaining([
+      expect.objectContaining(
+        { id, name: 'a->b',
+          src: expect.objectContaining({ id: '1' }),
+          dest: expect.objectContaining({ id: '2' }),
+        }
+      )
+    ]));
+  });
+
+  test('Update transition', async () => {
+    store.commit('setTransitions', {
+      '1': { id: '1', name: 'a->b', src: '1', dest: '2' },
+    });
+    _setRemoteTransitions([{ id: '1', name: 'a->b', src: '1', dest: '2' }]);
+
+    store.commit('changeTransition', {
+      id: '1', name: 'b->a', src: '2', dest: '1'
+    });
+    expect(store.getters.transitions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: '1', name: 'b->a',
+        src: expect.objectContaining({ id: '2' }),
+        dest: expect.objectContaining({ id: '1' }),
+      })
+    ]));
+
+    await store.dispatch('push');
+    expect(getRemoteTransitions()['b->a']).toMatchObject({ name: 'b->a' });
+    expect(store.getters.transitions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: '1', name: 'b->a',
+        src: expect.objectContaining({ id: '2' }),
+        dest: expect.objectContaining({ id: '1' }),
+      })
+    ]));
+  });
+
+  test('Destroy transition', async () => {
+    store.commit('setTransitions', {
+      '1': { id: '1', name: 'a->b', src: '1', dest: '2' }
+    });
+    _setRemoteTransitions([{ id: '1', name: 'a->b', src: '1', dest: '2' }]);
+
+    store.commit('removeTransition', { id: '1' });
+    expect(store.getters.transitions).toEqual([]);
+
+    await store.dispatch('push');
+    expect(getRemoteTransitions()).toEqual({});
+    expect(store.getters.transitions).toEqual([]);
+  })
+
+  test('Destroy added transition', async () => {
+    const id = store.commit(
+      'addTransition', { name: 'a->b', src: { id: '1' }, dest: { id: '2' }}
+    );
+
+    store.commit('removeTransition', { id });
+    expect(store.getters.transitions).toEqual([]);
+
+    await store.dispatch('push');
+    expect(store.getters.transitions).toEqual([]);
+  });
+
+  test('Destroy created transition', async () => {
+    const id = store.commit(
+      'addTransition', { name: 'a->b', src: { id: '1' }, dest: { id: '2' }}
+    );
+
+    store.commit('removeTransition', { id });
+    expect(store.getters.transitions).toEqual([]);
+
+    await store.dispatch('push');
+    expect(store.getters.transitions).toEqual([]);
+  });
+
 });
 
 describe('States exceptions', () => {
@@ -206,7 +326,7 @@ describe('States relationship', () => {
     ]));
   }
 
-  test('Removing parent should also remove its children', async () => {
+  test('Removing state should also remove its children', async () => {
     store.commit('setStates', {
       '1': { id: '1', name: 'a', parent: null },
       '2': { id: '2', name: 'a.a', parent: '1' },
@@ -303,5 +423,23 @@ describe('States relationship', () => {
 
     await store.dispatch('pull');
     expect(store.getters.states).toEqual(expectedLocalStates);
+  });
+});
+
+describe('Transitions relationship', () => {
+
+  test('Removing connected state should remove its transition', async () => {
+    store.commit('setStates', {
+      '1': { id: '1', name: 'a' },
+      '2': { id: '2', name: 'b' },
+      '3': { id: '3', name: 'c' },
+    });
+    store.commit('setTransitions', {
+      '1': { id: '1', name: 'a->b', src: '1', dest: '2' },
+      '2': { id: '2', name: 'b->c', src: '2', dest: '3' },
+    });
+
+    store.commit('removeState', { id: '2' });
+    expect(store.getters.transitions).toEqual([]);
   });
 });
