@@ -275,9 +275,16 @@ export default {
           states.map(state => [state.id, state])
         );
         commit('setStates', states);
-        console.debug('Engine pulled')
+      }).then(() => {
+        engineApi.statetransitionsList().then((transitions) => {
+          transitions = Object.fromEntries(
+            transitions.map(transition => [transition.id, transition])
+          );
+          commit('setTransitions', transitions);
+          console.debug('Engine pulled')
+        });
       }).catch((error) => {
-        console.error('Could not download states', error);
+        console.error('Could not pull', error);
       });
     },
     push({ commit, state }) {

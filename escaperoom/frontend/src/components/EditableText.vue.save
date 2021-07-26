@@ -1,0 +1,57 @@
+<template>
+  <input
+    ref="input"
+    type="text"
+    :value="savedValue"
+    :placeholder="placeholder"
+    :style="{ width }"
+    @blur="blur"
+    @change="emit($event)"
+    @focus="focus"
+    @input="input"
+    @mousedown="mouseDown"
+  >
+</template>
+
+<script>
+export default {
+  name: 'EditableText',
+  props: {
+    placeholder: {
+      default: "",
+      type: String,
+    },
+    value: {
+      required: true,
+      type: [String, undefined, null],
+    },
+  },
+  data: () => ({
+    editValue: null,
+  }),
+  computed: {
+    savedValue() {
+      return this.editValue || this.value;
+    },
+    width() {
+      return (this.text || this.placeholder).length*1.05 + 'ch';
+    },
+  },
+  methods: {
+    mouseDown(event) {
+      this.$refs['input'].select();
+      event.stopPropagation();
+      event.preventDefault();
+    },
+    blur() {
+      this.savedValue = null;
+    },
+    focus() {
+      this.savedValue = this.value;
+    },
+    input() {
+      this.savedValue += 
+    },
+  },
+}
+</script>

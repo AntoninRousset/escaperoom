@@ -5,13 +5,14 @@
   >
     <engine-editor-grid
       :states="rootStates"
+      :transitions="perStateTransitions[null] || []"
     />
   </div>
 </template>
 
 <script>
 import { mapActions, mapGetters, mapMutations, mapState } from 'vuex';
-import EngineEditorGrid from './EngineEditorGrid.vue'
+import EngineEditorGrid from './Grid.vue'
 
 // TODO repair leak: after lot of drag, the responsiveness decreases
 
@@ -20,7 +21,7 @@ export default {
   components: { EngineEditorGrid },
   computed: {
     ...mapState('engine/editor', ['drag', 'step']),
-    ...mapGetters('engine/editor', ['rootStates']),
+    ...mapGetters('engine/editor', ['perStateTransitions', 'rootStates']),
   },
   created() {
     window.addEventListener('mouseup', this.mouseUp);

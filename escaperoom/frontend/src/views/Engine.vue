@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import EngineEditor from '../components/EngineEditor.vue'
+import { EngineEditor } from '../components/EngineEditor'
 
 export default {
   name: 'Engine',
