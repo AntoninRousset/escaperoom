@@ -57,7 +57,9 @@ class StateTest(TestCase):
 
         client = APIClient()
         response = client.get(
-            reverse('statetransition-list'), {'room': ROOM_ID}, format='json'
+            reverse('statetransition-list'),
+            {'from_state__room': ROOM_ID, 'to_state__room': ROOM_ID},
+            format='json'
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response, HttpResponse)
