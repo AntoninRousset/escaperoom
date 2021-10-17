@@ -1,27 +1,14 @@
 from datetime import datetime, timedelta, timezone
 from django.test import TestCase
-
-from escaperoom.models import Room, State, Variable
+from engine.models import State, Variable
 
 TIMEZONE = timezone.utc
 
 
-class StateTest(TestCase):
+class StateModelTest(TestCase):
     fixtures = ('test_state',)
 
-    def test_state_constraint_not_own_parent(self):
-        State(
-            id=42,
-            name='test',
-            room=Room.objects.get(pk=1),
-            x=0,
-            y=0
-        )
-
-    def test_statetransition_constraint_different_states(self):
-        pass
-
-    def test_states(self):
+    def test_is_active(self):
         states = {
             'a': State.objects.get(pk=1),
             'b': State.objects.get(pk=2),
@@ -55,10 +42,10 @@ class StateTest(TestCase):
         self.assertEqual(states['b'].is_active(at=at), True)
 
 
-class VariableTest(TestCase):
+class VariableModelTest(TestCase):
     fixtures = ('test_variable',)
 
-    def test_variable(self):
+    def test_values(self):
         variables = {
             'str': Variable.objects.get(pk=1),
             'int': Variable.objects.get(pk=2),
@@ -117,7 +104,7 @@ class VariableTest(TestCase):
         self.assertEqual(variables['str'].value(at=at), 'world')
         self.assertEqual(variables['int'].value(at=at), 23)
         self.assertAlmostEqual(variables['float'].value(at=at), 1.6180)
-        self.assertEqual(variables['bool'].value(at=at), True)
+        self.assertEqual(variables['bool'].value(at=at), False)
         self.assertEqual(variables['toggle'].value(at=at), False)
         self.assertAlmostEqual(variables['addition'].value(at=at), 24.6180)
         self.assertAlmostEqual(variables['substraction'].value(at=at), 21.382)

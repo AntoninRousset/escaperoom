@@ -11,7 +11,7 @@
 
 ### STATES ###
 
-- model: escaperoom.state
+- model: engine.state
   pk: 1
   fields:
         name: 'a'
@@ -20,7 +20,7 @@
         is_entrypoint: True
         x: 0
         y: 0
-- model: escaperoom.state
+- model: engine.state
   pk: 2
   fields:
         name: 'b'
@@ -28,7 +28,7 @@
         room: 1
         x: 18
         y: 2
-- model: escaperoom.state
+- model: engine.state
   pk: 3
   fields:
         name: 'a.a'
@@ -37,7 +37,7 @@
         is_entrypoint: True
         x: 0
         y: 0
-- model: escaperoom.state
+- model: engine.state
   pk: 4
   fields:
         name: 'a.b'
@@ -45,7 +45,7 @@
         room: 1
         x: 4
         y: 0
-- model: escaperoom.state
+- model: engine.state
   pk: 5
   fields:
         name: 'a.c'
@@ -53,7 +53,7 @@
         room: 1
         x: 9
         y: 1
-- model: escaperoom.state
+- model: engine.state
   pk: 6
   fields:
         name: 'a.d'
@@ -61,7 +61,7 @@
         room: 1
         x: 1
         y: 6
-- model: escaperoom.state
+- model: engine.state
   pk: 7
   fields:
         name: 'a.d.a'
@@ -69,7 +69,7 @@
         room: 1
         x: 0
         y: 0
-- model: escaperoom.state
+- model: engine.state
   pk: 8
   fields:
         name: 'a.d.b'
@@ -77,7 +77,7 @@
         room: 1
         x: 4
         y: 4
-- model: escaperoom.state
+- model: engine.state
   pk: 9
   fields:
         name: 'a.d.b.a'
@@ -85,7 +85,7 @@
         room: 1
         x: 0
         y: 0
-- model: escaperoom.state
+- model: engine.state
   pk: 10
   fields:
         name: 'a.d.b.b'
@@ -93,7 +93,7 @@
         room: 1
         x: 0
         y: 4
-- model: escaperoom.state
+- model: engine.state
   pk: 11
   fields:
         name: 'a'
@@ -104,7 +104,7 @@
         is_entrypoint: True
         x: 0
         y: 0
-- model: escaperoom.state
+- model: engine.state
   pk: 12
   fields:
         name: 'b'
@@ -112,54 +112,46 @@
         room: 2
         x: 4
         y: 0
-- model: escaperoom.state
-  pk: 42
-  fields:
-        name: 'temp'
-        parent: null
-        room: 1
-        x: 4
-        y: 0
 
 
 ### STATE TRANSITIONS ###
 
-- model: escaperoom.statetransition
+- model: engine.statetransition
   pk: 1
   fields:
         from_state: 1
         to_state: 2
-- model: escaperoom.statetransition
+- model: engine.statetransition
   pk: 2
   fields:
         from_state: 3
         to_state: 4
-- model: escaperoom.statetransition
+- model: engine.statetransition
   pk: 3
   fields:
         from_state: 4
         to_state: 5
-- model: escaperoom.statetransition
+- model: engine.statetransition
   pk: 4
   fields:
         from_state: 5
         to_state: 4
-- model: escaperoom.statetransition
+- model: engine.statetransition
   pk: 5
   fields:
         from_state: 4
         to_state: 6
-- model: escaperoom.statetransition
+- model: engine.statetransition
   pk: 6
   fields:
         from_state: 7
         to_state: 8
-- model: escaperoom.statetransition
+- model: engine.statetransition
   pk: 7
   fields:
         from_state: 9
         to_state: 10
-- model: escaperoom.statetransition
+- model: engine.statetransition
   pk: 8
   fields:
         from_state: 11
@@ -168,49 +160,49 @@
 
 ### STATE CHANGES ###
 
-- model: escaperoom.statechange
+- model: engine.statechange
   pk: 1
   fields:
         timestamp: '2019-11-05T12:00:01+00:00'
         state: 1  # "a"
         value: True
-- model: escaperoom.statechange
+- model: engine.statechange
   pk: 2
   fields:
         timestamp: '2019-11-05T12:00:01+00:00'
         state: 3  # "a.a"
         value: True
-- model: escaperoom.statechange
+- model: engine.statechange
   pk: 3
   fields:
         timestamp: '2019-11-05T12:00:02+00:00'
         state: 3  # "a.a"
         value: False
-- model: escaperoom.statechange
+- model: engine.statechange
   pk: 4
   fields:
         timestamp: '2019-11-05T12:00:02+00:00'
         state: 4  # "a.b"
         value: True
-- model: escaperoom.statechange
+- model: engine.statechange
   pk: 5
   fields:
         timestamp: '2019-11-05T12:00:03+00:00'
         state: 1  # "a"
         value: False
-- model: escaperoom.statechange
+- model: engine.statechange
   pk: 6
   fields:
         timestamp: '2019-11-05T12:00:03+00:00'
         state: 4  # "a.b"
         value: False
-- model: escaperoom.statechange
+- model: engine.statechange
   pk: 7
   fields:
         timestamp: '2019-11-05T12:00:03+00:00'
         state: 2  # "b"
         value: True
-- model: escaperoom.statechange
+- model: engine.statechange
   pk: 8
   fields:
         timestamp: '2019-11-05T12:00:01+00:00'

@@ -1,11 +1,3 @@
-*.db
 .env
-
-dist/
-node_modules/
-openapitools.json
-/escaperoom/frontend/client/*
-!/escaperoom/frontend/client/.openapi-generator-ignore
-!/escaperoom/frontend/client/tsconfig.json
+/data.dev/
 __pycache__/
-.openapi-generator

@@ -1,26 +1,23 @@
+from django.conf import settings
 from django.contrib import admin
-from django.contrib.staticfiles.views import serve
 from django.urls import include, path, re_path
 from django.views.defaults import page_not_found
 from escaperoom import views
-from rest_framework.routers import SimpleRouter
 
-
-router = SimpleRouter()
-router.register(r'states', views.StateViewSet, basename='state')
-router.register(r'statetransitions', views.StateTransitionViewSet,
-                basename='statetransition')
 
 api_urlpatterns = [
+    path('engine/', include('engine.urls'), name='engine'),
+    path('network', include('network.urls'), name='network'),
     path('schema/', views.schema, name='schema'),
     path('schema/swagger-ui/', views.swagger, name='swagger-ui'),
     path('schema/redoc/', views.redoc, name='redoc'),
-] + router.urls
+    re_path('(.*)', page_not_found),
+]
 
 urlpatterns = [
-    path('api/', include(api_urlpatterns), name='api'),
-    re_path('api/(.*)', page_not_found),
     path('admin/', admin.site.urls),
-    re_path('admin/(.*)', page_not_found),
-    re_path('.*', serve, {'path': 'dist/index.html'}, name='app'),
+    path('api/', include(api_urlpatterns), name='api'),
+    path(settings.STATIC_URL[1:] + '<path:path>', views.serve_static),
+    path(settings.MEDIA_URL[1:] + 'media/<path:path>', views.serve_media),
+    re_path('(?P<path>.*)', views.app, name='app'),
 ]

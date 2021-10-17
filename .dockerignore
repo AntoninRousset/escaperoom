@@ -1,0 +1,13 @@
+.dockerignore
+.env
+.git
+.gitignore
+__pycache__/
+Dockerfile
+/docker-compose.yaml
+/escaperoom.desktop
+/LICENSE
+/nginx.conf.template
+/README.md
+/redis.conf
+/data.dev/

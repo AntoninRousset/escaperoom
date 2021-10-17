@@ -1,28 +1,28 @@
 ### VARIABLES ###
 
-- model: escaperoom.variable
+- model: engine.variable
   pk: 1
   fields:
         name: 'str'
         type: 'STR'
-- model: escaperoom.variable
+- model: engine.variable
   pk: 2
   fields:
         name: 'int'
         type: 'INT'
-- model: escaperoom.variable
+- model: engine.variable
   pk: 3
   fields:
         name: 'float'
         type: 'FLO'
         default_value: '3.1415'
-- model: escaperoom.variable
+- model: engine.variable
   pk: 4
   fields:
         name: 'bool'
         type: 'BOO'
         locked_at: '2019-11-05T12:00:07+00:00'
-- model: escaperoom.variable
+- model: engine.variable
   pk: 5
   fields:
         name: 'toggle'
@@ -31,52 +31,52 @@
 
 ### OPERATORS ###
 
-- model: escaperoom.operator
+- model: engine.operator
   pk: 7
   fields:
         type: 'ADD'
         variable_a: 2  # "int"
         variable_b: 3  # "float"
-- model: escaperoom.variable
+- model: engine.variable
   pk: 6
   fields:
         name: 'addition'
         type: 'FLO'
         operator: 7  # "add"
 
-- model: escaperoom.operator
+- model: engine.operator
   pk: 8
   fields:
         type: 'SUB'
         variable_a: 2  # "int"
         variable_b: 3  # "float"
-- model: escaperoom.variable
+- model: engine.variable
   pk: 7
   fields:
         name: 'substraction'
         type: 'FLO'
         operator: 8  # "substract"
 
-- model: escaperoom.operator
+- model: engine.operator
   pk: 9
   fields:
         type: 'MUL'
         variable_a: 2  # "int"
         variable_b: 3  # "float"
-- model: escaperoom.variable
+- model: engine.variable
   pk: 8
   fields:
         name: 'multiplication'
         type: 'FLO'
         operator: 9  # "multiply"
 
-- model: escaperoom.operator
+- model: engine.operator
   pk: 10
   fields:
         type: 'DIV'
         variable_a: 2  # "int"
         variable_b: 3  # "float"
-- model: escaperoom.variable
+- model: engine.variable
   pk: 9
   fields:
         name: 'division'
@@ -86,13 +86,13 @@
 
 ### PIPELINE ###
 
-- model: escaperoom.operator
+- model: engine.operator
   pk: 11
   fields:
         type: 'ADD'
         variable_a: 7  # "substraction"
         variable_b: 9  # "division"
-- model: escaperoom.variable
+- model: engine.variable
   pk: 10
   fields:
         name: 'pipeline'
@@ -100,69 +100,69 @@
         operator: 11  # "pipeline"
 
 
-### MEASUREMENTS ###
+### VARIABLE CHANGES ###
 
-- model: escaperoom.measurement
+- model: engine.variablechange
   pk: 1
   fields:
         timestamp: '2019-11-05T12:00:00+00:00'
         variable: 6  # "addition"
         value: '404'
-- model: escaperoom.measurement
+- model: engine.variablechange
   pk: 2
   fields:
         timestamp: '2019-11-05T12:00:01+00:00'
         variable: 1  # "str"
         value: 'hello'
-- model: escaperoom.measurement
+- model: engine.variablechange
   pk: 3
   fields:
         timestamp: '2019-11-05T12:00:02+00:00'
         variable: 2  # "int"
         value: '42'
-- model: escaperoom.measurement
+- model: engine.variablechange
   pk: 4
   fields:
         timestamp: '2019-11-05T12:00:03+00:00'
         variable: 3  # "float"
         value: '2.7183'
-- model: escaperoom.measurement
+- model: engine.variablechange
   pk: 5
   fields:
         timestamp: '2019-11-05T12:00:04+00:00'
         variable: 4  # "bool"
         value: '2'
-- model: escaperoom.measurement
+- model: engine.variablechange
   pk: 6
   fields:
         timestamp: '2019-11-05T12:00:06+00:00'
         variable: 5  # "toggle"
         value: '3'
-- model: escaperoom.measurement
+- model: engine.variablechange
   pk: 7
   fields:
         timestamp: '2019-11-05T12:00:07+00:00'
         variable: 5  # "toggle"
         value: '6'
-- model: escaperoom.measurement
+- model: engine.variablechange
   pk: 8
   fields:
         timestamp: '2019-11-05T12:00:08+00:00'
         variable: 4  # "bool"
         value: '0'
-- model: escaperoom.measurement
+- model: engine.variablechange
   pk: 9
   fields:
         timestamp: '2019-11-05T12:00:09+00:00'
         variable: 3  # "float"
         value: '1.6180'
-- model: escaperoom.measurement
+- model: engine.variablechange
   pk: 10
   fields:
         timestamp: '2019-11-05T12:00:09+00:00'
         variable: 2  # "int"
         value: '23'
-- model: escaperoom.measurement
+- model: engine.variablechange
   pk: 11
   fields:
         timestamp: '2019-11-05T12:00:10+00:00'

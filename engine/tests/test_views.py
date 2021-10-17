@@ -2,16 +2,14 @@ import json
 from django.http import HttpResponse
 from django.test import TestCase
 from django.urls import reverse
+from engine.models import State, StateTransition
+from engine.serializers import StateSerializer, StateTransitionSerializer
 from rest_framework.test import APIClient
-
-from ..models import State, StateTransition
-from ..serializers import StateSerializer, StateTransitionSerializer
-
 
 ID_RANGE = (1, 2**32 - 1)
 
 
-class StateTest(TestCase):
+class StateViewTest(TestCase):
     fixtures = ['test_state']
 
     def test_get_state_list(self):

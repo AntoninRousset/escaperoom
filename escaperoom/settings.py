@@ -32,6 +32,7 @@ ALLOWED_HOSTS = '*'
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,9 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_filters',
-    'escaperoom.apps.EscaperoomConfig',
     'rest_framework',
     'drf_spectacular',
+    'escaperoom',
+    'engine',
+    'network',
 ]
 
 MIDDLEWARE = [
@@ -72,19 +75,18 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = 'escaperoom.asgi.application'
 WSGI_APPLICATION = 'escaperoom.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASES = {
-    'default': env.db(default='sqlite:///escaperoom.db')
+    'default': env.db(default='postgres://escaperoom:escaperoom@:/escaperoom')
 }
 
 
 # Password validation
-# https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -98,28 +100,25 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
 # Internationalization
-# https://docs.djangoproject.com/en/3.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.0/howto/static-files/
+# Static files
+
+X_ACCEL_REDIRECT = env('X_ACCEL_REDIRECT', default=False)
+X_ACCEL_REDIRECT_PREFIX = '/protected'
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'static'
+STATIC_ROOT = env('STATIC_ROOT', default=None)
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -135,10 +134,47 @@ REST_FRAMEWORK = {
     )
 }
 
+
+# Media files
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = env('MEDIA_ROOT', default=None)
+
 # Spectacular
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Escaperoom API',
     'DESCRIPTION': 'Take control of your escaperooms',
     'VERSION': '0.0.0',
+}
+
+
+# Cache
+
+CACHES = {
+    'default': env.cache_url(
+        'REDIS_URL', default='rediscache:///var/run/redis/redis.sock'
+    ),
+}
+
+
+# Channels
+
+REDIS_URL = CACHES['default']['LOCATION']
+if REDIS_URL.startswith('unix:'):
+    REDIS_HOST = REDIS_URL
+else:
+    REDIS_HOST = REDIS_URL.rsplit(':', maxsplit=1)
+    REDIS_HOST = (REDIS_HOST[0], int(REDIS_HOST[1]))
+
+
+# Channels
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [REDIS_HOST],
+        },
+    }
 }

@@ -1,9 +1,5 @@
-from escaperoom import models
+from engine import models
 from rest_framework import serializers
-
-
-class StateListSerializer(serializers.ListSerializer):
-    pass
 
 
 class StateSerializer(serializers.ModelSerializer):
@@ -11,15 +7,10 @@ class StateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.State
-        list_serializer_class = StateListSerializer
         fields = (
             'id', 'room', 'name', 'parent', 'is_entrypoint', 'is_active', 'x',
             'y'
         )
-
-
-class StateTransitionListSerializer(serializers.ListSerializer):
-    pass
 
 
 class StateTransitionSerializer(serializers.ModelSerializer):
@@ -33,5 +24,4 @@ class StateTransitionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.StateTransition
-        list_serializer_class = StateTransitionListSerializer
         fields = ('id', 'src', 'dest')

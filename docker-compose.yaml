@@ -1,0 +1,58 @@
+version: "3"
+services:
+    app:
+        container_name: escaperoom_hypercorn
+        build:
+            context: .
+        depends_on:
+          - db
+          - redis
+        environment:
+          - X_ACCEL_REDIRECT=true
+          - BIND=unix:/var/run/hypercorn/asgi.sock
+          - DATABASE_URL=postgres://${POSTGRES_USER:-escaperoom}:${POSTGRES_PASSWORD:-escaperoom}@:/${POSTGRES_DB:-escaperoom}
+          - DJANGO_SETTINGS_MODULE=escaperoom.settings
+          - MODULE_NAME=escaperoom.asgi
+          - PASSWORD=${APP_PASSWORD:-escaperoom}
+          - USERNAME=${APP_USERNAME:-escaperoom}
+        restart: unless-stopped
+        volumes:
+          - /var/run/hypercorn/:/var/run/hypercorn/
+          - /var/www/escaperoom/:/var/www/escaperoom/
+          - /var/run/postgresql/:/var/run/postgresql/
+          - /var/run/redis/:/var/run/redis/
+    db:
+        container_name: escaperoom_postgresql
+        environment:
+          - POSTGRES_DB=${POSTGRES_DB:-escaperoom}
+          - POSTGRES_USER=${DB_USER:-escaperoom}
+          - POSTGRES_PASSWORD=${DB_PASSWORD:-escaperoom}
+        image: postgres:14
+        volumes:
+          - /var/run/postgresql/:/var/run/postgresql/
+          - ./data.dev/postgresql/:/var/lib/postgresql/data/
+    nginx:
+        container_name: escaperoom_nginx
+        depends_on:
+          - app
+        environment:
+          - APP_UPSTREAM=unix:/var/run/hypercorn/asgi.sock
+          - STATIC_ROOT=/var/www/escaperoom/static/
+          - MEDIA_ROOT=/var/www/escaperoom/media/
+        image: nginx
+        ports:
+          - 80:80
+        volumes:
+          - /var/run/hypercorn/:/var/run/hypercorn/
+          - /var/www/escaperoom/:/var/www/escaperoom/
+          - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+    redis:
+        container_name: escaperoom_redis
+        command: [
+            "/bin/sh", "-c", "redis-server /usr/local/etc/redis/redis.conf"
+        ]
+        image: redis
+        volumes:
+          - ./data.dev/redis/:/data/
+          - /var/run/redis/:/var/run/redis/
+          - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
